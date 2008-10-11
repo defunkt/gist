@@ -22,8 +22,7 @@ require 'net/http'
 module Gist
   extend self
 
-  @@gist_url    = 'http://gist.github.com/%d.txt'
-  @@gist_regexp = Regexp.new('http://gist.github.com/(\d+)')
+  @@gist_url = 'http://gist.github.com/%d.txt'
 
   def read(gist_id)
     return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
@@ -33,8 +32,7 @@ module Gist
   def write(content)
     url = URI.parse('http://gist.github.com/gists')
     req = Net::HTTP.post_form(url, data(nil, nil, content))
-
-    copy req.body[@@gist_regexp]
+    copy req['Location']
   end
 
   def help
@@ -43,10 +41,13 @@ module Gist
 
 private
   def copy(content)
-    return content if `which pbcopy`.strip == ''
-
-    IO.popen('pbcopy', 'r+') do |clipboard|
-      clipboard.puts content
+    case RUBY_PLATFORM
+    when /darwin/
+      return content if `which pbcopy`.strip == ''
+      IO.popen('pbcopy', 'r+') { |clip| clip.puts content }
+    when /linux/
+      return content if `which xclip`.strip == ''
+      IO.popen('xclip', 'r+') { |clip| clip.puts content }
     end
 
     content
