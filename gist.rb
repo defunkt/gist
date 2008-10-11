@@ -1,8 +1,20 @@
 #!/usr/bin/env ruby
 
-# cat file.txt | gist
-# echo hi | gist
-# gist 1234 > something.txt
+=begin
+
+INSTALL:
+
+  curl http://github.com/defunkt/gist/tree/master%2Fgist.rb?raw=true > gist &&
+  chmod 755 gist &&
+  sudo mv gist /usr/local/bin/gist
+
+USE:
+
+  cat file.txt | gist
+  echo hi | gist
+  gist 1234 > something.txt
+
+=end
 
 require 'open-uri'
 require 'net/http'
@@ -14,6 +26,7 @@ module Gist
   @@gist_regexp = Regexp.new('http://gist.github.com/(\d+)')
 
   def read(gist_id)
+    return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
     open(@@gist_url % gist_id).read
   end
 
@@ -22,6 +35,10 @@ module Gist
     req = Net::HTTP.post_form(url, data(nil, nil, content))
 
     copy req.body[@@gist_regexp]
+  end
+
+  def help
+    "USE:\n  " + File.read(__FILE__).match(/USE:(.+?)=end/m)[1].strip
   end
 
 private
