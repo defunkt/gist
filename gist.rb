@@ -57,7 +57,14 @@ private
       'file_ext[gistfile1]'      => ext,
       'file_name[gistfile1]'     => name,
       'file_contents[gistfile1]' => content
-    }
+    }.merge(auth)
+  end
+
+  def auth
+    user  = `git config --global github.user`.strip
+    token = `git config --global github.token`.strip
+
+    user.empty? ? {} : { :login => user, :token => token }
   end
 end
 
