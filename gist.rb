@@ -11,7 +11,7 @@ INSTALL:
 USE:
 
   cat file.txt | gist
-  echo hi | gist
+  echo secret | gist --private  # or -p
   gist 1234 > something.txt
 
 =end
@@ -22,17 +22,17 @@ require 'net/http'
 module Gist
   extend self
 
-  @@gist_url    = 'http://gist.github.com/%d.txt'
-  @@gist_regexp = Regexp.new('http://gist.github.com/(\d+)')
+  @@gist_url    = 'http://gist.github.com/%s.txt'
+  @@gist_regexp = Regexp.new('http://gist.github.com/([\da-f]+)')
 
   def read(gist_id)
     return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
     open(@@gist_url % gist_id).read
   end
 
-  def write(content)
+  def write(content, private_gist)
     url = URI.parse('http://gist.github.com/gists')
-    req = Net::HTTP.post_form(url, data(nil, nil, content))
+    req = Net::HTTP.post_form(url, data(nil, nil, content, private_gist))
 
     copy req.body[@@gist_regexp]
   end
@@ -52,12 +52,12 @@ private
     content
   end
 
-  def data(name, ext, content)
+  def data(name, ext, content, private_gist)
     return {
       'file_ext[gistfile1]'      => ext,
       'file_name[gistfile1]'     => name,
       'file_contents[gistfile1]' => content
-    }.merge(auth)
+    }.merge(private_gist ? { 'private' => 'on' } : {}).merge(auth)
   end
 
   def auth
@@ -71,5 +71,5 @@ end
 if $stdin.tty?
   puts Gist.read(ARGV.first)
 else
-  puts Gist.write($stdin.read)
+  puts Gist.write($stdin.read, %w[-p --private].include?(ARGV.first))
 end
