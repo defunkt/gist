@@ -13,8 +13,8 @@ Installation
 Use
 ---
 
-    cat file.txt | gist
-    echo secret | gist --private  # or -p
+    file.txt < gist
+    echo secret | gist --private # or -p
     gist 1234 > something.txt
 
 

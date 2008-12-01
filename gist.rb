@@ -10,8 +10,8 @@ INSTALL:
 
 USE:
 
-  cat file.txt | gist
-  echo secret | gist -p  # or --private
+  gist < file.txt
+  echo secret | gist -p # or --private
   gist 1234 > something.txt
 
 =end
