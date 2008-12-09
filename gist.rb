@@ -1,32 +1,25 @@
 #!/usr/bin/env ruby
 
-=begin
-
-INSTALL:
-
-  curl http://github.com/defunkt/gist/tree/master%2Fgist.rb?raw=true > gist &&
-  chmod 755 gist &&
-  sudo mv gist /usr/local/bin/gist
-
-USE:
-
-  cat file.txt | gist
-  echo secret | gist -p  # or --private
-  gist 1234 > something.txt
-
-=end
+# = USAGE
+#  gist < file.txt
+#  echo secret | gist -p  # or --private
+#  gist 1234 > something.txt
+#
+# = INSTALL
+#  curl http://github.com/evaryont/gist/tree/master%2Fgist.rb?raw=true > gist &&
+#  chmod 755 gist &&
+#  sudo mv gist /usr/local/bin/gist
 
 require 'open-uri'
 require 'net/http'
 
-module Gist
-  extend self
-
-  @@gist_url = 'http://gist.github.com/%s.txt'
+class Gist
+  GIST_URL = 'http://gist.github.com/%s.txt'
 
   def read(gist_id)
-    return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
-    open(@@gist_url % gist_id).read
+    return help if gist_id.nil? || gist_id[/^\-h|help$/]
+    return open(GIST_URL % gist_id).read unless gist_id.to_i.zero?
+    return open(gist_id + '.txt').read if gist_id[/https?:\/\/gist.github.com\/\d+$/]
   end
 
   def write(content, private_gist)
@@ -36,7 +29,8 @@ module Gist
   end
 
   def help
-    "USE:\n  " + File.read(__FILE__).match(/USE:(.+?)=end/m)[1].strip
+    require 'rdoc/usage'
+    RDoc.usage('USAGE') # w/o parameters it does both INSTALL and USAGE
   end
 
 private
