@@ -13,7 +13,7 @@ Installation
 Use
 ---
 
-    file.txt < gist
+    gist < file.txt
     echo secret | gist --private # or -p
     gist 1234 > something.txt
 
