@@ -4,7 +4,7 @@
 
 INSTALL:
 
-  curl http://github.com/defunkt/gist/tree/master%2Fgist.rb?raw=true > gist &&
+  curl http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
   chmod 755 gist &&
   sudo mv gist /usr/local/bin/gist
 
