@@ -26,7 +26,7 @@ Just have your git config set up with your GitHub username and token.
     git config --global github.username "your-github-username"
     git config --global github.token "your-github-token"
 
-You can find your token on under [your account](https://github.com/account).
+You can find your token under [your account](https://github.com/account).
 
 
 Ninja vs Shark
