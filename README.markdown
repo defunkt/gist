@@ -18,6 +18,17 @@ Use
     gist 1234 > something.txt
 
 
+Authentication
+--------------
+
+Just have your git config set up with your GitHub username and token.
+
+  git config --global github.username "your-github-username"
+  git config --global github.token "your-github-token"
+
+You can find your token at https://github.com/account
+
+
 Ninja vs Shark
 --------------
 
