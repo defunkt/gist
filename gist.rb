@@ -24,6 +24,8 @@ module Gist
 
   @@gist_url = 'http://gist.github.com/%s.txt'
 
+  @proxy = URI(ENV['http_proxy'])
+
   def read(gist_id)
     return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
     open(@@gist_url % gist_id).read
@@ -31,7 +33,7 @@ module Gist
 
   def write(content, private_gist)
     url = URI.parse('http://gist.github.com/gists')
-    req = Net::HTTP.post_form(url, data(nil, nil, content, private_gist))
+    req = Net::HTTP::Proxy(@proxy.host, @proxy.port).post_form(url, data(nil, nil, content, private_gist))
     copy req['Location']
   end
 
@@ -45,6 +47,7 @@ private
     when /darwin/
       return content if `which pbcopy`.strip == ''
       IO.popen('pbcopy', 'r+') { |clip| clip.puts content }
+      `open #{req['Location']}`
     when /linux/
       return content if `which xclip  2> /dev/null`.strip == ''
       IO.popen('xclip', 'r+') { |clip| clip.puts content }
