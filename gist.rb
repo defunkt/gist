@@ -16,6 +16,8 @@ require 'net/http'
 class Gist
   GIST_URL = 'http://gist.github.com/%s.txt'
 
+  @proxy = ENV['http_proxy'] ? URI(ENV['http_proxy']) : nil
+
   def read(gist_id)
     return help if gist_id.nil? || gist_id[/^\-h|help$/]
     return open(GIST_URL % gist_id).read unless gist_id.to_i.zero?
@@ -24,7 +26,11 @@ class Gist
 
   def write(content, private_gist)
     url = URI.parse('http://gist.github.com/gists')
-    req = Net::HTTP.post_form(url, data(nil, nil, content, private_gist))
+    if @proxy
+      req = Net::HTTP::Proxy(@proxy.host, @proxy.port).post_form(url, data(nil, nil, content, private_gist))
+    else
+      req = Net::HTTP.post_form(url, data(nil, nil, content, private_gist))
+    end
     copy req['Location']
   end
 
@@ -39,6 +45,7 @@ private
     when /darwin/
       return content if `which pbcopy`.strip == ''
       IO.popen('pbcopy', 'r+') { |clip| clip.puts content }
+      `open #{content}`
     when /linux/
       return content if `which xclip  2> /dev/null`.strip == ''
       IO.popen('xclip', 'r+') { |clip| clip.puts content }
