@@ -40,7 +40,7 @@ private
       return content if `which pbcopy`.strip == ''
       IO.popen('pbcopy', 'r+') { |clip| clip.puts content }
     when /linux/
-      return content if `which xclip`.strip == ''
+      return content if `which xclip  2> /dev/null`.strip == ''
       IO.popen('xclip', 'r+') { |clip| clip.puts content }
     end
 
