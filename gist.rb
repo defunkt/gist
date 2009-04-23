@@ -14,6 +14,7 @@ require 'open-uri'
 require 'net/http'
 
 class Gist
+	class << self
   GIST_URL = 'http://gist.github.com/%s.txt'
 
   @proxy = ENV['http_proxy'] ? URI(ENV['http_proxy']) : nil
@@ -68,6 +69,7 @@ private
 
     user.empty? ? {} : { :login => user, :token => token }
   end
+	end
 end
 
 if $stdin.tty?
