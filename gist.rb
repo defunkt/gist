@@ -50,6 +50,9 @@ class Gist
 			when /linux/
 				return content if `which xclip  2> /dev/null`.strip == ''
 				IO.popen('xclip', 'r+') { |clip| clip.puts content }
+			when /i386-cygwin/
+				return content if `which putclip`.strip == ''
+				IO.popen('putclip', 'r+') { |clip| clip.puts content }
 			end
 
 			content
