@@ -47,7 +47,7 @@ private
       IO.popen('pbcopy', 'r+') { |clip| clip.print content }
     when /linux/
       return content if `which xclip  2> /dev/null`.strip == ''
-      IO.popen('xclip', 'r+') { |clip| clip.puts content }
+      IO.popen('xclip', 'r+') { |clip| clip.print content }
     end
 
     content
