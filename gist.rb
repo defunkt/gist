@@ -44,7 +44,7 @@ private
     case RUBY_PLATFORM
     when /darwin/
       return content if `which pbcopy`.strip == ''
-      IO.popen('pbcopy', 'r+') { |clip| clip.puts content }
+      IO.popen('pbcopy', 'r+') { |clip| clip.print content }
     when /linux/
       return content if `which xclip  2> /dev/null`.strip == ''
       IO.popen('xclip', 'r+') { |clip| clip.puts content }
