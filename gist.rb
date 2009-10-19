@@ -63,7 +63,7 @@ class Gist
 				'file_ext[gistfile1]'      => ext,
 				'file_name[gistfile1]'     => name,
 				'file_contents[gistfile1]' => content
-			}.merge(private_gist ? { 'private' => 'on' } : {}).merge(auth)
+			}.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
 		end
 
 		def auth
