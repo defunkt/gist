@@ -179,13 +179,20 @@ private
   # Parses a value that might appear in a .gitconfig file into
   # something useful in a Ruby script.
   def str_to_bool(str)
-    case str.downcase.strip
+    if str[0].chr == '!'
+      command = str[1, str.length]
+      value = `#{command}`
+    else
+      value = str
+    end
+
+    case value.downcase.strip
     when "false", "0", "nil", "", "no", "off"
       nil
     when "true", "1", "yes", "on"
       true
     else
-      str
+      value
     end
   end
 end
