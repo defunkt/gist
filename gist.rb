@@ -73,7 +73,6 @@ private
     user.empty? ? {} : { :login => user, :token => token }
   end
 end
-end
 
 if $stdin.tty?
   puts Gist.read(ARGV.first)
