@@ -6,9 +6,9 @@
 #  gist 1234 > something.txt
 #
 # = INSTALL
-#  curl http://github.com/evaryont/gist/tree/master%2Fgist.rb?raw=true > gist &&
+#  curl http://github.com/evaryont/gist/raw/master/gist.rb > gist &&
 #  chmod 755 gist &&
-#  sudo mv gist /usr/local/bin/gist
+#  mv gist /usr/local/bin/gist
 
 require 'open-uri'
 require 'net/http'
@@ -40,7 +40,7 @@ module Gist
     RDoc.usage('USAGE') # w/o parameters it does both INSTALL and USAGE
   end
 
-  private
+private
   def copy(content)
     case RUBY_PLATFORM
     when /darwin/
