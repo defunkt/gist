@@ -16,19 +16,21 @@ require 'net/http'
 module Gist
   extend self
   GIST_URL = 'http://gist.github.com/%s.txt'
+  GIST_URL_REGEXP = /https?:\/\/gist.github.com\/\d+$/
 
   @proxy = ENV['http_proxy'] ? URI(ENV['http_proxy']) : nil
 
   def read(gist_id)
     return help if gist_id.nil? || gist_id[/^\-h|help$/]
     return open(GIST_URL % gist_id).read unless gist_id.to_i.zero?
-    return open(gist_id + '.txt').read if gist_id[/https?:\/\/gist.github.com\/\d+$/]
+    return open(gist_id + '.txt').read if gist_id[GIST_URL_REGEXP]
   end
 
   def write(content, private_gist)
     url = URI.parse('http://gist.github.com/gists')
     if @proxy
-      req = Net::HTTP::Proxy(@proxy.host, @proxy.port).post_form(url, data(nil, nil, content, private_gist))
+      proxy = Net::HTTP::Proxy(@proxy.host, @proxy.port)
+      req = proxy.post_form(url, data(nil, nil, content, private_gist))
     else
       req = Net::HTTP.post_form(url, data(nil, nil, content, private_gist))
     end
