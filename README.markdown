@@ -8,7 +8,7 @@ Installation
 
     curl http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
     chmod 755 gist &&
-    sudo mv gist /usr/local/bin/gist
+    mv gist /usr/local/bin/gist
 
 Use
 ---
