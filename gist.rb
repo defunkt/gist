@@ -79,5 +79,5 @@ end
 if $stdin.tty?
   puts Gist.read(ARGV.first)
 else
-  puts Gist.write($stdin.read, %w[-p --private].include?(ARGV.first))
+  puts Gist.write($stdin.read, %w( -p --private ).include?(ARGV.first))
 end
