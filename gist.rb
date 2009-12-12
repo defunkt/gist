@@ -38,8 +38,8 @@ module Gist
   end
 
   def help
-    require 'rdoc/usage'
-    RDoc.usage('USAGE') # w/o parameters it does both INSTALL and USAGE
+    help = File.read(__FILE__).scan(/# = USAGE(.+?)# = INSTALL/m)[0][0]
+    "usage: \n" + help.strip.gsub(/^# ?/, '')
   end
 
 private
