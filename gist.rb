@@ -44,11 +44,11 @@ private
   def copy(content)
     case RUBY_PLATFORM
     when /darwin/
-      return content if `which pbcopy`.strip == ''
+      return content unless system("which pbcopy")
       IO.popen('pbcopy', 'r+') { |clip| clip.print content }
       `open #{content}`
     when /linux/
-      return content if `which xclip  2> /dev/null`.strip == ''
+      return content unless system("which xclip  2> /dev/null")
       IO.popen('xclip', 'r+') { |clip| clip.print content }
     when /i386-cygwin/
       return content if `which putclip`.strip == ''
