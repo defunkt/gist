@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 
 # = USAGE
+#  gist file.php file2.rb
 #  gist < file.txt
 #  echo secret | gist -p  # or --private
 #  gist 1234 > something.txt
 #
 # = INSTALL
-#  curl http://github.com/evaryont/gist/raw/master/gist.rb > gist &&
+#  curl -s http://github.com/evaryont/gist/raw/master/gist.rb > gist &&
 #  chmod 755 gist &&
 #  mv gist /usr/local/bin/gist
 
