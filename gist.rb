@@ -28,7 +28,7 @@ module Gist
   def add_file(name, content)
     load_files
     @@files << {:name => name, :content => content}
-    puts "#{name} added."
+    #puts "#{name} added."
     save_files
   end
 
@@ -128,7 +128,7 @@ if ARGV.count > 0
       elsif %w( -h --help).include?(file_name)
          puts Gist.help
       elsif file_name.to_i > 0
-         Gist.read(file_name)
+         puts Gist.read(file_name)
       else
          puts "#{file_name} does not exist"
       end
@@ -137,6 +137,8 @@ if ARGV.count > 0
    if private_gist and ARGV.count == 1
       Gist.write($stdin.read)
    end
+elsif $stdin.tty?
+  puts Gist.help
 else
   Gist.write($stdin.read)
 end
