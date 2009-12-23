@@ -17,11 +17,11 @@ require 'net/http'
 module Gist
   extend self
 
+  TEMP_FILE = '.tmp_gists'
   @@gist_url = 'http://gist.github.com/%s.txt'
   @@files = []
 
   def read(gist_id)
-    return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
     open(@@gist_url % gist_id).read
   end
   
@@ -47,13 +47,14 @@ module Gist
     url = URI.parse('http://gist.github.com/gists')
     req = Net::HTTP.post_form(url, data(private_gist))
     url = copy req['Location']
-    puts "Created gist at #{url} \nURL copied to clipboard."
+    puts "Created gist at #{url}"
     clear
   end
   
   def clear
     @@files = []
-    save_files
+    path = File.join(File.dirname(__FILE__), TEMP_FILE)
+    File.delete(path)
   end
 
   def help
@@ -61,69 +62,22 @@ module Gist
     "usage: \n" + help.strip.gsub(/^# ?/, '')
   end
   
-  def process_selection
-    selection = nil
-    gistname = nil
-    if ENV['TM_SELECTED_TEXT']
-      selection = ENV['TM_SELECTED_TEXT']
-      gistname = "snippet" << "." << get_extension
-    else
-      selection = STDIN.read
-      gistname = ENV['TM_FILEPATH'] ? ENV['TM_FILEPATH'].split('/')[-1] : "file" << "." << get_extension
-    end
-    
-    add_file(gistname, selection)
+  def write(content)
+    gistname = Time.now.to_i
+    gistname = "#{gistname}.txt"
+    add_file(gistname, content)
   end
   
-  # Add extension for supported modes based on TM_SCOPE
-  # Cribbed from http://github.com/defunkt/gist.el/tree/master/gist.el
-  def get_extension
-    scope = ENV["TM_SCOPE"].split[0]
-    case scope
-    when /source\.actionscript/ : "as"
-    when /source\.c/, "source.objc" : "c"
-    when /source\.c\+\+/, "source.objc++" : "cpp"
-    # common-lisp-mode : "el"
-    when /source\.css/ : "css"
-    when /source\.diff/, "meta.diff.range" : "diff"
-    # emacs-lisp-mode : "el"
-    when /source\.erlang/ : "erl"
-    when /source\.haskell/, "text.tex.latex.haskel" : "hs"
-    when /text\.html/ : "html"
-    when /source\.io/ : "io"
-    when /source\.java/ : "java"
-    when /source\.js/ : "js"
-    # jde-mode : "java"
-    # js2-mode : "js"
-    when /source\.lua/ : "lua"
-    when /source\.ocaml/ : "ml"
-    when /source\.objc/, "source.objc++" : "m"
-    when /source\.perl/ : "pl"
-    when /source\.php/ : "php"
-    when /source\.python/ : "sc"
-    when /source\.ruby/ : "rb" # Emacs bundle uses rbx
-    when /text\.plain/ : "txt"
-    when /source\.sql/ : "sql"
-    when /source\.scheme/ : "scm"
-    when /source\.smalltalk/ : "st"
-    when /source\.shell/ : "sh"
-    when /source\.tcl/, "text.html.tcl" : "tcl"
-    when /source\.lex/ : "tex"
-    when /text\.xml/, /text.xml.xsl/, /source.plist/, /text.xml.plist/ : "xml"
-    else "txt"
-    end
-  end
-
 private
   def load_files
-    path = File.join(File.dirname(__FILE__), 'tmp_gists')
+    path = File.join(File.dirname(__FILE__), TEMP_FILE)
     save_files unless File.exists?(path)
     @@files = Marshal.load(File.read(path))
     @@files ||= []
   end
   
   def save_files
-    path = File.join(File.dirname(__FILE__), 'tmp_gists')
+    path = File.join(File.dirname(__FILE__), TEMP_FILE)
     File.open(path, 'w') {|f| f.puts Marshal.dump(@@files) }
   end
   
@@ -180,12 +134,13 @@ if ARGV.count > 0
       end
    end
 
-   if Gist.list_files.count > 0
-      #Gist.send(private_gist)
-   elsif private_gist and ARGV.count == 1
-      puts "---"
-      puts Gist.write($stdin.read, private_gist)
+   if private_gist and ARGV.count == 1
+      Gist.write($stdin.read)
    end
 else
-  puts Gist.write($stdin.read, false)
+  Gist.write($stdin.read)
+end
+
+if Gist.list_files.count > 0
+  Gist.send(private_gist)
 end
