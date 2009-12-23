@@ -16,13 +16,16 @@ require 'net/http'
 
 module Gist
   extend self
-
   TEMP_FILE = '.tmp_gists'
-  @@gist_url = 'http://gist.github.com/%s.txt'
+  GIST_URL = 'http://gist.github.com/%s.txt'
+  GIST_URL_REGEXP = /https?:\/\/gist.github.com\/\d+$/
   @@files = []
+  @proxy = ENV['http_proxy'] ? URI(ENV['http_proxy']) : nil
 
   def read(gist_id)
-    open(@@gist_url % gist_id).read
+    return help if gist_id.nil? || gist_id[/^\-h|help$/]
+    return open(GIST_URL % gist_id).read unless gist_id.to_i.zero?
+    return open(gist_id + '.txt').read if gist_id[GIST_URL_REGEXP]
   end
   
   def add_file(name, content)
@@ -45,7 +48,12 @@ module Gist
   def send(private_gist)
     load_files
     url = URI.parse('http://gist.github.com/gists')
-    req = Net::HTTP.post_form(url, data(private_gist))
+    if @proxy
+      proxy = Net::HTTP::Proxy(@proxy.host, @proxy.port)
+      req = proxy.post_form(url, data(private_gist))
+    else
+      req = Net::HTTP.post_form(url, data(private_gist))
+    end
     url = copy req['Location']
     puts "Created gist at #{url}"
     clear
