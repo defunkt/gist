@@ -6,7 +6,7 @@
 #  gist 1234 > something.txt
 #
 # = INSTALL
-#  curl http://github.com/evaryont/gist/raw/master/gist.rb > gist &&
+#  curl http://github.com/dudektria/gist/raw/master/gist.rb > gist &&
 #  chmod 755 gist &&
 #  mv gist /usr/local/bin/gist
 
@@ -51,7 +51,7 @@ private
       `open #{content}`
     when /linux/
       return content unless system("which xclip  2> /dev/null")
-      IO.popen('xclip', 'r+') { |clip| clip.print content }
+      IO.popen('xclip -sel clip', 'r+') { |clip| clip.print content }
     when /i386-cygwin/
       return content if `which putclip`.strip == ''
       IO.popen('putclip', 'r+') { |clip| clip.print content }
