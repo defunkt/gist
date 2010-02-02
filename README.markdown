@@ -1,12 +1,14 @@
 Gist: The Script
 ================
 
-Works great with Gist: The Website.
+Works great with Gist: The Website. That's a fork of [defunkt's work][1].
+
+[1]: http://github.com/defunkt/gist
 
 Installation
 ------------
 
-    curl http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
+    curl http://github.com/dudektria/gist/raw/master/gist.rb > gist &&
     chmod 755 gist &&
     mv gist /usr/local/bin/gist
 
