@@ -6,6 +6,7 @@
 #  gist 1234 > something.txt
 #  gist http://gist.github.com/1234 > something.txt # it also works with full urls
 #  gist http://pastebin.com/abcd1234 > something.txt # pastebin.com, sprunge.us and fpaste.org full urls are supported
+#  gist http://sprunge.us/abcd | gist # updating stuff to gist.github.com
 #
 # = INSTALL
 #  curl http://github.com/dudektria/gist/raw/master/gist.rb > gist &&
