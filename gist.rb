@@ -10,8 +10,8 @@
 #
 # = INSTALL
 #  curl http://github.com/dudektria/gist/raw/master/gist.rb > gist &&
-#  chmod 755 gist &&
-#  mv gist /usr/local/bin/gist
+#  chmod +x gist &&
+#  mv gist /usr/local/bin/gist # or maybe sudo mv gist /usr/local/bin/gist
 
 require 'open-uri'
 require 'net/http'

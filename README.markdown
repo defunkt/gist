@@ -9,8 +9,8 @@ Installation
 ------------
 
     curl http://github.com/dudektria/gist/raw/master/gist.rb > gist &&
-    chmod 755 gist &&
-    mv gist /usr/local/bin/gist
+    chmod +x gist &&
+    mv gist /usr/local/bin/gist # or maybe sudo mv gist /usr/local/bin/gist
 
 Use
 ---
@@ -18,7 +18,9 @@ Use
     gist < file.txt
     echo secret | gist --private # or -p
     gist 1234 > something.txt
-
+    gist http://gist.github.com/1234 > something.txt # it also works with full urls
+    gist http://pastebin.com/abcd1234 > something.txt # pastebin.com, sprunge.us and fpaste.org full urls are supported also
+    gist http://sprunge.us/abcd | gist # updating stuff to gist.github.com
 
 Authentication
 --------------
