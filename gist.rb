@@ -26,13 +26,13 @@ module Gist
     return open(gist_id + '.txt').read if gist_id[GIST_URL_REGEXP]
   end
 
-  def write(content, private_gist)
+  def write(content, private_gist, gist_extension=nil)
     url = URI.parse('http://gist.github.com/gists')
     if @proxy
       proxy = Net::HTTP::Proxy(@proxy.host, @proxy.port)
-      req = proxy.post_form(url, data(nil, nil, content, private_gist))
+      req = proxy.post_form(url, data(nil, gist_extension, content, private_gist))
     else
-      req = Net::HTTP.post_form(url, data(nil, nil, content, private_gist))
+      req = Net::HTTP.post_form(url, data(nil, gist_extension, content, private_gist))
     end
     copy req['Location']
   end
@@ -79,5 +79,29 @@ end
 if $stdin.tty?
   puts Gist.read(ARGV.first)
 else
-  puts Gist.write($stdin.read, %w( -p --private ).include?(ARGV.first))
+  require 'optparse'
+  private_gist = false
+  gist_extension = nil
+  opts = OptionParser.new do |opts|
+    opts.banner = "Usage: gist [options]" #[-p|--private] [-t|--type FILE_TYPE_EXTENSION]"
+    opts.on('-p', '--private', 'Make the gist private') do
+      private_gist = true
+    end
+
+    opts.on('-t', '--type [EXTENSION]', 'set the syntax highlighting of the gist by file extension') do |extension|
+      gist_extension = '.' + extension
+    end
+
+    opts.on('-h', '--help', 'Display this screen') do
+      puts opts
+      exit
+    end
+  end
+
+  begin
+    opts.parse!(ARGV)
+    puts Gist.write($stdin.read, private_gist, gist_extension)
+  rescue
+    puts opts
+  end
 end
