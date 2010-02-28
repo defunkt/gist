@@ -117,7 +117,7 @@ module Gist
   def copy(content)
     case RUBY_PLATFORM
     when /darwin/
-      return content unless system("which pbcopy 2> /dev/null")
+      return content unless system("which pbcopy > /dev/null")
       IO.popen('pbcopy', 'r+') { |clip| clip.print content }
       `open #{content}`
     when /linux/
