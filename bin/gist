@@ -30,6 +30,9 @@ require 'optparse'
 #
 #   >> Gist.copy(string)
 #   Copies string to the clipboard.
+#
+#   >> Gist.browse(url)
+#   Opens URL in your default browser.
 module Gist
   extend self
 
@@ -90,6 +93,7 @@ module Gist
       end
 
       url = write(input, private_gist, gist_extension)
+      browse(url)
       puts copy(url)
     rescue => e
       warn e
@@ -111,6 +115,14 @@ module Gist
   # Given a gist id, returns its content.
   def read(gist_id)
     open(GIST_URL % gist_id).read
+  end
+
+  # Given a url, tries to open it in your browser.
+  # TODO: Linux, Windows
+  def browse(url)
+    if RUBY_PLATFORM =~ /darwin/
+      `open #{url}`
+    end
   end
 
   # Tries to copy passed content to the clipboard.
