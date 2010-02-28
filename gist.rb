@@ -20,6 +20,7 @@ module Gist
 
   VERSION = "1.0.0"
 
+  GIST_URL   = 'http://gist.github.com/%s.txt'
   CREATE_URL = 'http://gist.github.com/gists'
   PROXY = ENV['HTTP_PROXY'] ? URI(ENV['HTTP_PROXY']) : nil
   PROXY_HOST = PROXY ? PROXY.host : nil
@@ -78,6 +79,11 @@ module Gist
     req = proxy.post_form(url, data(nil, gist_extension, content, private_gist))
 
     copy req['Location']
+  end
+
+  # Given a gist id, returns its content.
+  def read(gist_id)
+    open(GIST_URL % gist_id).read
   end
 
 private
