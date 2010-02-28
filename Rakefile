@@ -1,5 +1,9 @@
-require "mg"
-MG.new("gist.gemspec")
+begin
+  require "mg"
+  MG.new("gist.gemspec")
+rescue LoadError
+  nil
+end
 
 desc "Build standalone script and manpages"
 task :build => [ :standalone, :build_man ]
