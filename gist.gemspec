@@ -7,7 +7,8 @@ Gem::Specification.new do |s|
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath" ]
   s.has_rdoc          = false
-  s.files             = %w( README.md gist.rb )
+  s.files             = %w( README.markdown bin/gist )
+  s.executables       = %w( gist )
   s.description       = <<desc
   Creates Gists (pastes) on gist.github.com from standard input or
   arbitrary files. Can link to your GitHub account, create private gists,
