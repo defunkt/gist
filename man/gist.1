@@ -40,6 +40,17 @@ Create a private gist instead of a public gist.
 Set the file extension explicitly. Passing a type of \fBrb\fR ensure
 the gist is created as a Ruby file.
 .
+.P
+You may additionally ask for help:
+.
+.TP
+\fB\-h\fR, \fB\-\-help\fR 
+Print help.
+.
+.TP
+\fB\-m\fR, \fB\-\-man\fR 
+Display this man page.
+.
 .SH "CONFIGURATION"
 Use git\-config(1) to display the currently configured GitHub username:
 .
@@ -88,7 +99,7 @@ $ HTTP_PROXY=http://host:port/ gist script.py
 .nf
 
 $ gist < file.txt
-$ echo secret | gist \-\-private # or \-p
+$ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
 $ gist script.py 
 .

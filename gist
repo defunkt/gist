@@ -9,9 +9,84 @@
 # that build gist.
 #
 
+module Gist
+  module Manpage
+    extend self
+
+    def display(name)
+      puts manpage(name)
+    end
+
+    def manpage(name)
+      return "** Can't find groff(1)" unless groff?
+
+      require 'open3'
+      out = nil
+      Open3.popen3(groff_command) do |stdin, stdout, _|
+        stdin.puts raw_manpage(name)
+        stdin.close
+        out = stdout.read.strip
+      end
+      out
+    end
+
+    def raw_manpage(name)
+      if File.exists? file = File.dirname(__FILE__) + "/../../man/#{name}.1"
+        File.read(file)
+      else
+        DATA.read
+      end
+    end
+
+    def groff?
+      system("which groff > /dev/null")
+    end
+
+    def groff_command
+      "groff -Wall -mtty-char -mandoc -Tascii"
+    end
+
+    def puts(*args)
+      page_stdout
+      super
+    end
+
+    def page_stdout
+      return unless $stdout.tty?
+
+      read, write = IO.pipe
+
+      if Kernel.fork
+        $stdin.reopen(read)
+        read.close
+        write.close
+
+        ENV['LESS'] = 'FSRX'
+
+        Kernel.select [STDIN]
+
+        pager = ENV['PAGER'] || 'less -isr'
+        pager = 'cat' if pager.empty?
+
+        exec pager rescue exec "/bin/sh", "-c", pager
+      else
+        $stdout.reopen(write)
+        $stderr.reopen(write) if $stderr.tty?
+        read.close
+        write.close
+      end
+    end
+  end
+end
 require 'open-uri'
 require 'net/http'
 require 'optparse'
+
+begin
+  require 'gist/manpage'
+rescue LoadError
+  nil
+end
 
 module Gist
   extend self
@@ -39,6 +114,10 @@ module Gist
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
         gist_extension = '.' + extension
+      end
+
+      opts.on('-m', '--man', 'Print manual') do
+        Gist::Manpage.display("gist")
       end
 
       opts.on('-h', '--help', 'Display this screen') do
@@ -130,3 +209,118 @@ private
 end
 Gist.execute(*ARGV)
 __END__
+.\" generated with Ron/v0.3
+.\" http://github.com/rtomayko/ron/
+.
+.TH "GIST" "1" "February 2010" "GITHUB" "Gist Manual"
+.
+.SH "NAME"
+\fBgist\fR \-\- gist on the command line
+.
+.SH "SYNOPSIS"
+\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE\fR
+.
+.SH "DESCRIPTION"
+\fBgist\fR can be used to create gists on gist.github.com from the command
+line. There are two primary methods of creating gists.
+.
+.P
+If standard input is supplied, it will be used as the content of the
+new gist. If \fIFILE\fR is provided, the content of that file will be used
+to create the gist.
+.
+.P
+Once your gist is successfully created, the URL will be copied to your
+clipboard. If you are on OS X, \fBgist\fR will open the gist in your
+browser, too.
+.
+.SH "OPTIONS"
+\fBgist\fR's default mode of operation is to read content from standard
+input and create a public, text gist from it, tied to your GitHub
+account if you user and token are provided (see \fBCONFIGURATION\fR).
+.
+.P
+These options can be used to change this behavior:
+.
+.TP
+\fB\-p\fR, \fB\-\-private\fR 
+Create a private gist instead of a public gist.
+.
+.TP
+\fB\-t\fR, \fB\-\-type\fR 
+Set the file extension explicitly. Passing a type of \fBrb\fR ensure
+the gist is created as a Ruby file.
+.
+.P
+You may additionally ask for help:
+.
+.TP
+\fB\-h\fR, \fB\-\-help\fR 
+Print help.
+.
+.TP
+\fB\-m\fR, \fB\-\-man\fR 
+Display this man page.
+.
+.SH "CONFIGURATION"
+Use git\-config(1) to display the currently configured GitHub username:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github.user 
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Or, set the GitHub username with:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github.user <username> 
+.
+.fi
+.
+.IP "" 0
+.
+.P
+See \fIhttp://github.com/guides/local\-github\-config\fR for more
+information.
+.
+.P
+\fBgist\fR will check the \fBHTTP_PROXY\fR env variable if supplied:
+.
+.IP "" 4
+.
+.nf
+
+$ HTTP_PROXY=http://host:port/ gist script.py 
+.
+.fi
+.
+.IP "" 0
+.
+.SH "EXAMPLES"
+.
+.nf
+
+$ gist < file.txt
+$ echo secret | gist \-\-private
+$ echo "puts :hi" | gist \-t rb
+$ gist script.py 
+.
+.fi
+.
+.SH "BUGS"
+\fIhttp://github.com/defunkt/gist/issues\fR
+.
+.SH "AUTHOR"
+Chris Wanstrath :: chris@ozmm.org
+.
+.SH "SEE ALSO"
+hub(1), git(1), git\-clone(1),\fIhttp://github.com\fR, \fIhttp://github.com/defunkt/gist\fR

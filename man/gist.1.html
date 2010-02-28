@@ -102,6 +102,20 @@ the gist is created as a Ruby file.</p></dd>
 </dl>
 
 
+<p>You may additionally ask for help:</p>
+
+<dl>
+<dt>
+<code>-h</code>, <code>--help</code>
+</dt>
+<dd><p>Print help.</p></dd>
+<dt>
+<code>-m</code>, <code>--man</code>
+</dt>
+<dd><p>Display this man page.</p></dd>
+</dl>
+
+
 <h2>CONFIGURATION</h2>
 
 <p>Use git-config(1) to display the currently configured GitHub username:</p>
@@ -125,7 +139,7 @@ information.</p>
 <h2>EXAMPLES</h2>
 
 <pre><code>$ gist &lt; file.txt
-$ echo secret | gist --private # or -p
+$ echo secret | gist --private
 $ echo "puts :hi" | gist -t rb
 $ gist script.py
 </code></pre>
