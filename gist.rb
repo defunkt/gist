@@ -7,9 +7,12 @@
 #  gist script.py
 #
 # = INSTALL
-#  curl -s http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
-#  chmod 755 gist &&
-#  mv gist /usr/local/bin/gist
+# RubyGem:
+#     gem install gist
+# Old school:
+#     curl -s http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
+#     chmod 755 gist &&
+#     mv gist /usr/local/bin/gist
 
 require 'open-uri'
 require 'net/http'
@@ -22,6 +25,7 @@ module Gist
 
   GIST_URL   = 'http://gist.github.com/%s.txt'
   CREATE_URL = 'http://gist.github.com/gists'
+
   PROXY = ENV['HTTP_PROXY'] ? URI(ENV['HTTP_PROXY']) : nil
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
