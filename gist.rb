@@ -83,7 +83,7 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(content, private_gist, gist_extension = nil)
+  def write(content, private_gist = false, gist_extension = nil)
     url = URI.parse(CREATE_URL)
 
     # Net::HTTP::Proxy returns Net::HTTP if PROXY_HOST is nil
