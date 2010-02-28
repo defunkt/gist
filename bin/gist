@@ -130,7 +130,7 @@ module Gist
     cmd = case true
     when system("which pbcopy > /dev/null")
       :pbcopy
-    when system("which xclip 2> /dev/null")
+    when system("which xclip > /dev/null")
       :xclip
     when system("which putclip")
       :putclip
