@@ -18,8 +18,7 @@ require 'open-uri'
 require 'net/http'
 require 'optparse'
 
-# You can use this class from other scripts with the greatest of
-# ease.
+# Methods of interest.
 #
 #   >> Gist.read(gist_id)
 #   Returns the body of gist_id as a string.
