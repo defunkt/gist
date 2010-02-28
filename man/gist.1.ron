@@ -1,0 +1,72 @@
+gist(1) -- gist on the command line
+===================================
+
+## SYNOPSIS
+
+`gist` [`-p`] [`-t extension`] <FILE>
+
+## DESCRIPTION
+
+`gist` can be used to create gists on gist.github.com from the command
+line. There are two primary methods of creating gists.
+
+If standard input is supplied, it will be used as the content of the
+new gist. If <FILE> is provided, the content of that file will be used
+to create the gist.
+
+Once your gist is successfully created, the URL will be copied to your
+clipboard. If you are on OS X, `gist` will open the gist in your
+browser, too.
+
+## OPTIONS
+
+`gist`'s default mode of operation is to read content from standard
+input and create a public, text gist from it, tied to your GitHub
+account if you user and token are provided (see `CONFIGURATION`).
+
+These options can be used to change this behavior:
+
+  * `-p`, `--private`:
+    Create a private gist instead of a public gist.
+
+  * `-t`, `--type`:
+    Set the file extension explicitly. Passing a type of `rb` ensure
+    the gist is created as a Ruby file.
+
+## CONFIGURATION
+
+Use git-config(1) to display the currently configured GitHub username:
+
+    $ git config --global github.user
+
+Or, set the GitHub username with:
+
+    $ git config --global github.user <username>
+
+See <http://github.com/guides/local-github-config> for more
+information.
+
+`gist` will check the `HTTP_PROXY` env variable if supplied:
+
+    $ HTTP_PROXY=http://host:port/ gist script.py
+
+## EXAMPLES
+
+    $ gist < file.txt
+    $ echo secret | gist --private
+    $ echo "puts :hi" | gist -t rb
+    $ gist script.py
+
+## BUGS
+
+<http://github.com/defunkt/gist/issues>
+
+## AUTHOR
+
+Chris Wanstrath :: chris@ozmm.org
+
+## SEE ALSO
+
+hub(1), git(1), git-clone(1),
+<http://github.com>,
+<http://github.com/defunkt/gist>

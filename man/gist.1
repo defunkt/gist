@@ -1,0 +1,104 @@
+.\" generated with Ron/v0.3
+.\" http://github.com/rtomayko/ron/
+.
+.TH "GIST" "1" "February 2010" "GITHUB" "Gist Manual"
+.
+.SH "NAME"
+\fBgist\fR \-\- gist on the command line
+.
+.SH "SYNOPSIS"
+\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE\fR
+.
+.SH "DESCRIPTION"
+\fBgist\fR can be used to create gists on gist.github.com from the command
+line. There are two primary methods of creating gists.
+.
+.P
+If standard input is supplied, it will be used as the content of the
+new gist. If \fIFILE\fR is provided, the content of that file will be used
+to create the gist.
+.
+.P
+Once your gist is successfully created, the URL will be copied to your
+clipboard. If you are on OS X, \fBgist\fR will open the gist in your
+browser, too.
+.
+.SH "OPTIONS"
+\fBgist\fR's default mode of operation is to read content from standard
+input and create a public, text gist from it, tied to your GitHub
+account if you user and token are provided (see \fBCONFIGURATION\fR).
+.
+.P
+These options can be used to change this behavior:
+.
+.TP
+\fB\-p\fR, \fB\-\-private\fR 
+Create a private gist instead of a public gist.
+.
+.TP
+\fB\-t\fR, \fB\-\-type\fR 
+Set the file extension explicitly. Passing a type of \fBrb\fR ensure
+the gist is created as a Ruby file.
+.
+.SH "CONFIGURATION"
+Use git\-config(1) to display the currently configured GitHub username:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github.user 
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Or, set the GitHub username with:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github.user <username> 
+.
+.fi
+.
+.IP "" 0
+.
+.P
+See \fIhttp://github.com/guides/local\-github\-config\fR for more
+information.
+.
+.P
+\fBgist\fR will check the \fBHTTP_PROXY\fR env variable if supplied:
+.
+.IP "" 4
+.
+.nf
+
+$ HTTP_PROXY=http://host:port/ gist script.py 
+.
+.fi
+.
+.IP "" 0
+.
+.SH "EXAMPLES"
+.
+.nf
+
+$ gist < file.txt
+$ echo secret | gist \-\-private # or \-p
+$ echo "puts :hi" | gist \-t rb
+$ gist script.py 
+.
+.fi
+.
+.SH "BUGS"
+\fIhttp://github.com/defunkt/gist/issues\fR
+.
+.SH "AUTHOR"
+Chris Wanstrath :: chris@ozmm.org
+.
+.SH "SEE ALSO"
+hub(1), git(1), git\-clone(1),\fIhttp://github.com\fR, \fIhttp://github.com/defunkt/gist\fR
