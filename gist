@@ -1,0 +1,132 @@
+#!/usr/bin/env ruby
+#
+# This file, gist, is generated code.
+# Please DO NOT EDIT or send patches for it.
+#
+# Please take a look at the source from
+# http://gitgist.com/defunkt/gist
+# and submit patches against the individual files
+# that build gist.
+#
+
+require 'open-uri'
+require 'net/http'
+require 'optparse'
+
+module Gist
+  extend self
+
+  VERSION = "1.0.0"
+
+  GIST_URL   = 'http://gist.github.com/%s.txt'
+  CREATE_URL = 'http://gist.github.com/gists'
+
+  PROXY = ENV['HTTP_PROXY'] ? URI(ENV['HTTP_PROXY']) : nil
+  PROXY_HOST = PROXY ? PROXY.host : nil
+  PROXY_PORT = PROXY ? PROXY.port : nil
+
+  def execute(args)
+    private_gist = false
+    gist_extension = nil
+
+    opts = OptionParser.new do |opts|
+      opts.banner = "Usage: gist [options] [filename or stdin]"
+
+      opts.on('-p', '--private', 'Make the gist private') do
+        private_gist = true
+      end
+
+      t_desc = 'Set syntax highlighting of the Gist by file extension'
+      opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
+        gist_extension = '.' + extension
+      end
+
+      opts.on('-h', '--help', 'Display this screen') do
+        puts opts
+        exit
+      end
+    end
+
+    opts.parse!(args)
+
+    begin
+      if $stdin.tty?
+
+        if args.empty?
+          puts opts
+          exit
+        end
+
+        if File.exists?(file = args[0])
+          input = File.read(file)
+          gist_extension = File.extname(file) if file.include?('.')
+        else
+          abort "Can't find #{file}"
+        end
+      else
+        input = $stdin.read
+      end
+
+      url = write(input, private_gist, gist_extension)
+      browse(url)
+      puts copy(url)
+    rescue => e
+      warn e
+      puts opts
+    end
+  end
+
+  def write(content, private_gist = false, gist_extension = nil)
+    url = URI.parse(CREATE_URL)
+
+    proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
+    req = proxy.post_form(url, data(nil, gist_extension, content, private_gist))
+
+    req['Location']
+  end
+
+  def read(gist_id)
+    open(GIST_URL % gist_id).read
+  end
+
+  def browse(url)
+    if RUBY_PLATFORM =~ /darwin/
+      `open #{url}`
+    end
+  end
+
+  def copy(content)
+    cmd = case true
+    when system("which pbcopy > /dev/null")
+      :pbcopy
+    when system("which xclip > /dev/null")
+      :xclip
+    when system("which putclip")
+      :putclip
+    end
+
+    if cmd
+      IO.popen(cmd.to_s, 'r+') { |clip| clip.print content }
+    end
+
+    content
+  end
+
+private
+  def data(name, ext, content, private_gist)
+    return {
+      'file_ext[gistfile1]'      => ext,
+      'file_name[gistfile1]'     => name,
+      'file_contents[gistfile1]' => content
+    }.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+  end
+
+  def auth
+    user  = `git config --global github.user`.strip
+    token = `git config --global github.token`.strip
+
+    user.empty? ? {} : { :login => user, :token => token }
+  end
+end
+Gist.execute(*ARGV)
+__END__
