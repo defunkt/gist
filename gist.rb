@@ -57,6 +57,13 @@ module Gist
 
     begin
       if $stdin.tty?
+        # Run without stdin.
+
+        # No args, print help.
+        puts opts if args.empty?
+        exit
+
+        # Check if arg is a file. If so, grab the content.
         if File.exists?(file = args[0])
           input = File.read(file)
           gist_extension = File.extname(file) if file.include?('.')
@@ -64,6 +71,7 @@ module Gist
           abort "Can't find #{file}"
         end
       else
+        # Read from standard input.
         input = $stdin.read
       end
 
