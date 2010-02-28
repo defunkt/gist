@@ -124,7 +124,7 @@ module Gist
       return content unless system("which xclip 2> /dev/null")
       IO.popen('xclip -sel clip', 'r+') { |clip| clip.print content }
     when /i386-cygwin/
-      return content if `which putclip`.strip == ''
+      return content unless system("which putclip")
       IO.popen('putclip', 'r+') { |clip| clip.print content }
     end
 
