@@ -72,8 +72,10 @@ module Gist
         # Run without stdin.
 
         # No args, print help.
-        puts opts if args.empty?
-        exit
+        if args.empty?
+          puts opts
+          exit
+        end
 
         # Check if arg is a file. If so, grab the content.
         if File.exists?(file = args[0])
