@@ -1,6 +1,9 @@
 require "mg"
 MG.new("gist.gemspec")
 
+desc "Build standalone script and manpages"
+task :build => [ :standalone, :build_man ]
+
 desc "Build standalone script"
 task :standalone => :load_gist do
   require 'gist/standalone'
