@@ -2,11 +2,8 @@ require 'open-uri'
 require 'net/http'
 require 'optparse'
 
-begin
-  require 'gist/manpage'
-rescue LoadError
-  nil
-end
+require 'gist/manpage' unless defined?(Gist::Manpage)
+require 'gist/version' unless defined?(Gist::Version)
 
 # You can use this class from other scripts with the greatest of
 # ease.
@@ -25,8 +22,6 @@ end
 #   Opens URL in your default browser.
 module Gist
   extend self
-
-  VERSION = "1.0.0"
 
   GIST_URL   = 'http://gist.github.com/%s.txt'
   CREATE_URL = 'http://gist.github.com/gists'
