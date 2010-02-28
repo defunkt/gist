@@ -3,54 +3,92 @@
 # = USAGE
 #  gist < file.txt
 #  echo secret | gist -p  # or --private
-#  gist 1234 > something.txt
+#  echo "puts :hi" | gist -t rb
 #
 # = INSTALL
-#  curl http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
+#  curl -s http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
 #  chmod 755 gist &&
 #  mv gist /usr/local/bin/gist
 
 require 'open-uri'
 require 'net/http'
+require 'optparse'
 
 module Gist
   extend self
-  GIST_URL = 'http://gist.github.com/%s.txt'
-  GIST_URL_REGEXP = /https?:\/\/gist.github.com\/\d+$/
 
-  @proxy = ENV['http_proxy'] ? URI(ENV['http_proxy']) : nil
+  VERSION = "1.0.0"
 
-  def read(gist_id)
-    return help if gist_id.nil? || gist_id[/^\-h|help$/]
-    return open(GIST_URL % gist_id).read unless gist_id.to_i.zero?
-    return open(gist_id + '.txt').read if gist_id[GIST_URL_REGEXP]
+  CREATE_URL = 'http://gist.github.com/gists'
+  PROXY = ENV['HTTP_PROXY'] ? URI(ENV['HTTP_PROXY']) : nil
+  PROXY_HOST = PROXY ? PROXY.host : nil
+  PROXY_PORT = PROXY ? PROXY.port : nil
+
+  # Parses command line arguments and does what needs to be done.
+  def parse(args)
+    private_gist = false
+    gist_extension = nil
+
+    opts = OptionParser.new do |opts|
+      opts.banner = "Usage: gist [options] [filename or stdin]"
+
+      opts.on('-p', '--private', 'Make the gist private') do
+        private_gist = true
+      end
+
+      t_desc = 'Set syntax highlighting of the Gist by file extension'
+      opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
+        gist_extension = '.' + extension
+      end
+
+      opts.on('-h', '--help', 'Display this screen') do
+        puts opts
+        exit
+      end
+    end
+
+    opts.parse!(args)
+
+    begin
+      if $stdin.tty?
+        if File.exists?(file = args[0])
+          input = File.read(file)
+          gist_extension = File.extname(file) if file.include?('.')
+        else
+          abort "Can't find #{file}"
+        end
+      else
+        input = $stdin.read
+      end
+
+      puts Gist.write(input, private_gist, gist_extension)
+    rescue => e
+      warn e
+      puts opts
+    end
   end
 
-  def write(content, private_gist, gist_extension=nil)
-    url = URI.parse('http://gist.github.com/gists')
-    if @proxy
-      proxy = Net::HTTP::Proxy(@proxy.host, @proxy.port)
-      req = proxy.post_form(url, data(nil, gist_extension, content, private_gist))
-    else
-      req = Net::HTTP.post_form(url, data(nil, gist_extension, content, private_gist))
-    end
+  # Create a gist on gist.github.com
+  def write(content, private_gist, gist_extension = nil)
+    url = URI.parse(CREATE_URL)
+
+    # Net::HTTP::Proxy returns Net::HTTP if PROXY_HOST is nil
+    proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
+    req = proxy.post_form(url, data(nil, gist_extension, content, private_gist))
+
     copy req['Location']
   end
 
-  def help
-    help = File.read(__FILE__).scan(/# = USAGE(.+?)# = INSTALL/m)[0][0]
-    "usage: \n" + help.strip.gsub(/^# ?/, '')
-  end
-
 private
+  # Tries to copy passed content to the clipboard.
   def copy(content)
     case RUBY_PLATFORM
     when /darwin/
-      return content unless system("which pbcopy")
+      return content unless system("which pbcopy 2> /dev/null")
       IO.popen('pbcopy', 'r+') { |clip| clip.print content }
       `open #{content}`
     when /linux/
-      return content unless system("which xclip  2> /dev/null")
+      return content unless system("which xclip 2> /dev/null")
       IO.popen('xclip -sel clip', 'r+') { |clip| clip.print content }
     when /i386-cygwin/
       return content if `which putclip`.strip == ''
@@ -60,6 +98,8 @@ private
     content
   end
 
+  # Give a file name, extension, content, and private boolean, returns
+  # an appropriate payload for POSTing to gist.github.com
   def data(name, ext, content, private_gist)
     return {
       'file_ext[gistfile1]'      => ext,
@@ -68,6 +108,8 @@ private
     }.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
   end
 
+  # Returns a hash of the user's GitHub credentials if see.
+  # http://github.com/guides/local-github-config
   def auth
     user  = `git config --global github.user`.strip
     token = `git config --global github.token`.strip
@@ -76,32 +118,6 @@ private
   end
 end
 
-if $stdin.tty?
-  puts Gist.read(ARGV.first)
-else
-  require 'optparse'
-  private_gist = false
-  gist_extension = nil
-  opts = OptionParser.new do |opts|
-    opts.banner = "Usage: gist [options]" #[-p|--private] [-t|--type FILE_TYPE_EXTENSION]"
-    opts.on('-p', '--private', 'Make the gist private') do
-      private_gist = true
-    end
-
-    opts.on('-t', '--type [EXTENSION]', 'set the syntax highlighting of the gist by file extension') do |extension|
-      gist_extension = '.' + extension
-    end
-
-    opts.on('-h', '--help', 'Display this screen') do
-      puts opts
-      exit
-    end
-  end
-
-  begin
-    opts.parse!(ARGV)
-    puts Gist.write($stdin.read, private_gist, gist_extension)
-  rescue
-    puts opts
-  end
+if $0 == __FILE__
+  Gist.parse(ARGV)
 end

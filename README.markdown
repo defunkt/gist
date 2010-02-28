@@ -6,7 +6,7 @@ Works great with Gist: The Website.
 Installation
 ------------
 
-    curl http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
+    curl -s http://github.com/defunkt/gist/raw/master/gist.rb > gist &&
     chmod 755 gist &&
     mv gist /usr/local/bin/gist
 
