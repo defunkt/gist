@@ -2,6 +2,12 @@ require 'open-uri'
 require 'net/http'
 require 'optparse'
 
+begin
+  require 'gist/manpage'
+rescue LoadError
+  nil
+end
+
 # You can use this class from other scripts with the greatest of
 # ease.
 #
@@ -44,6 +50,10 @@ module Gist
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
         gist_extension = '.' + extension
+      end
+
+      opts.on('-m', '--man', 'Print manual') do
+        Gist::Manpage.display("gist")
       end
 
       opts.on('-h', '--help', 'Display this screen') do
