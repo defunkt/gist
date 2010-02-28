@@ -42,6 +42,14 @@ Set the HTTP_PROXY env variable to use a proxy.
 
     $ HTTP_PROXY=host:port gist file.rb
 
+Manual
+------
+
+
+Visit <http://defunkt.github.com/gist/> or use:
+
+    $ gist -m
+
 Ninja vs Shark
 --------------
 
