@@ -17,4 +17,4 @@
 #     mv gist /usr/local/bin/gist
 
 require 'gist'
-Gist.execute(ARGV)
+Gist.execute(*ARGV)

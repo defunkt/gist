@@ -30,7 +30,7 @@ module Gist
   PROXY_PORT = PROXY ? PROXY.port : nil
 
   # Parses command line arguments and does what needs to be done.
-  def execute(args)
+  def execute(*args)
     private_gist = false
     gist_extension = nil
 

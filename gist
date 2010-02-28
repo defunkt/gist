@@ -25,7 +25,7 @@ module Gist
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
 
-  def execute(args)
+  def execute(*args)
     private_gist = false
     gist_extension = nil
 
