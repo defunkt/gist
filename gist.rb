@@ -4,6 +4,7 @@
 #  gist < file.txt
 #  echo secret | gist -p  # or --private
 #  echo "puts :hi" | gist -t rb
+#  gist script.py
 #
 # = INSTALL
 #  curl -s http://github.com/defunkt/gist/raw/master/gist.rb > gist &&

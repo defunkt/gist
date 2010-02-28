@@ -15,8 +15,8 @@ Use
 
     gist < file.txt
     echo secret | gist --private # or -p
-    gist 1234 > something.txt
-
+    echo "puts :hi" | gist -t rb
+    gist script.py
 
 Authentication
 --------------
@@ -28,6 +28,13 @@ Just have your git config set up with your GitHub username and token.
 
 You can find your token under [your account](https://github.com/account).
 
+
+Proxies
+-------
+
+Set the HTTP_PROXY env variable to use a proxy.
+
+    $ HTTP_PROXY=host:port gist file.rb
 
 Ninja vs Shark
 --------------
