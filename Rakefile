@@ -24,3 +24,24 @@ task :load_gist do
   $LOAD_PATH.unshift 'lib'
   require 'gist'
 end
+
+Rake::TaskManager.class_eval do
+  def remove_task(task_name)
+    @tasks.delete(task_name.to_s)
+  end
+end
+
+# Remove mg's install task
+Rake.application.remove_task(:install)
+
+desc "Install standalone script and man pages"
+task :install => :standalone do
+  prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+
+  FileUtils.mkdir_p "#{prefix}/bin"
+  FileUtils.cp "gist", "#{prefix}/bin"
+
+  FileUtils.mkdir_p "#{prefix}/share/man/man1"
+  FileUtils.cp "man/gist.1", "#{prefix}/share/man/man1"
+end
+
