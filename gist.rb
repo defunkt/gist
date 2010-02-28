@@ -18,6 +18,18 @@ require 'open-uri'
 require 'net/http'
 require 'optparse'
 
+# You can use this class from other scripts with the greatest of
+# ease.
+#
+#   >> Gist.read(gist_id)
+#   Returns the body of gist_id as a string.
+#
+#   >> Gist.write(content)
+#   Creates a gist from the string `content`. Returns the URL of the
+#   new gist.
+#
+#   >> Gist.copy(string)
+#   Copies string to the clipboard.
 module Gist
   extend self
 
@@ -75,7 +87,8 @@ module Gist
         input = $stdin.read
       end
 
-      puts Gist.write(input, private_gist, gist_extension)
+      url = write(input, private_gist, gist_extension)
+      puts copy(url)
     rescue => e
       warn e
       puts opts
@@ -90,7 +103,7 @@ module Gist
     proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
     req = proxy.post_form(url, data(nil, gist_extension, content, private_gist))
 
-    copy req['Location']
+    req['Location']
   end
 
   # Given a gist id, returns its content.
@@ -98,7 +111,6 @@ module Gist
     open(GIST_URL % gist_id).read
   end
 
-private
   # Tries to copy passed content to the clipboard.
   def copy(content)
     case RUBY_PLATFORM
@@ -117,6 +129,7 @@ private
     content
   end
 
+private
   # Give a file name, extension, content, and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
   def data(name, ext, content, private_gist)
