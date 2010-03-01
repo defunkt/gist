@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name              = "gist"
-  s.version           = "1.0.1"
+  s.version           = "1.0.3"
   s.date              = "2010-02-28"
   s.summary           = "Creates Gists from STDIN or files."
   s.homepage          = "http://github.com/defunkt/gist"
