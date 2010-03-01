@@ -79,7 +79,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '1.0.1'
+  VERSION = Version = '1.0.2'
 end
 require 'open-uri'
 require 'net/http'
@@ -174,11 +174,11 @@ module Gist
 
   def copy(content)
     cmd = case true
-    when system("which pbcopy > /dev/null")
+    when system("which pbcopy &> /dev/null")
       :pbcopy
-    when system("which xclip > /dev/null")
+    when system("which xclip &> /dev/null")
       :xclip
-    when system("which putclip")
+    when system("which putclip &> /dev/null")
       :putclip
     end
 
