@@ -79,7 +79,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '1.0.2'
+  VERSION = Version = '1.0.3'
 end
 require 'open-uri'
 require 'net/http'
@@ -192,7 +192,7 @@ module Gist
 private
   def data(name, ext, content, private_gist)
     return {
-      'file_ext[gistfile1]'      => ext,
+      'file_ext[gistfile1]'      => ext ? ext : '.txt',
       'file_name[gistfile1]'     => name,
       'file_contents[gistfile1]' => content
     }.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
