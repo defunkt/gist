@@ -137,7 +137,7 @@ private
   # an appropriate payload for POSTing to gist.github.com
   def data(name, ext, content, private_gist)
     return {
-      'file_ext[gistfile1]'      => ext,
+      'file_ext[gistfile1]'      => ext ? ext : '.txt',
       'file_name[gistfile1]'     => name,
       'file_contents[gistfile1]' => content
     }.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
