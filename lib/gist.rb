@@ -32,14 +32,14 @@ module Gist
 
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
-    private_gist = false
-    gist_extension = nil
+    private_gist = defaults["private"]
+    gist_extension = defaults["extension"]
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin]"
 
-      opts.on('-p', '--private', 'Make the gist private') do
-        private_gist = true
+      opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
+        private_gist = priv
       end
 
       t_desc = 'Set syntax highlighting of the Gist by file extension'
@@ -150,5 +150,23 @@ private
     token = `git config --global github.token`.strip
 
     user.empty? ? {} : { :login => user, :token => token }
+  end
+
+  def defaults
+    priv = str_to_bool(`git config gist.private`.strip)
+    extension = `git config gist.extension`.strip
+    extension = nil if extension.empty?
+
+    {"private" => priv,
+     "extension" => extension}
+  end
+
+  def str_to_bool(str)
+    case str.downcase
+    when "false", "0", "nil", ""
+      false
+    else
+      true
+    end
   end
 end
