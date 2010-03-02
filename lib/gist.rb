@@ -117,11 +117,11 @@ module Gist
   # Tries to copy passed content to the clipboard.
   def copy(content)
     cmd = case true
-    when system("which pbcopy > /dev/null")
+    when system("type pbcopy > /dev/null")
       :pbcopy
-    when system("which xclip > /dev/null")
+    when system("type xclip > /dev/null")
       :xclip
-    when system("which putclip")
+    when system("type putclip > /dev/null")
       :putclip
     end
 
