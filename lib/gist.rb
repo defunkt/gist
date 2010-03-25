@@ -146,27 +146,46 @@ private
   # Returns a hash of the user's GitHub credentials if see.
   # http://github.com/guides/local-github-config
   def auth
-    user  = `git config --global github.user`.strip
-    token = `git config --global github.token`.strip
+    user  = config("github.user")
+    token = config("github.token")
 
     user.empty? ? {} : { :login => user, :token => token }
   end
 
+  # Returns default values based on settings in your gitconfig. See
+  # git-config(1) for more information.
+  #
+  # Settings applicable to gist.rb are:
+  #
+  # gist.private - boolean
+  # gist.extension - string
   def defaults
-    priv = str_to_bool(`git config gist.private`.strip)
-    extension = `git config gist.extension`.strip
-    extension = nil if extension.empty?
+    priv = config("gist.private")
+    extension = config("gist.extension")
+    extension = nil if extension && extension.empty?
 
-    {"private" => priv,
-     "extension" => extension}
+    return {
+      "private"   => priv,
+      "extension" => extension
+    }
   end
 
+  # Reads a config value using git-config(1), returning something
+  # useful or nil.
+  def config(key)
+    str_to_bool `git config --global #{key}`.strip
+  end
+
+  # Parses a value that might appear in a .gitconfig file into
+  # something useful in a Ruby script.
   def str_to_bool(str)
-    case str.downcase
-    when "false", "0", "nil", ""
-      false
-    else
+    case str.downcase.strip
+    when "false", "0", "nil", "", "no", "off"
+      nil
+    when "true", "1", "yes", "on"
       true
+    else
+      str
     end
   end
 end
