@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv='content-type' value='text/html;charset=utf8'>
-  <meta name='generator' value='Ron/v0.3'>
+  <meta name='generator' value='Ronn/v0.4.1'>
   <title>gist(1) -- gist on the command line</title>
   <style type='text/css'>
     body {margin:0}
@@ -64,6 +64,7 @@
 
 <h2 id='NAME'>NAME</h2>
 <p><code>gist</code> -- gist on the command line</p>
+
 <h2>SYNOPSIS</h2>
 
 <p><code>gist</code> [<code>-p</code>] [<code>-t extension</code>] <var>FILE</var></p>
@@ -90,14 +91,8 @@ account if you user and token are provided (see <code>CONFIGURATION</code>).</p>
 <p>These options can be used to change this behavior:</p>
 
 <dl>
-<dt>
-<code>-p</code>, <code>--private</code>
-</dt>
-<dd><p>Create a private gist instead of a public gist.</p></dd>
-<dt>
-<code>-t</code>, <code>--type</code>
-</dt>
-<dd><p>Set the file extension explicitly. Passing a type of <code>rb</code> ensure
+<dt><code>-p</code>, <code>--private</code></dt><dd><p>Create a private gist instead of a public gist.</p></dd>
+<dt><code>-t</code>, <code>--type</code></dt><dd><p>Set the file extension explicitly. Passing a type of <code>rb</code> ensure
 the gist is created as a Ruby file.</p></dd>
 </dl>
 
@@ -105,14 +100,8 @@ the gist is created as a Ruby file.</p></dd>
 <p>You may additionally ask for help:</p>
 
 <dl>
-<dt>
-<code>-h</code>, <code>--help</code>
-</dt>
-<dd><p>Print help.</p></dd>
-<dt>
-<code>-m</code>, <code>--man</code>
-</dt>
-<dd><p>Display this man page.</p></dd>
+<dt><code>-h</code>, <code>--help</code></dt><dd><p>Print help.</p></dd>
+<dt><code>-m</code>, <code>--man</code></dt><dd><p>Display this man page.</p></dd>
 </dl>
 
 
@@ -125,7 +114,7 @@ the gist is created as a Ruby file.</p></dd>
 
 <p>Or, set the GitHub username with:</p>
 
-<pre><code>$ git config --global github.user &lt;username&gt;
+<pre><code>$ git config --global github.user &lt;username>
 </code></pre>
 
 <p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more
@@ -157,6 +146,7 @@ $ gist script.py
 <p>hub(1), git(1), git-clone(1),
 <a href="http://github.com">http://github.com</a>,
 <a href="http://github.com/defunkt/gist">http://github.com/defunkt/gist</a></p>
+
 
 <ol class='foot man'>
   <li class='tl'>GITHUB</li>

@@ -242,8 +242,8 @@ private
 end
 Gist.execute(*ARGV)
 __END__
-.\" generated with Ron/v0.3
-.\" http://github.com/rtomayko/ron/
+.\" generated with Ronn/v0.4.1
+.\" http://github.com/rtomayko/ronn/
 .
 .TH "GIST" "1" "February 2010" "GITHUB" "Gist Manual"
 .
@@ -276,11 +276,11 @@ account if you user and token are provided (see \fBCONFIGURATION\fR).
 These options can be used to change this behavior:
 .
 .TP
-\fB\-p\fR, \fB\-\-private\fR 
+\fB\-p\fR, \fB\-\-private\fR
 Create a private gist instead of a public gist.
 .
 .TP
-\fB\-t\fR, \fB\-\-type\fR 
+\fB\-t\fR, \fB\-\-type\fR
 Set the file extension explicitly. Passing a type of \fBrb\fR ensure
 the gist is created as a Ruby file.
 .
@@ -288,11 +288,11 @@ the gist is created as a Ruby file.
 You may additionally ask for help:
 .
 .TP
-\fB\-h\fR, \fB\-\-help\fR 
+\fB\-h\fR, \fB\-\-help\fR
 Print help.
 .
 .TP
-\fB\-m\fR, \fB\-\-man\fR 
+\fB\-m\fR, \fB\-\-man\fR
 Display this man page.
 .
 .SH "CONFIGURATION"
@@ -301,8 +301,7 @@ Use git\-config(1) to display the currently configured GitHub username:
 .IP "" 4
 .
 .nf
-
-$ git config \-\-global github.user 
+$ git config \-\-global github.user
 .
 .fi
 .
@@ -314,8 +313,7 @@ Or, set the GitHub username with:
 .IP "" 4
 .
 .nf
-
-$ git config \-\-global github.user <username> 
+$ git config \-\-global github.user <username>
 .
 .fi
 .
@@ -331,8 +329,7 @@ information.
 .IP "" 4
 .
 .nf
-
-$ HTTP_PROXY=http://host:port/ gist script.py 
+$ HTTP_PROXY=http://host:port/ gist script.py
 .
 .fi
 .
@@ -341,11 +338,10 @@ $ HTTP_PROXY=http://host:port/ gist script.py
 .SH "EXAMPLES"
 .
 .nf
-
 $ gist < file.txt
 $ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
-$ gist script.py 
+$ gist script.py
 .
 .fi
 .
