@@ -1,7 +1,9 @@
+require 'gist'
+
 Gem::Specification.new do |s|
   s.name              = "gist"
-  s.version           = "1.0.3"
-  s.date              = "2010-02-28"
+  s.version           = Gist::Version.to_s
+  s.date              = Time.now.strftime('%Y-%m-%d')
   s.summary           = "Creates Gists from STDIN or files."
   s.homepage          = "http://github.com/defunkt/gist"
   s.email             = "chris@ozmm.org"
