@@ -1,3 +1,3 @@
 module Gist
-  VERSION = Version = '1.0.3'
+  VERSION = Version = '1.1.0'
 end
