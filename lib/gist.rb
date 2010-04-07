@@ -52,6 +52,11 @@ module Gist
         Gist::Manpage.display("gist")
       end
 
+      opts.on('-v', '--version', 'Print version') do
+        puts Gist::Version
+        exit
+      end
+
       opts.on('-h', '--help', 'Display this screen') do
         puts opts
         exit
