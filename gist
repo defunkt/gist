@@ -79,7 +79,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '1.1.0'
+  VERSION = Version = '1.1.1'
 end
 require 'open-uri'
 require 'net/http'
@@ -117,6 +117,11 @@ module Gist
 
       opts.on('-m', '--man', 'Print manual') do
         Gist::Manpage.display("gist")
+      end
+
+      opts.on('-', '--version', 'Print version') do
+        puts Gist::Version
+        exit
       end
 
       opts.on('-h', '--help', 'Display this screen') do
@@ -159,7 +164,8 @@ module Gist
     url = URI.parse(CREATE_URL)
 
     proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
-    req = proxy.post_form(url, data(gist_filename, gist_extension, content, private_gist))
+    req = proxy.post_form(url,
+      data(gist_filename, gist_extension, content, private_gist))
 
     req['Location']
   end
