@@ -98,7 +98,8 @@ module Gist
 
     # Net::HTTP::Proxy returns Net::HTTP if PROXY_HOST is nil
     proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
-    req = proxy.post_form(url, data(gist_filename, gist_extension, content, private_gist))
+    req = proxy.post_form(url,
+      data(gist_filename, gist_extension, content, private_gist))
 
     req['Location']
   end
@@ -145,7 +146,7 @@ private
     }.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
   end
 
-  # Returns a hash of the user's GitHub credentials if see.
+  # Returns a hash of the user's GitHub credentials if set.
   # http://github.com/guides/local-github-config
   def auth
     user  = config("github.user")
