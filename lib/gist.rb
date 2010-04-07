@@ -181,7 +181,7 @@ private
   # Parses a value that might appear in a .gitconfig file into
   # something useful in a Ruby script.
   def str_to_bool(str)
-    if str[0].chr == '!'
+    if str.size > 0 and str[0].chr == '!'
       command = str[1, str.length]
       value = `#{command}`
     else
