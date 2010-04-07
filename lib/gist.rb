@@ -33,6 +33,7 @@ module Gist
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
     private_gist = defaults["private"]
+    gist_filename = nil
     gist_extension = defaults["extension"]
 
     opts = OptionParser.new do |opts|
@@ -72,6 +73,7 @@ module Gist
         # Check if arg is a file. If so, grab the content.
         if File.exists?(file = args[0])
           input = File.read(file)
+          gist_filename = file
           gist_extension = File.extname(file) if file.include?('.')
         else
           abort "Can't find #{file}"
@@ -81,7 +83,7 @@ module Gist
         input = $stdin.read
       end
 
-      url = write(input, private_gist, gist_extension)
+      url = write(input, private_gist, gist_extension, gist_filename)
       browse(url)
       puts copy(url)
     rescue => e
@@ -91,12 +93,12 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(content, private_gist = false, gist_extension = nil)
+  def write(content, private_gist = false, gist_extension = nil, gist_filename = nil)
     url = URI.parse(CREATE_URL)
 
     # Net::HTTP::Proxy returns Net::HTTP if PROXY_HOST is nil
     proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
-    req = proxy.post_form(url, data(nil, gist_extension, content, private_gist))
+    req = proxy.post_form(url, data(gist_filename, gist_extension, content, private_gist))
 
     req['Location']
   end
