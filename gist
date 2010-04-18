@@ -119,7 +119,7 @@ module Gist
         Gist::Manpage.display("gist")
       end
 
-      opts.on('-', '--version', 'Print version') do
+      opts.on('-v', '--version', 'Print version') do
         puts Gist::Version
         exit
       end
@@ -177,6 +177,9 @@ module Gist
   def browse(url)
     if RUBY_PLATFORM =~ /darwin/
       `open #{url}`
+    elsif ENV[:OS] == 'Windows_NT' or
+      RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
+      `start "" "#{url}"`
     end
   end
 
