@@ -115,10 +115,13 @@ module Gist
   end
 
   # Given a url, tries to open it in your browser.
-  # TODO: Linux, Windows
+  # TODO: Linux
   def browse(url)
     if RUBY_PLATFORM =~ /darwin/
       `open #{url}`
+    elsif ENV[:OS] == 'Windows_NT' or
+      RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
+      `start "" "#{url}"`
     end
   end
 
