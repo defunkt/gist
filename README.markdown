@@ -6,9 +6,15 @@ Works great with Gist: The Website.
 Installation
 ------------
 
-RubyGem:
+[homebrew](http://mxcl.github.com/homebrew/):
+
+    brew install gist
+    gist -h
+
+RubyGems:
 
     gem install gist
+    gist -h
 
 Old school:
 
@@ -72,8 +78,7 @@ Visit <http://defunkt.github.com/gist/> or use:
 
     $ gist -m
 
+Bugs
+----
 
-Ninja vs Shark
---------------
-
-![Ninja vs Shark](http://github.com/defunkt/gist/tree/master%2Fbattle.png?raw=true)
+<http://github.com/defunkt/gist/issues>
