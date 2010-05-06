@@ -181,9 +181,16 @@ private
     }
   end
 
-  # Reads a config value using git-config(1), returning something
-  # useful or nil.
+  # Reads a config value using:
+  # => Environement: GITHUB_TOKEN, GITHUB_USER
+  #                  like vim gist plugin
+  # => git-config(1)
+  #
+  # return something useful or nil
   def config(key)
+    env_key = ENV[key.upcase.gsub(/\./, '_')]
+    return env_key if env_key and not env_key.empty?
+
     str_to_bool `git config --global #{key}`.strip
   end
 

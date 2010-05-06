@@ -10,6 +10,9 @@
 #
 
 module Gist
+  VERSION = Version = '1.1.1'
+end
+module Gist
   module Manpage
     extend self
 
@@ -77,9 +80,6 @@ module Gist
       end
     end
   end
-end
-module Gist
-  VERSION = Version = '1.1.1'
 end
 require 'open-uri'
 require 'net/http'
@@ -228,6 +228,9 @@ private
   end
 
   def config(key)
+    env_key = ENV[key.upcase.gsub(/\./, '_')]
+    return env_key if env_key and not env_key.empty?
+
     str_to_bool `git config --global #{key}`.strip
   end
 
