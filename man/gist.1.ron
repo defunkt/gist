@@ -43,6 +43,16 @@ You may additionally ask for help:
 
 ## CONFIGURATION
 
+There is two way to set github user and token info:
+
+  * Using env vars GITHUB_USER and GITHUB_TOKEN
+
+    $ export GITHUB_USER=johndoe
+    $ export GITHUB_TOKEN=mysecretgithubtoken
+    $ gist ~/example
+
+  * Using git-config(1)
+
 Use git-config(1) to display the currently configured GitHub username:
 
     $ git config --global github.user
