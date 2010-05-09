@@ -34,8 +34,15 @@ Use
 
 Authentication
 --------------
+There is two way to set github user and token info:
 
-Just have your git config set up with your GitHub username and token.
+Using env vars GITHUB_USER and GITHUB_TOKEN:
+
+    $ export GITHUB_USER="your-github-username"
+    $ export GITHUB_TOKEN="your-github-token"
+    $ gist ~/example
+
+Or by having your git config set up with your GitHub username and token.
 
     git config --global github.user "your-github-username"
     git config --global github.token "your-github-token"
