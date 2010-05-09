@@ -10,9 +10,6 @@
 #
 
 module Gist
-  VERSION = Version = '1.1.1'
-end
-module Gist
   module Manpage
     extend self
 
@@ -80,6 +77,9 @@ module Gist
       end
     end
   end
+end
+module Gist
+  VERSION = Version = '1.1.1'
 end
 require 'open-uri'
 require 'net/http'
@@ -308,7 +308,7 @@ Print help.
 Display this man page.
 .
 .SH "CONFIGURATION"
-There is two way to set github user and token info:
+There are two way to set github user and token info:
 .
 .IP "\(bu" 4
 Using env vars GITHUB_USER and GITHUB_TOKEN
