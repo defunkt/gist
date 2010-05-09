@@ -254,10 +254,10 @@ private
 end
 Gist.execute(*ARGV)
 __END__
-.\" generated with Ronn/v0.4.1
+.\" generated with Ronn/v0.5
 .\" http://github.com/rtomayko/ronn/
 .
-.TH "GIST" "1" "February 2010" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "May 2010" "GITHUB" "Gist Manual"
 .
 .SH "NAME"
 \fBgist\fR \-\- gist on the command line
@@ -308,11 +308,28 @@ Print help.
 Display this man page.
 .
 .SH "CONFIGURATION"
+There is two way to set github user and token info:
+.
+.IP "\(bu" 4
+Using env vars GITHUB_USER and GITHUB_TOKEN
+.
+.IP
+$ export GITHUB_USER=johndoe
+$ export GITHUB_TOKEN=mysecretgithubtoken
+$ gist ~/example
+.
+.IP "\(bu" 4
+Using git\-config(1)
+.
+.IP "" 0
+.
+.P
 Use git\-config(1) to display the currently configured GitHub username:
 .
 .IP "" 4
 .
 .nf
+
 $ git config \-\-global github.user
 .
 .fi
@@ -325,6 +342,7 @@ Or, set the GitHub username with:
 .IP "" 4
 .
 .nf
+
 $ git config \-\-global github.user <username>
 .
 .fi
@@ -341,6 +359,7 @@ information.
 .IP "" 4
 .
 .nf
+
 $ HTTP_PROXY=http://host:port/ gist script.py
 .
 .fi
@@ -350,6 +369,7 @@ $ HTTP_PROXY=http://host:port/ gist script.py
 .SH "EXAMPLES"
 .
 .nf
+
 $ gist < file.txt
 $ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
@@ -364,4 +384,4 @@ $ gist script.py
 Chris Wanstrath :: chris@ozmm.org
 .
 .SH "SEE ALSO"
-hub(1), git(1), git\-clone(1),\fIhttp://github.com\fR, \fIhttp://github.com/defunkt/gist\fR
+hub(1), git(1), git\-clone(1), \fIhttp://github.com\fR, \fIhttp://github.com/defunkt/gist\fR

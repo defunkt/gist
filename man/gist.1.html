@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv='content-type' value='text/html;charset=utf8'>
-  <meta name='generator' value='Ronn/v0.4.1'>
+  <meta name='generator' value='Ronn/v0.5'>
   <title>gist(1) -- gist on the command line</title>
   <style type='text/css'>
     body {margin:0}
@@ -107,6 +107,18 @@ the gist is created as a Ruby file.</p></dd>
 
 <h2>CONFIGURATION</h2>
 
+<p>There is two way to set github user and token info:</p>
+
+<ul>
+<li><p>Using env vars GITHUB_USER and GITHUB_TOKEN</p>
+
+<p>$ export GITHUB_USER=johndoe
+$ export GITHUB_TOKEN=mysecretgithubtoken
+$ gist ~/example</p></li>
+<li><p>Using git-config(1)</p></li>
+</ul>
+
+
 <p>Use git-config(1) to display the currently configured GitHub username:</p>
 
 <pre><code>$ git config --global github.user
@@ -150,7 +162,7 @@ $ gist script.py
 
 <ol class='foot man'>
   <li class='tl'>GITHUB</li>
-  <li class='tc'>February 2010</li>
+  <li class='tc'>May 2010</li>
   <li class='tr'>gist(1)</li>
 </ol>
 
