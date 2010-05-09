@@ -16,7 +16,7 @@ end
 
 desc "Build gist manual"
 task :build_man do
-  sh "ron -br5 --organization=GITHUB --manual='Gist Manual' man/*.ron"
+  sh "ronn -br5 --organization=GITHUB --manual='Gist Manual' man/*.ron"
 end
 
 desc "Show gist manual"
