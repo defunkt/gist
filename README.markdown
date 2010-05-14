@@ -34,7 +34,7 @@ Use
 
 Authentication
 --------------
-There are two way to set github user and token info:
+There are two ways to set GitHub user and token info:
 
 Using env vars GITHUB_USER and GITHUB_TOKEN:
 

@@ -308,7 +308,7 @@ Print help.
 Display this man page.
 .
 .SH "CONFIGURATION"
-There are two way to set github user and token info:
+There are two ways to set GitHub user and token info:
 .
 .IP "\(bu" 4
 Using env vars GITHUB_USER and GITHUB_TOKEN
