@@ -102,9 +102,14 @@ module Gist
     private_gist = defaults["private"]
     gist_filename = nil
     gist_extension = defaults["extension"]
+    browse_enabled = true
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin]"
+
+      opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
+        browse_enabled = o
+      end
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
@@ -152,7 +157,9 @@ module Gist
       end
 
       url = write(input, private_gist, gist_extension, gist_filename)
-      browse(url)
+      if browse_enabled
+        browse(url)
+      end
       puts copy(url)
     rescue => e
       warn e
