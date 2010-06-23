@@ -69,6 +69,8 @@ control the default behavior of gist(1).
 
 * gist.extension - string - Default extension for gists you create.
 
+* gist.browse - boolean (yes or no) - Whether to open the gist in your
+  browser after creation. Default: yes
 
 Proxies
 -------

@@ -35,6 +35,7 @@ module Gist
     private_gist = defaults["private"]
     gist_filename = nil
     gist_extension = defaults["extension"]
+    browse_enabled = defaults["browse"]
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin]"
@@ -46,6 +47,10 @@ module Gist
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
         gist_extension = '.' + extension
+      end
+
+      opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
+        browse_enabled = o
       end
 
       opts.on('-m', '--man', 'Print manual') do
@@ -89,7 +94,7 @@ module Gist
       end
 
       url = write(input, private_gist, gist_extension, gist_filename)
-      browse(url)
+      browse(url) if browse_enabled
       puts copy(url)
     rescue => e
       warn e
@@ -171,13 +176,13 @@ private
   # gist.private - boolean
   # gist.extension - string
   def defaults
-    priv = config("gist.private")
     extension = config("gist.extension")
     extension = nil if extension && extension.empty?
 
     return {
-      "private"   => priv,
-      "extension" => extension
+      "private"   => config("gist.private"),
+      "browse"    => config("gist.browse"),
+      "extension" => extension,
     }
   end
 

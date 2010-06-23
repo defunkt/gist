@@ -33,6 +33,10 @@ These options can be used to change this behavior:
     Set the file extension explicitly. Passing a type of `rb` ensure
     the gist is created as a Ruby file.
 
+  * `-o`, `--[no-]open`:
+    Open the gist in your browser after creation. Or don't. Defaults
+    to --open
+
 You may additionally ask for help:
 
   * `-h`, `--help`:
@@ -41,7 +45,7 @@ You may additionally ask for help:
   * `-m`, `--man`:
     Display this man page.
 
-## CONFIGURATION
+## AUTHENTICATION
 
 There are two ways to set GitHub user and token info:
 
@@ -64,9 +68,24 @@ Or, set the GitHub username with:
 See <http://github.com/guides/local-github-config> for more
 information.
 
-`gist` will check the `HTTP_PROXY` env variable if supplied:
+## CONFIGURATION
 
-    $ HTTP_PROXY=http://host:port/ gist script.py
+You can set a few options in your git config (using git-config(1)) to
+control the default behavior of gist(1).
+
+* gist.private - boolean (yes or no) - Determines whether to make a gist
+  private by default
+
+* gist.extension - string - Default extension for gists you create.
+
+* gist.browse - boolean (yes or no) - Whether to open the gist in your
+  browser after creation. Default: yes
+
+## ENVIRONMENT
+
+The following environment variables affect the execution of `gist`:
+
+* HTTP_PROXY - Proxy to use when Gisting. Should be "http://host:port/"
 
 ## EXAMPLES
 
