@@ -1,10 +1,10 @@
 .\" generated with Ronn/v0.5
 .\" http://github.com/rtomayko/ronn/
 .
-.TH "GIST" "1" "May 2010" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "June 2010" "GITHUB" "Gist Manual"
 .
 .SH "NAME"
-\fBgist\fR \-\- gist on the command line
+\fBgist\fR \- gist on the command line
 .
 .SH "SYNOPSIS"
 \fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE\fR
@@ -40,6 +40,11 @@ Create a private gist instead of a public gist.
 Set the file extension explicitly. Passing a type of \fBrb\fR ensure
 the gist is created as a Ruby file.
 .
+.TP
+\fB\-o\fR, \fB\-\-[no\-]open\fR
+Open the gist in your browser after creation. Or don't. Defaults
+to \-\-open
+.
 .P
 You may additionally ask for help:
 .
@@ -51,7 +56,7 @@ Print help.
 \fB\-m\fR, \fB\-\-man\fR
 Display this man page.
 .
-.SH "CONFIGURATION"
+.SH "AUTHENTICATION"
 There are two ways to set GitHub user and token info:
 .
 .IP "\(bu" 4
@@ -97,16 +102,28 @@ $ git config \-\-global github.user <username>
 See \fIhttp://github.com/guides/local\-github\-config\fR for more
 information.
 .
-.P
-\fBgist\fR will check the \fBHTTP_PROXY\fR env variable if supplied:
+.SH "CONFIGURATION"
+You can set a few options in your git config (using git\-config(1)) to
+control the default behavior of gist(1).
 .
-.IP "" 4
+.IP "\(bu" 4
+gist.private \- boolean (yes or no) \- Determines whether to make a gist
+private by default
 .
-.nf
-
-$ HTTP_PROXY=http://host:port/ gist script.py
+.IP "\(bu" 4
+gist.extension \- string \- Default extension for gists you create.
 .
-.fi
+.IP "\(bu" 4
+gist.browse \- boolean (yes or no) \- Whether to open the gist in your
+browser after creation. Default: yes
+.
+.IP "" 0
+.
+.SH "ENVIRONMENT"
+The following environment variables affect the execution of \fBgist\fR:
+.
+.IP "\(bu" 4
+HTTP_PROXY \- Proxy to use when Gisting. Should be "http://host:port/"
 .
 .IP "" 0
 .
