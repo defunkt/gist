@@ -80,8 +80,10 @@ module Gist
           exit
         end
 
+        if args[0] == '-'
+          input = $stdin.read
         # Check if arg is a file. If so, grab the content.
-        if File.exists?(file = args[0])
+        elsif File.exists?(file = args[0])
           input = File.read(file)
           gist_filename = file
           gist_extension = File.extname(file) if file.include?('.')

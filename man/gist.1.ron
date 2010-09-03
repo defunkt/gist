@@ -3,7 +3,7 @@ gist(1) -- gist on the command line
 
 ## SYNOPSIS
 
-`gist` [`-p`] [`-t extension`] <FILE>
+`gist` [`-p`] [`-t extension`] <FILE|->
 
 ## DESCRIPTION
 
@@ -12,7 +12,8 @@ line. There are two primary methods of creating gists.
 
 If standard input is supplied, it will be used as the content of the
 new gist. If <FILE> is provided, the content of that file will be used
-to create the gist.
+to create the gist. If <FILE> is '-' then gist will wait for content
+from standard input.
 
 Once your gist is successfully created, the URL will be copied to your
 clipboard. If you are on OS X, `gist` will open the gist in your
@@ -93,6 +94,9 @@ The following environment variables affect the execution of `gist`:
     $ echo secret | gist --private
     $ echo "puts :hi" | gist -t rb
     $ gist script.py
+    $ gist -
+    the quick brown fox jumps over the lazy dog
+    ^D
 
 ## BUGS
 
