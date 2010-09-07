@@ -81,19 +81,24 @@ module Gist
         end
 
         # Check if arg is a file. If so, grab the content.
-        if File.exists?(file = args[0])
-          input = File.read(file)
-          gist_filename = file
-          gist_extension = File.extname(file) if file.include?('.')
-        else
-          abort "Can't find #{file}"
+        files = []
+        args.each_with_index do |arg, i|
+          if File.exists?(file = arg)
+            files.push({
+              :input => File.read(file),
+              :filename => file,
+              :extension => (File.extname(file) if file.include?('.'))
+            })
+          else
+            abort "Can't find #{file}"
+          end
         end
       else
         # Read from standard input.
         input = $stdin.read
       end
 
-      url = write(input, private_gist, gist_extension, gist_filename)
+      url = write(files, private_gist)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -103,7 +108,7 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(content, private_gist = false, gist_extension = nil, gist_filename = nil)
+  def write(files, private_gist = false)
     url = URI.parse(CREATE_URL)
 
     if PROXY_HOST
@@ -118,7 +123,7 @@ module Gist
     http.ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(gist_filename, gist_extension, content, private_gist)
+    req.form_data = data(files, private_gist)
 
     http.start{|h| h.request(req) }['Location']
   end
@@ -158,14 +163,17 @@ module Gist
   end
 
 private
-  # Give a file name, extension, content, and private boolean, returns
+  # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
-  def data(name, ext, content, private_gist)
-    return {
-      'file_ext[gistfile1]'      => ext ? ext : '.txt',
-      'file_name[gistfile1]'     => name,
-      'file_contents[gistfile1]' => content
-    }.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+  def data(files, private_gist)
+    data = {}
+    files.each_with_index do |file, index|
+      i = index + 1
+      data["file_ext[gistfile#{i}]"]      = file[:extention] ? file[:extention] : '.txt'
+      data["file_name[gistfile#{i}]"]     = file[:filename]
+      data["file_contents[gistfile#{i}]"] = file[:input]
+    end
+    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
   end
 
   # Returns a hash of the user's GitHub credentials if set.
