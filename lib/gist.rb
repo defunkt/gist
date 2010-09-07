@@ -82,11 +82,11 @@ module Gist
 
         # Check if arg is a file. If so, grab the content.
         files = []
-        args.each_with_index do |arg, i|
+        args.each do |arg|
           if File.exists?(file = arg)
             files.push({
-              :input => File.read(file),
-              :filename => file,
+              :input     => File.read(file),
+              :filename  => file,
               :extension => (File.extname(file) if file.include?('.'))
             })
           else
