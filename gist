@@ -145,18 +145,21 @@ module Gist
           exit
         end
 
-        if File.exists?(file = args[0])
-          input = File.read(file)
-          gist_filename = file
-          gist_extension = File.extname(file) if file.include?('.')
-        else
-          abort "Can't find #{file}"
+        files = args.inject([]) do |files, file|
+          abort "Can't find #{file}" unless File.exists?(file)
+
+          files.push({
+            :input     => File.read(file),
+            :filename  => file,
+            :extension => (File.extname(file) if file.include?('.'))
+          })
         end
+
       else
         input = $stdin.read
       end
 
-      url = write(input, private_gist, gist_extension, gist_filename)
+      url = write(files, private_gist)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -165,7 +168,7 @@ module Gist
     end
   end
 
-  def write(content, private_gist = false, gist_extension = nil, gist_filename = nil)
+  def write(files, private_gist = false)
     url = URI.parse(CREATE_URL)
 
     if PROXY_HOST
@@ -180,7 +183,7 @@ module Gist
     http.ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(gist_filename, gist_extension, content, private_gist)
+    req.form_data = data(files, private_gist)
 
     http.start{|h| h.request(req) }['Location']
   end
@@ -216,12 +219,15 @@ module Gist
   end
 
 private
-  def data(name, ext, content, private_gist)
-    return {
-      'file_ext[gistfile1]'      => ext ? ext : '.txt',
-      'file_name[gistfile1]'     => name,
-      'file_contents[gistfile1]' => content
-    }.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+  def data(files, private_gist)
+    data = {}
+    files.each do |file|
+      i = data.size + 1
+      data["file_ext[gistfile#{i}]"]      = file[:extention] ? file[:extention] : '.txt'
+      data["file_name[gistfile#{i}]"]     = file[:filename]
+      data["file_contents[gistfile#{i}]"] = file[:input]
+    end
+    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
   end
 
   def auth
@@ -282,13 +288,13 @@ __END__
 \fBgist\fR \- gist on the command line
 .
 .SH "SYNOPSIS"
-\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE\fR
+\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE|\-\fR
 .
 .SH "DESCRIPTION"
 \fBgist\fR can be used to create gists on gist\.github\.com from the command line\. There are two primary methods of creating gists\.
 .
 .P
-If standard input is supplied, it will be used as the content of the new gist\. If \fIFILE\fR is provided, the content of that file will be used to create the gist\.
+If standard input is supplied, it will be used as the content of the new gist\. If \fIFILE\fR is provided, the content of that file will be used to create the gist\. If \fIFILE\fR is \'\-\' then gist will wait for content from standard input\.
 .
 .P
 Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
@@ -395,6 +401,9 @@ $ gist < file\.txt
 $ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
 $ gist script\.py
+$ gist \-
+the quick brown fox jumps over the lazy dog
+^D
 .
 .fi
 .

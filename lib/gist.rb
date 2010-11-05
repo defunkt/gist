@@ -74,25 +74,23 @@ module Gist
       if $stdin.tty? && args[0] != '-'
         # Run without stdin.
 
-        # No args, print help.
         if args.empty?
+          # No args, print help.
           puts opts
           exit
         end
 
-        # Check if arg is a file. If so, grab the content.
-        files = []
-        args.each do |arg|
-          if File.exists?(file = arg)
-            files.push({
-              :input     => File.read(file),
-              :filename  => file,
-              :extension => (File.extname(file) if file.include?('.'))
-            })
-          else
-            abort "Can't find #{file}"
-          end
+        files = args.inject([]) do |files, file|
+          # Check if arg is a file. If so, grab the content.
+          abort "Can't find #{file}" unless File.exists?(file)
+
+          files.push({
+            :input     => File.read(file),
+            :filename  => file,
+            :extension => (File.extname(file) if file.include?('.'))
+          })
         end
+
       else
         # Read from standard input.
         input = $stdin.read
@@ -167,8 +165,8 @@ private
   # an appropriate payload for POSTing to gist.github.com
   def data(files, private_gist)
     data = {}
-    files.each_with_index do |file, index|
-      i = index + 1
+    files.each do |file|
+      i = data.size + 1
       data["file_ext[gistfile#{i}]"]      = file[:extention] ? file[:extention] : '.txt'
       data["file_name[gistfile#{i}]"]     = file[:filename]
       data["file_contents[gistfile#{i}]"] = file[:input]
