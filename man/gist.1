@@ -7,13 +7,13 @@
 \fBgist\fR \- gist on the command line
 .
 .SH "SYNOPSIS"
-\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE\fR
+\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE|\-\fR
 .
 .SH "DESCRIPTION"
 \fBgist\fR can be used to create gists on gist\.github\.com from the command line\. There are two primary methods of creating gists\.
 .
 .P
-If standard input is supplied, it will be used as the content of the new gist\. If \fIFILE\fR is provided, the content of that file will be used to create the gist\.
+If standard input is supplied, it will be used as the content of the new gist\. If \fIFILE\fR is provided, the content of that file will be used to create the gist\. If \fIFILE\fR is \'\-\' then gist will wait for content from standard input\.
 .
 .P
 Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
@@ -120,6 +120,9 @@ $ gist < file\.txt
 $ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
 $ gist script\.py
+$ gist \-
+the quick brown fox jumps over the lazy dog
+^D
 .
 .fi
 .
