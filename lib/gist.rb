@@ -38,7 +38,8 @@ module Gist
     browse_enabled = defaults["browse"]
 
     opts = OptionParser.new do |opts|
-      opts.banner = "Usage: gist [options] [filename or stdin]"
+      opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
+        "Filename '-' forces gist to read from stdin."
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
