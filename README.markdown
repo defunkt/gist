@@ -26,10 +26,13 @@ Old school:
 Use
 ---
 
-    gist < file.txt
-    echo secret | gist --private # or -p
-    echo "puts :hi" | gist -t rb
-    gist script.py
+    $ gist < file.txt
+    $ echo secret | gist --private # or -p
+    $ echo "puts :hi" | gist -t rb
+    $ gist script.py
+    $ gist -
+    the quick brown fox jumps over the lazy dog
+    ^D
 
 
 Authentication

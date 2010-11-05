@@ -19,6 +19,7 @@ preamble
     POSTAMBLE = "Gist.execute(*ARGV)\n"
     __DIR__   = File.dirname(__FILE__)
     MANPAGE   = "__END__\n#{File.read(__DIR__ + '/../../man/gist.1')}"
+    CACERT    = "__CACERT__\n#{File.read(__DIR__ + '/cacert.pem')}"
 
     def save(filename, path = '.')
       target = File.join(File.expand_path(path), filename)
@@ -46,6 +47,7 @@ preamble
 
       standalone << POSTAMBLE
       standalone << MANPAGE
+      standalone << CACERT
       standalone
     end
   end

@@ -33,7 +33,7 @@ module Gist
       if File.exists? file = File.dirname(__FILE__) + "/../../man/#{name}.1"
         File.read(file)
       else
-        DATA.read
+        DATA.read.split("__CACERT__").first
       end
     end
 

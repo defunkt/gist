@@ -1,5 +1,5 @@
 require 'open-uri'
-require 'net/http'
+require 'net/https'
 require 'optparse'
 
 require 'gist/manpage' unless defined?(Gist::Manpage)
@@ -23,8 +23,8 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'http://gist.github.com/%s.txt'
-  CREATE_URL = 'http://gist.github.com/gists'
+  GIST_URL   = 'https://gist.github.com/%s.txt'
+  CREATE_URL = 'https://gist.github.com/gists'
 
   PROXY = ENV['HTTP_PROXY'] ? URI(ENV['HTTP_PROXY']) : nil
   PROXY_HOST = PROXY ? PROXY.host : nil
@@ -38,7 +38,8 @@ module Gist
     browse_enabled = defaults["browse"]
 
     opts = OptionParser.new do |opts|
-      opts.banner = "Usage: gist [options] [filename or stdin]"
+      opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
+        "Filename '-' forces gist to read from stdin."
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
@@ -71,28 +72,26 @@ module Gist
     opts.parse!(args)
 
     begin
-      if $stdin.tty?
+      if $stdin.tty? && args[0] != '-'
         # Run without stdin.
 
-        # No args, print help.
         if args.empty?
+          # No args, print help.
           puts opts
           exit
         end
 
-        # Check if arg is a file. If so, grab the content.
-        files = []
-        args.each do |arg|
-          if File.exists?(file = arg)
-            files.push({
-              :input     => File.read(file),
-              :filename  => file,
-              :extension => (File.extname(file) if file.include?('.'))
-            })
-          else
-            abort "Can't find #{file}"
-          end
+        files = args.inject([]) do |files, file|
+          # Check if arg is a file. If so, grab the content.
+          abort "Can't find #{file}" unless File.exists?(file)
+
+          files.push({
+            :input     => File.read(file),
+            :filename  => file,
+            :extension => (File.extname(file) if file.include?('.'))
+          })
         end
+
       else
         # Read from standard input.
         input = $stdin.read
@@ -111,11 +110,21 @@ module Gist
   def write(files, private_gist = false)
     url = URI.parse(CREATE_URL)
 
-    # Net::HTTP::Proxy returns Net::HTTP if PROXY_HOST is nil
-    proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
-    req = proxy.post_form(url, data(files, private_gist))
+    if PROXY_HOST
+      proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
+      http  = proxy.new(url.host, url.port)
+    else
+      http = Net::HTTP.new(url.host, url.port)
+    end
 
-    req['Location']
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    http.ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
+
+    req = Net::HTTP::Post.new(url.path)
+    req.form_data = data(files, private_gist)
+
+    http.start{|h| h.request(req) }['Location']
   end
 
   # Given a gist id, returns its content.
@@ -157,8 +166,8 @@ private
   # an appropriate payload for POSTing to gist.github.com
   def data(files, private_gist)
     data = {}
-    files.each_with_index do |file, index|
-      i = index + 1
+    files.each do |file|
+      i = data.size + 1
       data["file_ext[gistfile#{i}]"]      = file[:extention] ? file[:extention] : '.txt'
       data["file_name[gistfile#{i}]"]     = file[:filename]
       data["file_contents[gistfile#{i}]"] = file[:input]
@@ -224,5 +233,9 @@ private
     else
       value
     end
+  end
+
+  def ca_cert
+    DATA.read.split("__CACERT__").last
   end
 end
