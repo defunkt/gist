@@ -71,7 +71,7 @@ module Gist
     opts.parse!(args)
 
     begin
-      if $stdin.tty?
+      if $stdin.tty? && args[0] != '-'
         # Run without stdin.
 
         # No args, print help.
@@ -80,10 +80,8 @@ module Gist
           exit
         end
 
-        if args[0] == '-'
-          input = $stdin.read
         # Check if arg is a file. If so, grab the content.
-        elsif File.exists?(file = args[0])
+        if File.exists?(file = args[0])
           input = File.read(file)
           gist_filename = file
           gist_extension = File.extname(file) if file.include?('.')
