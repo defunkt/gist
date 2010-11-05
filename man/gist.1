@@ -1,7 +1,7 @@
-.\" generated with Ronn/v0.5
-.\" http://github.com/rtomayko/ronn/
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "June 2010" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "November 2010" "GITHUB" "Gist Manual"
 .
 .SH "NAME"
 \fBgist\fR \- gist on the command line
@@ -10,51 +10,42 @@
 \fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE\fR
 .
 .SH "DESCRIPTION"
-\fBgist\fR can be used to create gists on gist.github.com from the command
-line. There are two primary methods of creating gists.
+\fBgist\fR can be used to create gists on gist\.github\.com from the command line\. There are two primary methods of creating gists\.
 .
 .P
-If standard input is supplied, it will be used as the content of the
-new gist. If \fIFILE\fR is provided, the content of that file will be used
-to create the gist.
+If standard input is supplied, it will be used as the content of the new gist\. If \fIFILE\fR is provided, the content of that file will be used to create the gist\.
 .
 .P
-Once your gist is successfully created, the URL will be copied to your
-clipboard. If you are on OS X, \fBgist\fR will open the gist in your
-browser, too.
+Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
 .
 .SH "OPTIONS"
-\fBgist\fR's default mode of operation is to read content from standard
-input and create a public, text gist from it, tied to your GitHub
-account if you user and token are provided (see \fBCONFIGURATION\fR).
+\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist from it, tied to your GitHub account if you user and token are provided (see \fBCONFIGURATION\fR)\.
 .
 .P
 These options can be used to change this behavior:
 .
 .TP
 \fB\-p\fR, \fB\-\-private\fR
-Create a private gist instead of a public gist.
+Create a private gist instead of a public gist\.
 .
 .TP
 \fB\-t\fR, \fB\-\-type\fR
-Set the file extension explicitly. Passing a type of \fBrb\fR ensure
-the gist is created as a Ruby file.
+Set the file extension explicitly\. Passing a type of \fBrb\fR ensure the gist is created as a Ruby file\.
 .
 .TP
 \fB\-o\fR, \fB\-\-[no\-]open\fR
-Open the gist in your browser after creation. Or don't. Defaults
-to \-\-open
+Open the gist in your browser after creation\. Or don\'t\. Defaults to \-\-open
 .
 .P
 You may additionally ask for help:
 .
 .TP
 \fB\-h\fR, \fB\-\-help\fR
-Print help.
+Print help\.
 .
 .TP
 \fB\-m\fR, \fB\-\-man\fR
-Display this man page.
+Display this man page\.
 .
 .SH "AUTHENTICATION"
 There are two ways to set GitHub user and token info:
@@ -63,9 +54,7 @@ There are two ways to set GitHub user and token info:
 Using env vars GITHUB_USER and GITHUB_TOKEN
 .
 .IP
-$ export GITHUB_USER=johndoe
-$ export GITHUB_TOKEN=mysecretgithubtoken
-$ gist ~/example
+$ export GITHUB_USER=johndoe $ export GITHUB_TOKEN=mysecretgithubtoken $ gist ~/example
 .
 .IP "\(bu" 4
 Using git\-config(1)
@@ -79,7 +68,7 @@ Use git\-config(1) to display the currently configured GitHub username:
 .
 .nf
 
-$ git config \-\-global github.user
+$ git config \-\-global github\.user
 .
 .fi
 .
@@ -92,30 +81,26 @@ Or, set the GitHub username with:
 .
 .nf
 
-$ git config \-\-global github.user <username>
+$ git config \-\-global github\.user <username>
 .
 .fi
 .
 .IP "" 0
 .
 .P
-See \fIhttp://github.com/guides/local\-github\-config\fR for more
-information.
+See \fIhttp://github\.com/guides/local\-github\-config\fR for more information\.
 .
 .SH "CONFIGURATION"
-You can set a few options in your git config (using git\-config(1)) to
-control the default behavior of gist(1).
+You can set a few options in your git config (using git\-config(1)) to control the default behavior of gist(1)\.
 .
 .IP "\(bu" 4
-gist.private \- boolean (yes or no) \- Determines whether to make a gist
-private by default
+gist\.private \- boolean (yes or no) \- Determines whether to make a gist private by default
 .
 .IP "\(bu" 4
-gist.extension \- string \- Default extension for gists you create.
+gist\.extension \- string \- Default extension for gists you create\.
 .
 .IP "\(bu" 4
-gist.browse \- boolean (yes or no) \- Whether to open the gist in your
-browser after creation. Default: yes
+gist\.browse \- boolean (yes or no) \- Whether to open the gist in your browser after creation\. Default: yes
 .
 .IP "" 0
 .
@@ -123,7 +108,7 @@ browser after creation. Default: yes
 The following environment variables affect the execution of \fBgist\fR:
 .
 .IP "\(bu" 4
-HTTP_PROXY \- Proxy to use when Gisting. Should be "http://host:port/"
+HTTP_PROXY \- Proxy to use when Gisting\. Should be "http://host:port/"
 .
 .IP "" 0
 .
@@ -131,18 +116,18 @@ HTTP_PROXY \- Proxy to use when Gisting. Should be "http://host:port/"
 .
 .nf
 
-$ gist < file.txt
+$ gist < file\.txt
 $ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
-$ gist script.py
+$ gist script\.py
 .
 .fi
 .
 .SH "BUGS"
-\fIhttp://github.com/defunkt/gist/issues\fR
+\fIhttp://github\.com/defunkt/gist/issues\fR
 .
 .SH "AUTHOR"
-Chris Wanstrath :: chris@ozmm.org
+Chris Wanstrath :: chris@ozmm\.org
 .
 .SH "SEE ALSO"
-hub(1), git(1), git\-clone(1), \fIhttp://github.com\fR, \fIhttp://github.com/defunkt/gist\fR
+hub(1), git(1), git\-clone(1), \fIhttp://github\.com\fR, \fIhttp://github\.com/defunkt/gist\fR

@@ -1,5 +1,5 @@
 require 'open-uri'
-require 'net/http'
+require 'net/https'
 require 'optparse'
 
 require 'gist/manpage' unless defined?(Gist::Manpage)
@@ -23,8 +23,8 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'http://gist.github.com/%s.txt'
-  CREATE_URL = 'http://gist.github.com/gists'
+  GIST_URL   = 'https://gist.github.com/%s.txt'
+  CREATE_URL = 'https://gist.github.com/gists'
 
   PROXY = ENV['HTTP_PROXY'] ? URI(ENV['HTTP_PROXY']) : nil
   PROXY_HOST = PROXY ? PROXY.host : nil
@@ -106,12 +106,19 @@ module Gist
   def write(content, private_gist = false, gist_extension = nil, gist_filename = nil)
     url = URI.parse(CREATE_URL)
 
-    # Net::HTTP::Proxy returns Net::HTTP if PROXY_HOST is nil
-    proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
-    req = proxy.post_form(url,
-      data(gist_filename, gist_extension, content, private_gist))
+    if PROXY_HOST
+      proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
+      http  = proxy.new(url.host, url.port)
+    else
+      http = Net::HTTP.new(url.host, url.port)
+    end
 
-    req['Location']
+    http.use_ssl = true
+
+    req = Net::HTTP::Post.new(url.path)
+    req.form_data = data(gist_filename, gist_extension, content, private_gist)
+
+    http.start{|h| h.request(req) }['Location']
   end
 
   # Given a gist id, returns its content.
