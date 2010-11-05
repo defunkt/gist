@@ -30,6 +30,7 @@ Use
     $ echo secret | gist --private # or -p
     $ echo "puts :hi" | gist -t rb
     $ gist script.py
+    $ gist script.js notes.txt
     $ gist -
     the quick brown fox jumps over the lazy dog
     ^D
