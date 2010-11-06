@@ -95,6 +95,7 @@ module Gist
       else
         # Read from standard input.
         input = $stdin.read
+        files = [{:input => input}]
       end
 
       url = write(files, private_gist)
