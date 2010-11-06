@@ -79,7 +79,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '1.4.0'
+  VERSION = Version = '1.4.1'
 end
 require 'open-uri'
 require 'net/https'
