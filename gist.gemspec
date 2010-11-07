@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'gist'
@@ -8,8 +9,8 @@ Gem::Specification.new do |s|
   s.date              = Time.now.strftime('%Y-%m-%d')
   s.summary           = "Creates Gists from STDIN or files."
   s.homepage          = "http://github.com/defunkt/gist"
-  s.email             = "chris@ozmm.org"
-  s.authors           = [ "Chris Wanstrath" ]
+  s.email             = "andre@arko.net"
+  s.authors           = [ "Chris Wanstrath", "André Arko" ]
   s.has_rdoc          = false
 
   s.files             = %w( README.markdown Rakefile LICENSE )
