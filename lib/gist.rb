@@ -120,7 +120,7 @@ module Gist
 
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
+    http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
@@ -237,6 +237,14 @@ private
   end
 
   def ca_cert
-    DATA.read.split("__CACERT__").last
+    cert_file = File.join(File.dirname(__FILE__), "cacert.pem")
+    if File.exist?(cert_file)
+      cert_file
+    else
+      require 'tempfile'
+      t = Tempfile.new("ca_cert")
+      t << DATA.read.split("__CACERT__").last
+      t.path
+    end
   end
 end
