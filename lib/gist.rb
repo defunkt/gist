@@ -120,6 +120,7 @@ module Gist
 
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    http.enable_post_connection_check = true
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
