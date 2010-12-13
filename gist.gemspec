@@ -7,10 +7,10 @@ Gem::Specification.new do |s|
   s.name              = "gist"
   s.version           = Gist::Version.to_s
   s.date              = Time.now.strftime('%Y-%m-%d')
-  s.summary           = "Creates Gists from STDIN or files."
+  s.summary           = "Creates Gists from STDIN or files and get them by id."
   s.homepage          = "http://github.com/defunkt/gist"
   s.email             = "andre@arko.net"
-  s.authors           = [ "Chris Wanstrath", "André Arko" ]
+  s.authors           = [ "Chris Wanstrath", "André Arko", "Serafim Junior Dos Santos Fagundes" ]
   s.has_rdoc          = false
 
   s.files             = %w( README.markdown Rakefile LICENSE )
@@ -23,6 +23,6 @@ Gem::Specification.new do |s|
   s.description       = <<desc
   Creates Gists (pastes) on gist.github.com from standard input or
   arbitrary files. Can link to your GitHub account, create private gists,
-  and enable syntax highlighting.
+  and enable syntax highlighting. Can also get them by id.
 desc
 end

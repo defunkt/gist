@@ -63,12 +63,13 @@
     <a href="#EXAMPLES">EXAMPLES</a>
     <a href="#BUGS">BUGS</a>
     <a href="#AUTHOR">AUTHOR</a>
+    <a href="#COLLABORATOR-S-">COLLABORATOR(S)</a>
     <a href="#SEE-ALSO">SEE ALSO</a>
-    </div>
+  </div>
 
   <ol class='man-decor man-head man head'>
     <li class='tl'>gist(1)</li>
-    <li class='tc'>Gist Manual</li>
+    <li class='tc'></li>
     <li class='tr'>gist(1)</li>
   </ol>
 
@@ -80,6 +81,8 @@
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
 <p><code>gist</code> [<code>-p</code>] [<code>-t extension</code>] <var>FILE|-</var></p>
+
+<p><code>gist</code> -r <var>ID</var></p>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
@@ -94,6 +97,8 @@ from standard input.</p>
 <p>Once your gist is successfully created, the URL will be copied to your
 clipboard. If you are on OS X, <code>gist</code> will open the gist in your
 browser, too.</p>
+
+<p>You can also get gists by id.</p>
 
 <h2 id="OPTIONS">OPTIONS</h2>
 
@@ -117,6 +122,13 @@ to --open</p></dd>
 <dl>
 <dt><code>-h</code>, <code>--help</code></dt><dd><p>Print help.</p></dd>
 <dt><code>-m</code>, <code>--man</code></dt><dd><p>Display this man page.</p></dd>
+</dl>
+
+
+<p>Or get a gist by id:</p>
+
+<dl>
+<dt><code>-r</code>, <code>--returns</code></dt><dd>Returns a gist by id.</dd>
 </dl>
 
 
@@ -179,6 +191,10 @@ $ gist script.py
 $ gist -
 the quick brown fox jumps over the lazy dog
 ^D
+
+$ gist -r 738124
+// Ceci est un test!
+// Hello World!
 </code></pre>
 
 <h2 id="BUGS">BUGS</h2>
@@ -189,6 +205,10 @@ the quick brown fox jumps over the lazy dog
 
 <p>Chris Wanstrath :: chris@ozmm.org</p>
 
+<h2 id="COLLABORATOR-S-">COLLABORATOR(S)</h2>
+
+<p>Serafim Junior Dos Santos Fagundes :: serafim@cyb3r.ca</p>
+
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
 <p><span class="man-ref">hub<span class="s">(1)</span></span>, <span class="man-ref">git<span class="s">(1)</span></span>, <span class="man-ref">git-clone<span class="s">(1)</span></span>,
@@ -197,8 +217,8 @@ the quick brown fox jumps over the lazy dog
 
 
   <ol class='man-decor man-foot man foot'>
-    <li class='tl'>GITHUB</li>
-    <li class='tc'>November 2010</li>
+    <li class='tl'></li>
+    <li class='tc'>December 2010</li>
     <li class='tr'>gist(1)</li>
   </ol>
 

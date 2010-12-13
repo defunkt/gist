@@ -1,13 +1,16 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "November 2010" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "December 2010" "" ""
 .
 .SH "NAME"
 \fBgist\fR \- gist on the command line
 .
 .SH "SYNOPSIS"
 \fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE|\-\fR
+.
+.P
+\fBgist\fR \-r \fIID\fR
 .
 .SH "DESCRIPTION"
 \fBgist\fR can be used to create gists on gist\.github\.com from the command line\. There are two primary methods of creating gists\.
@@ -17,6 +20,9 @@ If standard input is supplied, it will be used as the content of the new gist\. 
 .
 .P
 Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
+.
+.P
+You can also get gists by id\.
 .
 .SH "OPTIONS"
 \fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist from it, tied to your GitHub account if you user and token are provided (see \fBCONFIGURATION\fR)\.
@@ -46,6 +52,13 @@ Print help\.
 .TP
 \fB\-m\fR, \fB\-\-man\fR
 Display this man page\.
+.
+.P
+Or get a gist by id:
+.
+.TP
+\fB\-r\fR, \fB\-\-returns\fR
+Returns a gist by id\.
 .
 .SH "AUTHENTICATION"
 There are two ways to set GitHub user and token info:
@@ -129,6 +142,10 @@ $ gist script\.py
 $ gist \-
 the quick brown fox jumps over the lazy dog
 ^D
+
+$ gist \-r 738124
+// Ceci est un test!
+// Hello World!
 .
 .fi
 .
@@ -137,6 +154,9 @@ the quick brown fox jumps over the lazy dog
 .
 .SH "AUTHOR"
 Chris Wanstrath :: chris@ozmm\.org
+.
+.SH "COLLABORATOR(S)"
+Serafim Junior Dos Santos Fagundes :: serafim@cyb3r\.ca
 .
 .SH "SEE ALSO"
 hub(1), git(1), git\-clone(1), \fIhttp://github\.com\fR, \fIhttp://github\.com/defunkt/gist\fR

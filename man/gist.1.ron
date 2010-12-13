@@ -5,6 +5,8 @@ gist(1) -- gist on the command line
 
 `gist` [`-p`] [`-t extension`] <FILE|->
 
+`gist` -r <ID>
+
 ## DESCRIPTION
 
 `gist` can be used to create gists on gist.github.com from the command
@@ -18,6 +20,8 @@ from standard input.
 Once your gist is successfully created, the URL will be copied to your
 clipboard. If you are on OS X, `gist` will open the gist in your
 browser, too.
+
+You can also get gists by id.
 
 ## OPTIONS
 
@@ -45,6 +49,11 @@ You may additionally ask for help:
 
   * `-m`, `--man`:
     Display this man page.
+
+Or get a gist by id:
+
+  * `-r`, `--returns`:
+    Returns a gist by id.
 
 ## AUTHENTICATION
 
@@ -98,6 +107,10 @@ The following environment variables affect the execution of `gist`:
     the quick brown fox jumps over the lazy dog
     ^D
 
+    $ gist -r 738124
+    // Ceci est un test!
+    // Hello World!
+
 ## BUGS
 
 <http://github.com/defunkt/gist/issues>
@@ -105,6 +118,10 @@ The following environment variables affect the execution of `gist`:
 ## AUTHOR
 
 Chris Wanstrath :: chris@ozmm.org
+
+## COLLABORATOR(S)
+
+Serafim Junior Dos Santos Fagundes :: serafim@cyb3r.ca
 
 ## SEE ALSO
 
