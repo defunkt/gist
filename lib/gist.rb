@@ -32,6 +32,7 @@ module Gist
 
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
+    returns_gist = false
     private_gist = defaults["private"]
     gist_filename = nil
     gist_extension = defaults["extension"]
@@ -54,6 +55,10 @@ module Gist
         browse_enabled = o
       end
 
+      opts.on('-r','--returns', 'Returns a gist by id') do |o|
+        returns_gist = true
+      end
+
       opts.on('-m', '--man', 'Print manual') do
         Gist::Manpage.display("gist")
       end
@@ -72,35 +77,39 @@ module Gist
     opts.parse!(args)
 
     begin
-      if $stdin.tty? && args[0] != '-'
-        # Run without stdin.
-
-        if args.empty?
-          # No args, print help.
-          puts opts
-          exit
-        end
-
-        files = args.inject([]) do |files, file|
-          # Check if arg is a file. If so, grab the content.
-          abort "Can't find #{file}" unless File.exists?(file)
-
-          files.push({
-            :input     => File.read(file),
-            :filename  => file,
-            :extension => (File.extname(file) if file.include?('.'))
-          })
-        end
-
+      if returns_gist
+        puts read(args[0])
       else
-        # Read from standard input.
-        input = $stdin.read
-        files = [{:input => input}]
-      end
+        if $stdin.tty? && args[0] != '-'
+          # Run without stdin.
 
-      url = write(files, private_gist)
-      browse(url) if browse_enabled
-      puts copy(url)
+          if args.empty?
+            # No args, print help.
+            puts opts
+            exit
+          end
+
+          files = args.inject([]) do |files, file|
+            # Check if arg is a file. If so, grab the content.
+            abort "Can't find #{file}" unless File.exists?(file)
+
+            files.push({
+              :input     => File.read(file),
+              :filename  => file,
+              :extension => (File.extname(file) if file.include?('.'))
+            })
+          end
+
+        else
+          # Read from standard input.
+          input = $stdin.read
+          files = [{:input => input}]
+        end
+
+        url = write(files, private_gist)
+        browse(url) if browse_enabled
+        puts copy(url)
+      end
     rescue => e
       warn e
       puts opts
