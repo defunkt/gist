@@ -4,6 +4,7 @@ module Gist
 
     PREAMBLE = <<-preamble
 #!/usr/bin/env ruby
+# encoding: utf-8
 #
 # This file, gist, is generated code.
 # Please DO NOT EDIT or send patches for it.
