@@ -32,10 +32,12 @@ preamble
     def build
       root = File.dirname(__FILE__)
 
+      puts "Building standalone gist script, starting with preamble."
       standalone = ''
       standalone << PREAMBLE
 
       Dir["#{root}/../{*,.}/*.rb"].each do |file|
+        puts "Adding #{File.expand_path(file)}"
         # skip standalone.rb
         next if File.expand_path(file) == File.expand_path(__FILE__)
 
@@ -45,8 +47,11 @@ preamble
         end
       end
 
+      puts "Adding postamble."
       standalone << POSTAMBLE
+      puts "Embedding man page."
       standalone << MANPAGE
+      puts "Embedding CA certificates."
       standalone << CACERT
       standalone
     end
