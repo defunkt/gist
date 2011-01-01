@@ -120,7 +120,19 @@ module Gist
 
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
+
+    ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
+    if File.exists?(ca_file)
+      http.ca_file = ca_file
+    else
+      store = OpenSSL::X509::Store.new
+      ca_cert.split("\n\n").each do |pem|
+        if pem =~ /BEGIN CERTIFICATE/
+          store.add_cert(OpenSSL::X509::Certificate.new(pem))
+        end
+      end
+      http.cert_store = store
+    end
 
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
