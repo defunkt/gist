@@ -36,6 +36,7 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
+    update_to = nil
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -48,6 +49,10 @@ module Gist
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
         gist_extension = '.' + extension
+      end
+
+      opts.on('-u', '--update GIST_ID', 'Update gist already exist') do |i|
+        update_to = i
       end
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
@@ -98,7 +103,7 @@ module Gist
         files = [{:input => input}]
       end
 
-      url = write(files, private_gist)
+      url = write(files, private_gist, update_to)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -108,8 +113,8 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(files, private_gist = false)
-    url = URI.parse(CREATE_URL)
+  def write(files, private_gist = false, update_to = nil)
+    url = URI.parse(CREATE_URL + (update_to ? "/#{update_to}":""))
 
     if PROXY_HOST
       proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
@@ -123,7 +128,7 @@ module Gist
     http.ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist)
+    req.form_data = data(files, private_gist, update_to)
 
     http.start{|h| h.request(req) }['Location']
   end
@@ -165,7 +170,7 @@ module Gist
 private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
-  def data(files, private_gist)
+  def data(files, private_gist, update_to)
     data = {}
     files.each do |file|
       i = data.size + 1
@@ -173,7 +178,9 @@ private
       data["file_name[gistfile#{i}]"]     = file[:filename]
       data["file_contents[gistfile#{i}]"] = file[:input]
     end
-    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+    data.merge!(private_gist ? { 'action_button' => 'private' } : {})
+    data.merge!(auth)
+    data.merge!(update_to ? {'_method' => 'put'} : {})
   end
 
   # Returns a hash of the user's GitHub credentials if set.
