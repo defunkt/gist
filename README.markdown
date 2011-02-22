@@ -18,7 +18,7 @@ RubyGems:
 
 Old school:
 
-    curl -s http://github.com/defunkt/gist/raw/master/gist > gist &&
+    curl -s https://github.com/defunkt/gist/raw/master/gist > gist &&
     chmod 755 gist &&
     mv gist /usr/local/bin/gist
 
@@ -94,4 +94,4 @@ Visit <http://defunkt.github.com/gist/> or use:
 Bugs
 ----
 
-<http://github.com/defunkt/gist/issues>
+<https://github.com/defunkt/gist/issues>
