@@ -79,7 +79,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '1.4.1'
+  VERSION = Version = '2.0.0'
 end
 require 'open-uri'
 require 'net/https'
@@ -182,7 +182,7 @@ module Gist
 
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ca_file = File.join(File.dirname(__FILE__), "cacert.pem")
+    http.cert = OpenSSL::X509::Certificate.new(ca_cert)
 
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
@@ -276,7 +276,13 @@ private
   end
 
   def ca_cert
-    DATA.read.split("__CACERT__").last
+    cert_path = File.join(File.dirname(__FILE__), "gist", "cacert.pem")
+
+    if File.exists? cert_path
+      File.read(cert_path)
+    else
+      DATA.read.split("__CACERT__").last
+    end
   end
 end
 Gist.execute(*ARGV)
@@ -337,7 +343,13 @@ There are two ways to set GitHub user and token info:
 Using env vars GITHUB_USER and GITHUB_TOKEN
 .
 .IP
-$ export GITHUB_USER=johndoe $ export GITHUB_TOKEN=mysecretgithubtoken $ gist ~/example
+$ export GITHUB_USER=johndoe
+.
+.br
+$ export GITHUB_TOKEN=mysecretgithubtoken
+.
+.br
+$ gist ~/example
 .
 .IP "\(bu" 4
 Using git\-config(1)
