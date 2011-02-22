@@ -95,7 +95,7 @@ module Gist
       else
         # Read from standard input.
         input = $stdin.read
-        files = [{:input => input}]
+        files = [{:input => input, :extension => gist_extension}]
       end
 
       url = write(files, private_gist)
@@ -169,7 +169,7 @@ private
     data = {}
     files.each do |file|
       i = data.size + 1
-      data["file_ext[gistfile#{i}]"]      = file[:extention] ? file[:extention] : '.txt'
+      data["file_ext[gistfile#{i}]"]      = file[:extension] ? file[:extension] : '.txt'
       data["file_name[gistfile#{i}]"]     = file[:filename]
       data["file_contents[gistfile#{i}]"] = file[:input]
     end
