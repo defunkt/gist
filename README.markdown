@@ -94,4 +94,4 @@ Visit <http://defunkt.github.com/gist/> or use:
 Bugs
 ----
 
-<http://github.com/defunkt/gist/issues>
+<https://github.com/defunkt/gist/issues>

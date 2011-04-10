@@ -95,7 +95,7 @@ module Gist
       else
         # Read from standard input.
         input = $stdin.read
-        files = [{:input => input}]
+        files = [{:input => input, :extension => gist_extension}]
       end
 
       url = write(files, private_gist)
@@ -121,7 +121,7 @@ module Gist
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     http.enable_post_connection_check = true
-    http.ca_file = ca_cert
+    http.cert = OpenSSL::X509::Certificate.new(ca_cert)
 
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
@@ -170,7 +170,7 @@ private
     data = {}
     files.each do |file|
       i = data.size + 1
-      data["file_ext[gistfile#{i}]"]      = file[:extention] ? file[:extention] : '.txt'
+      data["file_ext[gistfile#{i}]"]      = file[:extension] ? file[:extension] : '.txt'
       data["file_name[gistfile#{i}]"]     = file[:filename]
       data["file_contents[gistfile#{i}]"] = file[:input]
     end
@@ -238,14 +238,12 @@ private
   end
 
   def ca_cert
-    cert_file = File.join(File.dirname(__FILE__), "cacert.pem")
-    if File.exist?(cert_file)
-      cert_file
+    cert_path = File.join(File.dirname(__FILE__), "gist", "cacert.pem")
+
+    if File.exists? cert_path
+      File.read(cert_path)
     else
-      require 'tempfile'
-      t = Tempfile.new("ca_cert")
-      t << DATA.read.split("__CACERT__").last
-      t.path
+      DATA.read.split("__CACERT__").last
     end
   end
 end
