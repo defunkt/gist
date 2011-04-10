@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 #
 # This file, gist, is generated code.
 # Please DO NOT EDIT or send patches for it.
@@ -79,7 +80,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '2.0.0'
+  VERSION = Version = '2.0.2'
 end
 require 'open-uri'
 require 'net/https'
@@ -290,7 +291,7 @@ __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "November 2010" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "April 2011" "GITHUB" "Gist Manual"
 .
 .SH "NAME"
 \fBgist\fR \- gist on the command line
