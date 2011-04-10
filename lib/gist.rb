@@ -182,7 +182,11 @@ private
     user  = config("github.user")
     token = config("github.token")
 
-    user.to_s.empty? ? {} : { :login => user, :token => token }
+    if user.to_s.empty? || token.to_s.empty?
+      {}
+    else
+      { :login => user, :token => token }
+    end
   end
 
   # Returns default values based on settings in your gitconfig. See
