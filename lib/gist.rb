@@ -21,6 +21,7 @@ require 'gist/version' unless defined?(Gist::Version)
 #   >> Gist.browse(url)
 #   Opens URL in your default browser.
 module Gist
+  GIST_URL_REGEXP = /https?:\/\/gist.github.com\/\d+$/
   extend self
 
   GIST_URL   = 'https://gist.github.com/%s.txt'
@@ -36,6 +37,7 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
+    read_mode=0
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -58,6 +60,10 @@ module Gist
         Gist::Manpage.display("gist")
       end
 
+      opts.on('-r', '--read', 'Read Gist') do
+        read_mode = 1
+      end
+
       opts.on('-v', '--version', 'Print version') do
         puts Gist::Version
         exit
@@ -78,6 +84,14 @@ module Gist
         if args.empty?
           # No args, print help.
           puts opts
+          exit
+        end
+
+        if read_mode == 1
+          ARGV.each do | gist_id_num |
+            next if gist_id_num =~ /^\-/
+            Gist.read( gist_id_num )
+          end
           exit
         end
 
@@ -121,6 +135,7 @@ module Gist
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     http.cert = OpenSSL::X509::Certificate.new(ca_cert)
+    http.ca_file = __FILE__
 
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
@@ -130,7 +145,8 @@ module Gist
 
   # Given a gist id, returns its content.
   def read(gist_id)
-    open(GIST_URL % gist_id).read
+    puts open(GIST_URL % gist_id).read unless gist_id.to_i.zero?
+    puts open(gist_id + '.txt').read if gist_id[GIST_URL_REGEXP]
   end
 
   # Given a url, tries to open it in your browser.

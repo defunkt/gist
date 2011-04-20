@@ -11,6 +11,9 @@
 #
 
 module Gist
+  VERSION = Version = '2.0.2'
+end
+module Gist
   module Manpage
     extend self
 
@@ -79,9 +82,6 @@ module Gist
     end
   end
 end
-module Gist
-  VERSION = Version = '2.0.2'
-end
 require 'open-uri'
 require 'net/https'
 require 'optparse'
@@ -90,6 +90,7 @@ require 'gist/manpage' unless defined?(Gist::Manpage)
 require 'gist/version' unless defined?(Gist::Version)
 
 module Gist
+  GIST_URL_REGEXP = /https?:\/\/gist.github.com\/\d+$/
   extend self
 
   GIST_URL   = 'https://gist.github.com/%s.txt'
@@ -104,6 +105,7 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
+    read_mode=0
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -126,6 +128,10 @@ module Gist
         Gist::Manpage.display("gist")
       end
 
+      opts.on('-r', '--read', 'Read Gist') do
+        read_mode = 1
+      end
+
       opts.on('-v', '--version', 'Print version') do
         puts Gist::Version
         exit
@@ -144,6 +150,14 @@ module Gist
 
         if args.empty?
           puts opts
+          exit
+        end
+
+        if read_mode == 1
+          ARGV.each do | gist_id_num |
+            next if gist_id_num =~ /^\-/
+            Gist.read( gist_id_num )
+          end
           exit
         end
 
@@ -184,6 +198,7 @@ module Gist
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     http.cert = OpenSSL::X509::Certificate.new(ca_cert)
+    http.ca_file = __FILE__
 
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
@@ -192,7 +207,8 @@ module Gist
   end
 
   def read(gist_id)
-    open(GIST_URL % gist_id).read
+    puts open(GIST_URL % gist_id).read unless gist_id.to_i.zero?
+    puts open(gist_id + '.txt').read if gist_id[GIST_URL_REGEXP]
   end
 
   def browse(url)
@@ -237,7 +253,11 @@ private
     user  = config("github.user")
     token = config("github.token")
 
-    user.to_s.empty? ? {} : { :login => user, :token => token }
+    if user.to_s.empty? || token.to_s.empty?
+      {}
+    else
+      { :login => user, :token => token }
+    end
   end
 
   def defaults
