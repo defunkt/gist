@@ -125,7 +125,15 @@ module Gist
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
 
-    http.start{|h| h.request(req) }['Location']
+    response = http.start {|h| h.request(req) }
+    begin
+      response.value
+    rescue => error
+      puts "Creating gist failed: #{error}"
+      exit(false)
+    else
+      response['Location']
+    end
   end
 
   # Given a gist id, returns its content.
