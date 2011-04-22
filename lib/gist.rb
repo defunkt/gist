@@ -125,14 +125,13 @@ module Gist
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data(files, private_gist)
 
-    response = http.start {|h| h.request(req) }
-    begin
-      response.value
-    rescue => error
-      puts "Creating gist failed: #{error}"
-      exit(false)
-    else
+    response = http.start{|h| h.request(req) }
+    case response
+    when Net::HTTPRedirection
       response['Location']
+    else
+      puts "Creating gist failed: #{response.code} #{response.message}"
+      exit(false)
     end
   end
 
