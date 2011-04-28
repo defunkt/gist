@@ -248,14 +248,19 @@ private
   end
 
   def ca_cert
-    cert_file = File.join(File.dirname(__FILE__), "cacert.pem")
-    if File.exist?(cert_file)
+    cert_file = [
+      File.expand_path("../gist/cacert.pem", __FILE__),
+      "/tmp/gist_cacert.pem"
+    ].find{|l| File.exist?(l) }
+
+    if cert_file
       cert_file
     else
-      require 'tempfile'
-      t = Tempfile.new("ca_cert")
-      t << DATA.read.split("__CACERT__").last
-      t.path
+      File.open("/tmp/gist_cacert.pem", "w") do |f|
+        f.write(DATA.read.split("__CACERT__").last)
+      end
+      "/tmp/gist_cacert.pem"
     end
   end
+
 end
