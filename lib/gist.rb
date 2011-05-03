@@ -26,7 +26,11 @@ module Gist
   GIST_URL   = 'https://gist.github.com/%s.txt'
   CREATE_URL = 'https://gist.github.com/gists'
 
-  PROXY = ENV['HTTP_PROXY'] ? URI(ENV['HTTP_PROXY']) : nil
+  if ENV['HTTPS_PROXY']
+    PROXY = URI(ENV['HTTPS_PROXY'])
+  elsif ENV['HTTP_PROXY']
+    PROXY = URI(ENV['HTTP_PROXY'])
+  end
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
 
