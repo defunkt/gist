@@ -30,6 +30,8 @@ module Gist
     PROXY = URI(ENV['HTTPS_PROXY'])
   elsif ENV['HTTP_PROXY']
     PROXY = URI(ENV['HTTP_PROXY'])
+  else
+    PROXY = nil
   end
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
