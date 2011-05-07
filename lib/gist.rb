@@ -151,6 +151,8 @@ module Gist
   def browse(url)
     if RUBY_PLATFORM =~ /darwin/
       `open #{url}`
+    elsif RUBY_PLATFORM =~ /linux/
+       `#{ENV['BROWSER']} #{url}`
     elsif ENV['OS'] == 'Windows_NT' or
       RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
       `start "" "#{url}"`
