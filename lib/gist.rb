@@ -75,9 +75,10 @@ module Gist
       end
     end
 
-    opts.parse!(args)
-
     begin
+
+      opts.parse!(args)
+
       if $stdin.tty? && args[0] != '-'
         # Run without stdin.
 
