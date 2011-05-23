@@ -42,6 +42,7 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
+    description = nil
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -54,6 +55,10 @@ module Gist
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
         gist_extension = '.' + extension
+      end
+
+      opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
+        description = d
       end
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
@@ -104,7 +109,7 @@ module Gist
         files = [{:input => input, :extension => gist_extension}]
       end
 
-      url = write(files, private_gist)
+      url = write(files, private_gist, description)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -114,7 +119,7 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(files, private_gist = false)
+  def write(files, private_gist = false, description = nil)
     url = URI.parse(CREATE_URL)
 
     if PROXY_HOST
@@ -129,7 +134,7 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist)
+    req.form_data = data(files, private_gist, description)
 
     response = http.start{|h| h.request(req) }
     case response
@@ -180,7 +185,7 @@ module Gist
 private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
-  def data(files, private_gist)
+  def data(files, private_gist, description)
     data = {}
     files.each do |file|
       i = data.size + 1
@@ -188,6 +193,7 @@ private
       data["file_name[gistfile#{i}]"]     = file[:filename]
       data["file_contents[gistfile#{i}]"] = file[:input]
     end
+    data.merge!({ 'description' => description }) unless description.nil?
     data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
   end
 
