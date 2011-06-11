@@ -22,8 +22,9 @@ browser, too.
 ## OPTIONS
 
 `gist`'s default mode of operation is to read content from standard
-input and create a public, text gist from it, tied to your GitHub
-account if you user and token are provided (see `CONFIGURATION`).
+input and create a public, text gist without description from it, tied
+to your GitHub account if you user and token are provided (see
+`CONFIGURATION`).
 
 These options can be used to change this behavior:
 
@@ -31,8 +32,11 @@ These options can be used to change this behavior:
     Create a private gist instead of a public gist.
 
   * `-t`, `--type`:
-    Set the file extension explicitly. Passing a type of `rb` ensure
+    Set the file extension explicitly. Passing a type of `rb` ensures
     the gist is created as a Ruby file.
+
+  * `-d`, `--description`:
+    Set a description.
 
   * `-o`, `--[no-]open`:
     Open the gist in your browser after creation. Or don't. Defaults
@@ -50,7 +54,7 @@ You may additionally ask for help:
 
 There are two ways to set GitHub user and token info:
 
-  * Using env vars GITHUB_USER and GITHUB_TOKEN
+  * Using environment vars GITHUB_USER and GITHUB_TOKEN
 
     $ export GITHUB_USER=johndoe  
     $ export GITHUB_TOKEN=mysecretgithubtoken  

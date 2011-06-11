@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "May 2011" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "June 2011" "GITHUB" "Gist Manual"
 .
 .SH "NAME"
 \fBgist\fR \- gist on the command line
@@ -19,7 +19,7 @@ If standard input is supplied, it will be used as the content of the new gist\. 
 Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
 .
 .SH "OPTIONS"
-\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist from it, tied to your GitHub account if you user and token are provided (see \fBCONFIGURATION\fR)\.
+\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist without description from it, tied to your GitHub account if you user and token are provided (see \fBCONFIGURATION\fR)\.
 .
 .P
 These options can be used to change this behavior:
@@ -31,6 +31,10 @@ Create a private gist instead of a public gist\.
 .TP
 \fB\-t\fR, \fB\-\-type\fR
 Set the file extension explicitly\. Passing a type of \fBrb\fR ensures the gist is created as a Ruby file\.
+.
+.TP
+\fB\-d\fR, \fB\-\-description\fR
+Set a description\.
 .
 .TP
 \fB\-o\fR, \fB\-\-[no\-]open\fR
