@@ -98,15 +98,17 @@ browser, too.</p>
 <h2 id="OPTIONS">OPTIONS</h2>
 
 <p><code>gist</code>'s default mode of operation is to read content from standard
-input and create a public, text gist from it, tied to your GitHub
-account if you user and token are provided (see <code>CONFIGURATION</code>).</p>
+input and create a public, text gist without description from it, tied
+to your GitHub account if you user and token are provided (see
+<code>CONFIGURATION</code>).</p>
 
 <p>These options can be used to change this behavior:</p>
 
 <dl>
 <dt><code>-p</code>, <code>--private</code></dt><dd><p>Create a private gist instead of a public gist.</p></dd>
-<dt><code>-t</code>, <code>--type</code></dt><dd><p>Set the file extension explicitly. Passing a type of <code>rb</code> ensure
+<dt><code>-t</code>, <code>--type</code></dt><dd><p>Set the file extension explicitly. Passing a type of <code>rb</code> ensures
 the gist is created as a Ruby file.</p></dd>
+<dt><code>-d</code>, <code>--description</code></dt><dd><p>Set a description.</p></dd>
 <dt><code>-o</code>, <code>--[no-]open</code></dt><dd><p>Open the gist in your browser after creation. Or don't. Defaults
 to --open</p></dd>
 </dl>
@@ -125,7 +127,7 @@ to --open</p></dd>
 <p>There are two ways to set GitHub user and token info:</p>
 
 <ul>
-<li><p>Using env vars GITHUB_USER and GITHUB_TOKEN</p>
+<li><p>Using environment vars GITHUB_USER and GITHUB_TOKEN</p>
 
 <p>$ export GITHUB_USER=johndoe<br />
 $ export GITHUB_TOKEN=mysecretgithubtoken<br />
@@ -198,7 +200,7 @@ the quick brown fox jumps over the lazy dog
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>May 2011</li>
+    <li class='tc'>June 2011</li>
     <li class='tr'>gist(1)</li>
   </ol>
 
