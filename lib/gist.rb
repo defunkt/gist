@@ -220,12 +220,11 @@ private
   # gist.extension - string
   def defaults
     extension = config("gist.extension")
-    extension = nil if extension && extension.empty?
 
     return {
       "private"   => config("gist.private"),
       "browse"    => config("gist.browse"),
-      "extension" => extension,
+      "extension" => extension
     }
   end
 
@@ -237,7 +236,7 @@ private
   # return something useful or nil
   def config(key)
     env_key = ENV[key.upcase.gsub(/\./, '_')]
-    return env_key if env_key and not env_key.empty?
+    return env_key if env_key and not env_key.strip.empty?
 
     str_to_bool `git config --global #{key}`.strip
   end
