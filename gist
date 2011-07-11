@@ -110,6 +110,7 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
+    copy = defaults["copy"]
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -141,6 +142,10 @@ module Gist
         puts opts
         exit
       end
+
+      opts.on('-c', '--[no-]copy', 'Copy gist URL to clipboard automatically') do |c|
+        copy = c
+      end
     end
 
     opts.parse!(args)
@@ -170,7 +175,8 @@ module Gist
 
       url = write(files, private_gist)
       browse(url) if browse_enabled
-      puts copy(url)
+      copy(url) if copy
+      puts url
     rescue => e
       warn e
       puts opts
@@ -265,6 +271,7 @@ private
       "private"   => config("gist.private"),
       "browse"    => config("gist.browse"),
       "extension" => extension,
+      "copy"      => config("gist.copy"),
     }
   end
 
