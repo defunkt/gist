@@ -176,7 +176,7 @@ module Gist
       url = write(files, private_gist)
       browse(url) if browse_enabled
       copy(url) if copy
-      puts url
+      $stdout.tty? ? puts(url) : print(url)
     rescue => e
       warn e
       puts opts
