@@ -266,12 +266,20 @@ private
   def defaults
     extension = config("gist.extension")
     extension = nil if extension && extension.empty?
+    
+    copy = config("gist.copy")
+    if copy.nil?
+      copy = true
+    else
+      # match optparse boolean true states
+      copy = copy =~ /^(true)|(on)|(\+)/
+    end
 
     return {
       "private"   => config("gist.private"),
       "browse"    => config("gist.browse"),
       "extension" => extension,
-      "copy"      => config("gist.copy"),
+      "copy"      => copy,
     }
   end
 
