@@ -8,43 +8,51 @@ Installation
 
 [homebrew](http://mxcl.github.com/homebrew/):
 
-    brew install gist
-    gist -h
+```bash
+$ brew install gist
+$ gist -h
+```
 
 RubyGems:
 
-    gem install gist
-    gist -h
+```bash
+$ gem install gist
+$ gist -h
+```
 
 Old school:
 
-    curl -s https://github.com/defunkt/gist/raw/master/gist > gist &&
-    chmod 755 gist &&
-    mv gist /usr/local/bin/gist
+```bash
+$ curl -s https://github.com/defunkt/gist/raw/master/gist > gist &&
+$ chmod 755 gist &&
+$ mv gist /usr/local/bin/gist
+```
 
 Ubuntu:
 
-    sudo apt-get install ruby
-    sudo apt-get install rubygems
-    sudo apt-get install libopenssl-ruby
-    sudo gem install gist
-    sudo cp /var/lib/gems/1.8/bin/gist /usr/local/bin/
-    gist -h
-
-
+```bash
+$ sudo apt-get install ruby
+$ sudo apt-get install rubygems
+$ sudo apt-get install libopenssl-ruby
+$ sudo gem install gist
+$ sudo cp /var/lib/gems/1.8/bin/gist /usr/local/bin/
+$ gist -h
+```
 
 Use
 ---
 
-    $ gist < file.txt
-    $ echo secret | gist --private # or -p
-    $ echo "puts :hi" | gist -t rb
-    $ gist script.py
-    $ gist script.js notes.txt
-    $ gist -
-    the quick brown fox jumps over the lazy dog
-    ^D
-
+```bash
+$ gist < file.txt
+$ echo secret | gist --private # or -p
+$ echo "puts :hi" | gist -t rb
+$ gist script.py
+$ gist script.js notes.txt
+$ pbpaste | gist -p # Copy from clipboard - OSX Only
+$ gist -
+the quick brown fox jumps over the lazy dog
+^D
+```
 
 Authentication
 --------------
@@ -52,14 +60,18 @@ There are two ways to set GitHub user and token info:
 
 Using env vars GITHUB_USER and GITHUB_TOKEN:
 
-    $ export GITHUB_USER="your-github-username"
-    $ export GITHUB_TOKEN="your-github-token"
-    $ gist ~/example
+```bash
+$ export GITHUB_USER="your-github-username"
+$ export GITHUB_TOKEN="your-github-token"
+$ gist ~/example
+```
 
 Or by having your git config set up with your GitHub username and token.
 
-    git config --global github.user "your-github-username"
-    git config --global github.token "your-github-token"
+```bash
+git config --global github.user "your-github-username"
+git config --global github.token "your-github-token"
+```
 
 You can find your token under [your account](https://github.com/account).
 
@@ -69,8 +81,9 @@ prefixed with `!`. For example, the following command fetches the
 token from a password item named "github.token" on the Mac OS
 Keychain:
 
-    token = !security 2>&1 >/dev/null find-generic-password -gs github.token | ruby -e 'print $1 if STDIN.gets =~ /^password: \\\"(.*)\\\"$/'
-
+```bash
+token = !security 2>&1 >/dev/null find-generic-password -gs github.token | ruby -e 'print $1 if STDIN.gets =~ /^password: \\\"(.*)\\\"$/'
+```
 
 Defaults
 --------
@@ -91,15 +104,18 @@ Proxies
 
 Set the HTTP_PROXY env variable to use a proxy.
 
-    $ HTTP_PROXY=host:port gist file.rb
-
+```bash
+$ HTTP_PROXY=host:port gist file.rb
+```
 
 Manual
 ------
 
 Visit <http://defunkt.github.com/gist/> or use:
 
-    $ gist -m
+```bash
+$ gist -m
+```
 
 Bugs
 ----
