@@ -25,6 +25,7 @@ module Gist
 
   GIST_URL   = 'https://gist.github.com/%s.txt'
   CREATE_URL = 'https://gist.github.com/gists'
+  EDIT_URL   = 'https://gist.github.com/gists/%s/edit'
 
   if ENV['HTTPS_PROXY']
     PROXY = URI(ENV['HTTPS_PROXY'])
@@ -43,6 +44,7 @@ module Gist
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
     description = nil
+    update_to = nil
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -59,6 +61,9 @@ module Gist
 
       opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
         description = d
+      end
+      opts.on('-u', '--update GIST_ID', 'Update an already existing gist') do |i|
+        update_to = i
       end
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
@@ -110,7 +115,7 @@ module Gist
         files = [{:input => input, :extension => gist_extension}]
       end
 
-      url = write(files, private_gist, description)
+      url = write(files, private_gist, description, update_to)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -120,8 +125,9 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(files, private_gist = false, description = nil)
-    url = URI.parse(CREATE_URL)
+  def write(files, private_gist = false, description = nil, update_to = nil)
+    update_id = update_to ? real_gistid(update_to) : nil
+    url = URI.parse(CREATE_URL + (update_id ? "/#{update_id}":""))
 
     if PROXY_HOST
       proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
@@ -135,7 +141,7 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist, description)
+    req.form_data = data(files, private_gist, description, update_to)
 
     response = http.start{|h| h.request(req) }
     case response
@@ -186,7 +192,7 @@ module Gist
 private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
-  def data(files, private_gist, description)
+  def data(files, private_gist, description, update_to)
     data = {}
     files.each do |file|
       i = data.size + 1
@@ -195,7 +201,19 @@ private
       data["file_contents[gistfile#{i}]"] = file[:input]
     end
     data.merge!({ 'description' => description }) unless description.nil?
-    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+    data.merge!(private_gist ? { 'action_button' => 'private' } : {})
+    data.merge!(!update_to.nil? ? {'_method' => 'put'} : {})
+    data.merge!(auth)
+  end
+
+  # private gists have two ids, and we need the one that's only used in the
+  # edit page of a gist
+  def real_gistid(gist_id)
+    response = open((EDIT_URL % gist_id) + "?login=#{auth[:login]}&token=#{auth[:token]}").read
+    match = /<form action="\/gists\/(\d+)"/.match(response)
+    if match
+      return match[1].to_i
+    end
   end
 
   # Returns a hash of the user's GitHub credentials if set.
