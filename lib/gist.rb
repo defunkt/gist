@@ -141,7 +141,7 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist, description, update_to)
+    req.form_data = data(files, private_gist, description, update_id ? update_to : nil)
 
     response = http.start{|h| h.request(req) }
     case response
@@ -210,6 +210,11 @@ private
   # edit page of a gist
   def real_gistid(gist_id)
     response = open((EDIT_URL % gist_id) + "?login=#{auth[:login]}&token=#{auth[:token]}").read
+    # "This year" only appears on the "all gists" page, which we get if we try
+    # to open a not existing gist or a gist that isn't ours.
+    if response =~ /This\syear/
+      return nil
+    end
     match = /<form action="\/gists\/(\d+)"/.match(response)
     if match
       return match[1].to_i
