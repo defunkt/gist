@@ -23,7 +23,7 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'https://gist.github.com/%s.txt'
+  GIST_URL   = 'https://gist.github.com/%s'
   CREATE_URL = 'https://gist.github.com/gists'
   EDIT_URL   = 'https://gist.github.com/gists/%s/edit'
 
@@ -43,12 +43,17 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
+    read_mode = false
     description = nil
     update_to = nil
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
         "Filename '-' forces gist to read from stdin."
+
+      opts.on('-r', '--read', 'Get the gist for the given id') do
+        read_mode = true
+      end
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
@@ -95,6 +100,14 @@ module Gist
         if args.empty?
           # No args, print help.
           puts opts
+          exit
+        end
+
+        if read_mode
+          args.each do |gist_id|
+            next if gist_id =~ /^\_/
+            Gist.read(gist_id)
+          end
           exit
         end
 
@@ -155,7 +168,11 @@ module Gist
 
   # Given a gist id, returns its content.
   def read(gist_id)
-    open(GIST_URL % gist_id).read
+    response = open((GIST_URL % gist_id) + "?login=#{auth[:login]}&token=#{auth[:token]}").read
+    matches = response.scan(/href="\/(raw\S+)"/).flatten
+    matches.each do |raw|
+      puts open(GIST_URL % raw).read()
+    end
   end
 
   # Given a url, tries to open it in your browser.
