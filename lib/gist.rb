@@ -40,6 +40,7 @@ module Gist
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
     private_gist = defaults["private"]
+    anonymous_gist = false
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
@@ -57,6 +58,10 @@ module Gist
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
+      end
+
+      opts.on('-a', '--anonymous', 'Create an anonymous gist') do |anon|
+        anonymous_gist = anon
       end
 
       t_desc = 'Set syntax highlighting of the Gist by file extension'
@@ -128,7 +133,7 @@ module Gist
         files = [{:input => input, :extension => gist_extension}]
       end
 
-      url = write(files, private_gist, description, update_to)
+      url = write(files, private_gist, description, anonymous_gist, update_to)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -138,7 +143,7 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(files, private_gist = false, description = nil, update_to = nil)
+  def write(files, private_gist = false, description = nil, anonymous_gist = false, update_to = nil)
     update_id = update_to ? real_gistid(update_to) : nil
     url = URI.parse(CREATE_URL + (update_id ? "/#{update_id}":""))
 
@@ -154,7 +159,7 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist, description, update_id ? update_to : nil)
+    req.form_data = data(files, private_gist, description, anonymous_gist, update_id ? update_to : nil)
 
     response = http.start{|h| h.request(req) }
     case response
@@ -209,7 +214,7 @@ module Gist
 private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
-  def data(files, private_gist, description, update_to)
+  def data(files, private_gist, description, anonymous_gist = false, update_to)
     data = {}
     files.each do |file|
       i = data.size + 1
@@ -220,7 +225,7 @@ private
     data.merge!({ 'description' => description }) unless description.nil?
     data.merge!(private_gist ? { 'action_button' => 'private' } : {})
     data.merge!(!update_to.nil? ? {'_method' => 'put'} : {})
-    data.merge!(auth)
+    data.merge!(anonymous_gist ? {} : auth)
   end
 
   # private gists have two ids, and we need the one that's only used in the
