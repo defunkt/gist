@@ -99,6 +99,10 @@ module Gist
     PROXY = URI(ENV['HTTPS_PROXY'])
   elsif ENV['HTTP_PROXY']
     PROXY = URI(ENV['HTTP_PROXY'])
+  elsif ENV['https_proxy']
+    PROXY = URI(ENV['https_proxy'])
+  elsif ENV['http_proxy']
+    PROXY = URI(ENV['http_proxy'])
   else
     PROXY = nil
   end
