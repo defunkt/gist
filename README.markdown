@@ -23,7 +23,7 @@ $ gist -h
 Old school:
 
 ```bash
-$ curl -s https://github.com/defunkt/gist/raw/master/gist > gist &&
+$ curl -s https://raw.github.com/defunkt/gist/master/gist > gist &&
 $ chmod 755 gist &&
 $ mv gist /usr/local/bin/gist
 ```
