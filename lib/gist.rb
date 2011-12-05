@@ -39,6 +39,7 @@ module Gist
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
     private_gist = defaults["private"]
+    anonymous_gist = false
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
@@ -50,6 +51,10 @@ module Gist
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
+      end
+
+      opts.on('-a', '--anonymous', 'Create an anonymous gist') do |anon|
+        anonymous_gist = anon
       end
 
       t_desc = 'Set syntax highlighting of the Gist by file extension'
@@ -110,7 +115,7 @@ module Gist
         files = [{:input => input, :extension => gist_extension}]
       end
 
-      url = write(files, private_gist, description)
+      url = write(files, private_gist, description, anonymous_gist)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -120,7 +125,7 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(files, private_gist = false, description = nil)
+  def write(files, private_gist = false, description = nil, anonymous_gist = false)
     url = URI.parse(CREATE_URL)
 
     if PROXY_HOST
@@ -135,7 +140,7 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist, description)
+    req.form_data = data(files, private_gist, description, anonymous_gist)
 
     response = http.start{|h| h.request(req) }
     case response
@@ -186,7 +191,7 @@ module Gist
 private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
-  def data(files, private_gist, description)
+  def data(files, private_gist, description, anonymous_gist = false)
     data = {}
     files.each do |file|
       i = data.size + 1
@@ -195,7 +200,8 @@ private
       data["file_contents[gistfile#{i}]"] = file[:input]
     end
     data.merge!({ 'description' => description }) unless description.nil?
-    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+    data.merge!(private_gist ? { 'action_button' => 'private' } : {})
+    data.merge!(anonymous_gist ? {} : auth)
   end
 
   # Returns a hash of the user's GitHub credentials if set.
