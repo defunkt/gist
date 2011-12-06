@@ -30,20 +30,30 @@ preamble
       end
     end
 
+    def read_file(file)
+      content = ''
+      File.readlines(file).each do |line|
+        next if line =~ /^\s*#/
+        content << line
+      end
+      content
+    end
+
     def build
       root = File.dirname(__FILE__)
 
       standalone = ''
       standalone << PREAMBLE
 
-      Dir["#{root}/../**/*.rb"].each do |file|
+      Dir["#{root}/**/*.rb"].each do |file|
         # skip standalone.rb
         next if File.expand_path(file) == File.expand_path(__FILE__)
 
-        File.readlines(file).each do |line|
-          next if line =~ /^\s*#/
-          standalone << line
-        end
+        standalone << read_file(file)
+      end
+
+      Dir["#{root}/../*.rb"].each do |file|
+        standalone << read_file(file)
       end
 
       standalone << POSTAMBLE
