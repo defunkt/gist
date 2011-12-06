@@ -1,6 +1,8 @@
 require 'open-uri'
 require 'net/https'
 require 'optparse'
+require 'rubygems'
+require 'json'
 
 require 'gist/manpage' unless defined?(Gist::Manpage)
 require 'gist/version' unless defined?(Gist::Version)
@@ -23,9 +25,6 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'https://gist.github.com/%s.txt'
-  CREATE_URL = 'https://gist.github.com/gists'
-
   if ENV['HTTPS_PROXY']
     PROXY = URI(ENV['HTTPS_PROXY'])
   elsif ENV['HTTP_PROXY']
@@ -35,6 +34,34 @@ module Gist
   end
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
+  
+  @url
+  
+  def url
+    @url = @url || defaults["url"] || 'https://api.github.com'
+  end
+  
+  def url=(u)
+    @url = u
+  end
+  
+  def fix_url
+    if /gists$/.match(url)
+      url
+    elsif /\/$/.match(url)
+      url + 'gists'
+    else
+      url + '/gists'
+    end
+  end
+  
+  def create_url
+    fix_url
+  end
+  
+  def get_url
+    fix_url + '/%s'
+  end
 
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
@@ -47,6 +74,10 @@ module Gist
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
         "Filename '-' forces gist to read from stdin."
+        
+      opts.on('-u', '--url', 'Gist URL') do |u|
+        url = u
+      end
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
@@ -121,7 +152,7 @@ module Gist
 
   # Create a gist on gist.github.com
   def write(files, private_gist = false, description = nil)
-    url = URI.parse(CREATE_URL)
+    url = URI.parse(create_url)
 
     if PROXY_HOST
       proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
@@ -130,26 +161,29 @@ module Gist
       http = Net::HTTP.new(url.host, url.port)
     end
 
-    http.use_ssl = true
+    http.use_ssl = /^https$/.match(url.scheme) ? true : false
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     http.ca_file = ca_cert
-
+    
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist, description)
-
+    pl = payload(files, private_gist, description)
+    req.body = pl.to_json
     response = http.start{|h| h.request(req) }
+    res_obj = JSON.parse(response.body)
     case response
-    when Net::HTTPRedirection
-      response['Location']
+    when Net::HTTPCreated
+      res_obj["html_url"]
     else
       puts "Creating gist failed: #{response.code} #{response.message}"
+      puts response.body
       exit(false)
     end
   end
 
   # Given a gist id, returns its content.
   def read(gist_id)
-    open(GIST_URL % gist_id).read
+    gist_url = get_url
+    open(gist_url % gist_id).read
   end
 
   # Given a url, tries to open it in your browser.
@@ -186,16 +220,16 @@ module Gist
 private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
-  def data(files, private_gist, description)
-    data = {}
+  def payload(files, private_gist, description)
+    payload = {
+      "description" => description,
+      "public"      => !private_gist,
+      "files"       => {}
+    }
     files.each do |file|
-      i = data.size + 1
-      data["file_ext[gistfile#{i}]"]      = file[:extension] ? file[:extension] : '.txt'
-      data["file_name[gistfile#{i}]"]     = file[:filename]
-      data["file_contents[gistfile#{i}]"] = file[:input]
+      payload["files"][file[:filename]] = { "content" => file[:input] }
     end
-    data.merge!({ 'description' => description }) unless description.nil?
-    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+    payload
   end
 
   # Returns a hash of the user's GitHub credentials if set.
@@ -224,7 +258,8 @@ private
     return {
       "private"   => config("gist.private"),
       "browse"    => config("gist.browse"),
-      "extension" => extension
+      "extension" => extension,
+      "url"       => config("gist.url")
     }
   end
 
@@ -238,7 +273,7 @@ private
     env_key = ENV[key.upcase.gsub(/\./, '_')]
     return env_key if env_key and not env_key.strip.empty?
 
-    str_to_bool `git config --global #{key}`.strip
+    str_to_bool `git config #{key}`.strip
   end
 
   # Parses a value that might appear in a .gitconfig file into
