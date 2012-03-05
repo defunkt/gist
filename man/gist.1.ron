@@ -28,6 +28,9 @@ to your GitHub account if you user and token are provided (see
 
 These options can be used to change this behavior:
 
+  * `-d`, `--description`:
+    Set the description of gist.
+
   * `-p`, `--private`:
     Create a private gist instead of a public gist.
 

@@ -108,6 +108,7 @@ module Gist
   def execute(*args)
     private_gist = defaults["private"]
     gist_filename = nil
+    gist_description = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
     copy = defaults["copy"]
@@ -118,6 +119,10 @@ module Gist
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
+      end
+
+      opts.on('-d','--description [DESCRIPTION]', "Set the description of gist") do |desc|
+        gist_description = desc
       end
 
       t_desc = 'Set syntax highlighting of the Gist by file extension'
@@ -173,7 +178,7 @@ module Gist
         files = [{:input => input, :extension => gist_extension}]
       end
 
-      url = write(files, private_gist)
+      url = write(files, private_gist, gist_description)
       browse(url) if browse_enabled
       copy(url) if copy
       $stdout.tty? ? puts(url) : print(url)
@@ -183,7 +188,7 @@ module Gist
     end
   end
 
-  def write(files, private_gist = false)
+  def write(files, private_gist = false, gist_description = nil)
     url = URI.parse(CREATE_URL)
 
     if PROXY_HOST
@@ -198,7 +203,7 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist)
+    req.form_data = data(files, private_gist, gist_description)
 
     response = http.start{|h| h.request(req) }
     case response
@@ -241,7 +246,7 @@ module Gist
   end
 
 private
-  def data(files, private_gist)
+  def data(files, private_gist, gist_description)
     data = {}
     files.each do |file|
       i = data.size + 1
@@ -249,6 +254,7 @@ private
       data["file_name[gistfile#{i}]"]     = file[:filename]
       data["file_contents[gistfile#{i}]"] = file[:input]
     end
+    data["description"] = gist_description if gist_description
     data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
   end
 
