@@ -141,8 +141,9 @@ module Gist
     req = Net::HTTP::Post.new(url.path)
     req.body = JSON.generate(data(files, private_gist, description))
 
-    if auth_header = auth()
-      req.add_field('Authorization', auth_header)
+    user, password = auth()
+    if user && password
+      req.basic_auth(user, password)
     end
 
     response = http.start{|h| h.request(req) }
@@ -212,15 +213,22 @@ private
 
   # Returns a basic auth string of the user's GitHub credentials if set.
   # http://github.com/guides/local-github-config
+  #
+  # Returns an Array of Strings if auth is found: [user, password]
+  # Returns nil if no auth is found.
   def auth
     user  = config("github.user")
     password = config("github.password")
 
+    token = config("github.token")
+    if password.to_s.empty? && !token.to_s.empty?
+      abort "Please set GITHUB_PASSWORD or github.password instead of using a token."
+    end
+
     if user.to_s.empty? || password.to_s.empty?
       nil
     else
-      auth_str = Base64.encode64("#{user}:#{password}")
-      "Basic #{auth_str}"
+      [ user, password ]
     end
   end
 
