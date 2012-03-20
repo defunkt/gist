@@ -99,7 +99,7 @@ browser, too.</p>
 
 <p><code>gist</code>'s default mode of operation is to read content from standard
 input and create a public, text gist without description from it, tied
-to your GitHub account if you user and token are provided (see
+to your GitHub account if you user and passwordare provided (see
 <code>CONFIGURATION</code>).</p>
 
 <p>These options can be used to change this behavior:</p>
@@ -124,13 +124,13 @@ to --open</p></dd>
 
 <h2 id="AUTHENTICATION">AUTHENTICATION</h2>
 
-<p>There are two ways to set GitHub user and token info:</p>
+<p>There are two ways to set GitHub user and password info:</p>
 
 <ul>
-<li><p>Using environment vars GITHUB_USER and GITHUB_TOKEN</p>
+<li><p>Using environment vars GITHUB_USER and GITHUB_PASSWORD</p>
 
 <p>$ export GITHUB_USER=johndoe<br />
-$ export GITHUB_TOKEN=mysecretgithubtoken<br />
+$ export GITHUB_PASSWORD=mysecretgithubpassword<br />
 $ gist ~/example</p></li>
 <li><p>Using <span class="man-ref">git-config<span class="s">(1)</span></span></p></li>
 </ul>

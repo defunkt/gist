@@ -56,9 +56,9 @@ There are two ways to set GitHub user and password info:
 
   * Using environment vars GITHUB_USER and GITHUB_PASSWORD
 
-    $ export GITHUB_USER=johndoe
-    $ export GITHUB_PASSWORD=mysecretgithubpassword
-    $ gist ~/example
+    $ export GITHUB_USER=johndoe  
+    $ export GITHUB_PASSWORD=mysecretgithubpassword  
+    $ gist ~/example  
 
   * Using git-config(1)
 
