@@ -80,7 +80,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '2.0.3'
+  VERSION = Version = '3.0.0'
 end
 require 'open-uri'
 require 'net/https'
@@ -203,7 +203,6 @@ module Gist
 
     req = Net::HTTP::Post.new(url.path)
     req.body = JSON.generate(data(files, private_gist, description))
-    p req.body
 
     if auth_header = auth()
       req.add_field('Authorization', auth_header)
@@ -214,7 +213,6 @@ module Gist
     when Net::HTTPCreated
       JSON.parse(response.body)['html_url']
     else
-      p response.body
       puts "Creating gist failed: #{response.code} #{response.message}"
       exit(false)
     end
@@ -338,7 +336,7 @@ __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "June 2011" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "March 2012" "GITHUB" "Gist Manual"
 .
 .SH "NAME"
 \fBgist\fR \- gist on the command line
