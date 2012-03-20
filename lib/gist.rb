@@ -1,6 +1,8 @@
 require 'open-uri'
 require 'net/https'
 require 'optparse'
+
+require 'rubygems'
 require 'json'
 require 'base64'
 
@@ -141,6 +143,7 @@ module Gist
 
     if auth_header = auth()
       req.add_field('Authorization', auth_header)
+    end
 
     response = http.start{|h| h.request(req) }
     case response
@@ -154,7 +157,8 @@ module Gist
 
   # Given a gist id, returns its content.
   def read(gist_id)
-    open(GIST_URL % gist_id).read
+    data = JSON.parse(open(GIST_URL % gist_id).read)
+    data["files"].map{|name, content| content['content'] }.join("\n\n")
   end
 
   # Given a url, tries to open it in your browser.
@@ -193,14 +197,17 @@ private
   # an appropriate payload for POSTing to gist.github.com
   def data(files, private_gist, description)
     i = 0
-    data = {}
-    data["files"] = files.map do |file|
+    file_data = {}
+    files.each do |file|
       i = i + 1
       filename = file[:filename] ? file[:filename] : "gistfile#{i}"
-      {filename => {:content => file[:input]}}
+      file_data[filename] = {:content => file[:input]}
     end
+
+    data = {"files" => file_data}
     data.merge!({ 'description' => description }) unless description.nil?
-    data.merge(private_gist ? { 'public' => false } : {})
+    data.merge!({ 'public' => false }) if private_gist
+    data
   end
 
   # Returns a basic auth string of the user's GitHub credentials if set.
@@ -209,7 +216,7 @@ private
     user  = config("github.user")
     password = config("github.password")
 
-    if user.to_s.empty? || token.to_s.empty?
+    if user.to_s.empty? || password.to_s.empty?
       nil
     else
       auth_str = Base64.encode64("#{user}:#{password}")
