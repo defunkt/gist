@@ -242,8 +242,8 @@ private
   end
 
   # Reads a config value using:
-  # => Environement: GITHUB_TOKEN, GITHUB_USER
-  #                  like vim gist plugin
+  # => Environment: GITHUB_PASSWORD, GITHUB_USER
+  #                 like vim gist plugin
   # => git-config(1)
   #
   # return something useful or nil

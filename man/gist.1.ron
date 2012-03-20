@@ -23,7 +23,7 @@ browser, too.
 
 `gist`'s default mode of operation is to read content from standard
 input and create a public, text gist without description from it, tied
-to your GitHub account if you user and token are provided (see
+to your GitHub account if you user and passwordare provided (see
 `CONFIGURATION`).
 
 These options can be used to change this behavior:
@@ -52,13 +52,13 @@ You may additionally ask for help:
 
 ## AUTHENTICATION
 
-There are two ways to set GitHub user and token info:
+There are two ways to set GitHub user and password info:
 
-  * Using environment vars GITHUB_USER and GITHUB_TOKEN
+  * Using environment vars GITHUB_USER and GITHUB_PASSWORD
 
-    $ export GITHUB_USER=johndoe  
-    $ export GITHUB_TOKEN=mysecretgithubtoken  
-    $ gist ~/example  
+    $ export GITHUB_USER=johndoe
+    $ export GITHUB_PASSWORD=mysecretgithubpassword
+    $ gist ~/example
 
   * Using git-config(1)
 

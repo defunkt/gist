@@ -56,33 +56,31 @@ the quick brown fox jumps over the lazy dog
 
 Authentication
 --------------
-There are two ways to set GitHub user and token info:
+There are two ways to set GitHub user and password info:
 
-Using env vars GITHUB_USER and GITHUB_TOKEN:
+Using env vars GITHUB_USER and GITHUB_PASSWORD:
 
 ```bash
 $ export GITHUB_USER="your-github-username"
-$ export GITHUB_TOKEN="your-github-token"
+$ export GITHUB_PASSWORD="your-github-password"
 $ gist ~/example
 ```
 
-Or by having your git config set up with your GitHub username and token.
+Or by having your git config set up with your GitHub username and password.
 
 ```bash
 git config --global github.user "your-github-username"
-git config --global github.token "your-github-token"
+git config --global github.password "your-github-password"
 ```
 
-You can find your token under [your account](https://github.com/account).
-
-You can also define github.token to be a command which returns the
-actual token on stdout by setting the variable to a command string
+You can also define github.password to be a command which returns the
+actual password on stdout by setting the variable to a command string
 prefixed with `!`. For example, the following command fetches the
-token from a password item named "github.token" on the Mac OS
+password from an item named "github.password" on the Mac OS
 Keychain:
 
 ```bash
-token = !security 2>&1 >/dev/null find-generic-password -gs github.token | ruby -e 'print $1 if STDIN.gets =~ /^password: \\\"(.*)\\\"$/'
+password = !security 2>&1 >/dev/null find-generic-password -gs github.password | ruby -e 'print $1 if STDIN.gets =~ /^password: \\\"(.*)\\\"$/'
 ```
 
 Defaults
