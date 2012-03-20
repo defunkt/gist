@@ -80,7 +80,7 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '3.0.0'
+  VERSION = Version = '3.0.1'
 end
 require 'open-uri'
 require 'net/https'
@@ -204,8 +204,9 @@ module Gist
     req = Net::HTTP::Post.new(url.path)
     req.body = JSON.generate(data(files, private_gist, description))
 
-    if auth_header = auth()
-      req.add_field('Authorization', auth_header)
+    user, password = auth()
+    if user && password
+      req.basic_auth(user, password)
     end
 
     response = http.start{|h| h.request(req) }
@@ -271,11 +272,15 @@ private
     user  = config("github.user")
     password = config("github.password")
 
+    token = config("github.token")
+    if password.to_s.empty? && !token.to_s.empty?
+      abort "Please set GITHUB_PASSWORD or github.password instead of using a token."
+    end
+
     if user.to_s.empty? || password.to_s.empty?
       nil
     else
-      auth_str = Base64.encode64("#{user}:#{password}")
-      "Basic #{auth_str}"
+      [ user, password ]
     end
   end
 
@@ -354,7 +359,7 @@ If standard input is supplied, it will be used as the content of the new gist\. 
 Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
 .
 .SH "OPTIONS"
-\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist without description from it, tied to your GitHub account if you user and token are provided (see \fBCONFIGURATION\fR)\.
+\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist without description from it, tied to your GitHub account if you user and passwordare provided (see \fBCONFIGURATION\fR)\.
 .
 .P
 These options can be used to change this behavior:
@@ -387,16 +392,16 @@ Print help\.
 Display this man page\.
 .
 .SH "AUTHENTICATION"
-There are two ways to set GitHub user and token info:
+There are two ways to set GitHub user and password info:
 .
 .IP "\(bu" 4
-Using environment vars GITHUB_USER and GITHUB_TOKEN
+Using environment vars GITHUB_USER and GITHUB_PASSWORD
 .
 .IP
 $ export GITHUB_USER=johndoe
 .
 .br
-$ export GITHUB_TOKEN=mysecretgithubtoken
+$ export GITHUB_PASSWORD=mysecretgithubpassword
 .
 .br
 $ gist ~/example
