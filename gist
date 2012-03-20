@@ -86,14 +86,18 @@ require 'open-uri'
 require 'net/https'
 require 'optparse'
 
+require 'rubygems'
+require 'json'
+require 'base64'
+
 require 'gist/manpage' unless defined?(Gist::Manpage)
 require 'gist/version' unless defined?(Gist::Version)
 
 module Gist
   extend self
 
-  GIST_URL   = 'https://gist.github.com/%s.txt'
-  CREATE_URL = 'https://gist.github.com/gists'
+  GIST_URL   = 'https://api.github.com/gists/%s'
+  CREATE_URL = 'https://api.github.com/gists'
 
   if ENV['HTTPS_PROXY']
     PROXY = URI(ENV['HTTPS_PROXY'])
@@ -110,7 +114,7 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
-    copy = defaults["copy"]
+    description = nil
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -123,6 +127,10 @@ module Gist
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
         gist_extension = '.' + extension
+      end
+
+      opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
+        description = d
       end
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
@@ -142,15 +150,12 @@ module Gist
         puts opts
         exit
       end
-
-      opts.on('-c', '--[no-]copy', 'Copy gist URL to clipboard automatically') do |c|
-        copy = c
-      end
     end
 
-    opts.parse!(args)
-
     begin
+
+      opts.parse!(args)
+
       if $stdin.tty? && args[0] != '-'
 
         if args.empty?
@@ -163,7 +168,7 @@ module Gist
 
           files.push({
             :input     => File.read(file),
-            :filename  => File.basename(file),
+            :filename  => file,
             :extension => (File.extname(file) if file.include?('.'))
           })
         end
@@ -173,17 +178,16 @@ module Gist
         files = [{:input => input, :extension => gist_extension}]
       end
 
-      url = write(files, private_gist)
+      url = write(files, private_gist, description)
       browse(url) if browse_enabled
-      copy(url) if copy
-      $stdout.tty? ? puts(url) : print(url)
+      puts copy(url)
     rescue => e
       warn e
       puts opts
     end
   end
 
-  def write(files, private_gist = false)
+  def write(files, private_gist = false, description = nil)
     url = URI.parse(CREATE_URL)
 
     if PROXY_HOST
@@ -198,25 +202,34 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist)
+    req.body = JSON.generate(data(files, private_gist, description))
+    p req.body
+
+    if auth_header = auth()
+      req.add_field('Authorization', auth_header)
+    end
 
     response = http.start{|h| h.request(req) }
     case response
-    when Net::HTTPRedirection
-      response['Location']
+    when Net::HTTPCreated
+      JSON.parse(response.body)['html_url']
     else
+      p response.body
       puts "Creating gist failed: #{response.code} #{response.message}"
       exit(false)
     end
   end
 
   def read(gist_id)
-    open(GIST_URL % gist_id).read
+    data = JSON.parse(open(GIST_URL % gist_id).read)
+    data["files"].map{|name, content| content['content'] }.join("\n\n")
   end
 
   def browse(url)
     if RUBY_PLATFORM =~ /darwin/
       `open #{url}`
+    elsif RUBY_PLATFORM =~ /linux/
+       `#{ENV['BROWSER']} #{url}`
     elsif ENV['OS'] == 'Windows_NT' or
       RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
       `start "" "#{url}"`
@@ -241,51 +254,46 @@ module Gist
   end
 
 private
-  def data(files, private_gist)
-    data = {}
+  def data(files, private_gist, description)
+    i = 0
+    file_data = {}
     files.each do |file|
-      i = data.size + 1
-      data["file_ext[gistfile#{i}]"]      = file[:extension] ? file[:extension] : '.txt'
-      data["file_name[gistfile#{i}]"]     = file[:filename]
-      data["file_contents[gistfile#{i}]"] = file[:input]
+      i = i + 1
+      filename = file[:filename] ? file[:filename] : "gistfile#{i}"
+      file_data[filename] = {:content => file[:input]}
     end
-    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+
+    data = {"files" => file_data}
+    data.merge!({ 'description' => description }) unless description.nil?
+    data.merge!({ 'public' => false }) if private_gist
+    data
   end
 
   def auth
     user  = config("github.user")
-    token = config("github.token")
+    password = config("github.password")
 
-    if user.to_s.empty? || token.to_s.empty?
-      {}
+    if user.to_s.empty? || password.to_s.empty?
+      nil
     else
-      { :login => user, :token => token }
+      auth_str = Base64.encode64("#{user}:#{password}")
+      "Basic #{auth_str}"
     end
   end
 
   def defaults
     extension = config("gist.extension")
-    extension = nil if extension && extension.empty?
-    
-    copy = config("gist.copy")
-    if copy.nil?
-      copy = true
-    else
-      # match optparse boolean true states
-      copy = copy =~ /^(true)|(on)|(\+)/
-    end
 
     return {
       "private"   => config("gist.private"),
       "browse"    => config("gist.browse"),
-      "extension" => extension,
-      "copy"      => copy,
+      "extension" => extension
     }
   end
 
   def config(key)
     env_key = ENV[key.upcase.gsub(/\./, '_')]
-    return env_key if env_key and not env_key.empty?
+    return env_key if env_key and not env_key.strip.empty?
 
     str_to_bool `git config --global #{key}`.strip
   end
@@ -330,7 +338,7 @@ __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "April 2011" "GITHUB" "Gist Manual"
+.TH "GIST" "1" "June 2011" "GITHUB" "Gist Manual"
 .
 .SH "NAME"
 \fBgist\fR \- gist on the command line
@@ -348,7 +356,7 @@ If standard input is supplied, it will be used as the content of the new gist\. 
 Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
 .
 .SH "OPTIONS"
-\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist from it, tied to your GitHub account if you user and token are provided (see \fBCONFIGURATION\fR)\.
+\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist without description from it, tied to your GitHub account if you user and token are provided (see \fBCONFIGURATION\fR)\.
 .
 .P
 These options can be used to change this behavior:
@@ -359,7 +367,11 @@ Create a private gist instead of a public gist\.
 .
 .TP
 \fB\-t\fR, \fB\-\-type\fR
-Set the file extension explicitly\. Passing a type of \fBrb\fR ensure the gist is created as a Ruby file\.
+Set the file extension explicitly\. Passing a type of \fBrb\fR ensures the gist is created as a Ruby file\.
+.
+.TP
+\fB\-d\fR, \fB\-\-description\fR
+Set a description\.
 .
 .TP
 \fB\-o\fR, \fB\-\-[no\-]open\fR
@@ -380,7 +392,7 @@ Display this man page\.
 There are two ways to set GitHub user and token info:
 .
 .IP "\(bu" 4
-Using env vars GITHUB_USER and GITHUB_TOKEN
+Using environment vars GITHUB_USER and GITHUB_TOKEN
 .
 .IP
 $ export GITHUB_USER=johndoe
