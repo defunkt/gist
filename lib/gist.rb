@@ -1,6 +1,8 @@
 require 'open-uri'
 require 'net/https'
 require 'optparse'
+require 'json'
+require 'base64'
 
 require 'gist/manpage' unless defined?(Gist::Manpage)
 require 'gist/version' unless defined?(Gist::Version)
@@ -23,8 +25,8 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'https://gist.github.com/%s.txt'
-  CREATE_URL = 'https://gist.github.com/gists'
+  GIST_URL   = 'https://api.github.com/gists/%s'
+  CREATE_URL = 'https://api.github.com/gists'
 
   if ENV['HTTPS_PROXY']
     PROXY = URI(ENV['HTTPS_PROXY'])
@@ -135,12 +137,15 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(files, private_gist, description)
+    req.body = JSON.generate(data(files, private_gist, description))
+
+    if auth_header = auth()
+      req.add_field('Authorization', auth_header)
 
     response = http.start{|h| h.request(req) }
     case response
-    when Net::HTTPRedirection
-      response['Location']
+    when Net::HTTPCreated
+      JSON.parse(response.body)['html_url']
     else
       puts "Creating gist failed: #{response.code} #{response.message}"
       exit(false)
@@ -187,27 +192,28 @@ private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
   def data(files, private_gist, description)
+    i = 0
     data = {}
-    files.each do |file|
-      i = data.size + 1
-      data["file_ext[gistfile#{i}]"]      = file[:extension] ? file[:extension] : '.txt'
-      data["file_name[gistfile#{i}]"]     = file[:filename]
-      data["file_contents[gistfile#{i}]"] = file[:input]
+    data["files"] = files.map do |file|
+      i = i + 1
+      filename = file[:filename] ? file[:filename] : "gistfile#{i}"
+      {filename => {:content => file[:input]}}
     end
     data.merge!({ 'description' => description }) unless description.nil?
-    data.merge(private_gist ? { 'action_button' => 'private' } : {}).merge(auth)
+    data.merge(private_gist ? { 'public' => false } : {})
   end
 
-  # Returns a hash of the user's GitHub credentials if set.
+  # Returns a basic auth string of the user's GitHub credentials if set.
   # http://github.com/guides/local-github-config
   def auth
     user  = config("github.user")
-    token = config("github.token")
+    password = config("github.password")
 
     if user.to_s.empty? || token.to_s.empty?
-      {}
+      nil
     else
-      { :login => user, :token => token }
+      auth_str = Base64.encode64("#{user}:#{password}")
+      "Basic #{auth_str}"
     end
   end
 
