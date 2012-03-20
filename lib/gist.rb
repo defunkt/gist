@@ -180,7 +180,6 @@ module Gist
     if RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
       system("echo #{content} | clip")
     else
-
       cmd = case true
       when system("type pbcopy > /dev/null 2>&1")
         :pbcopy
@@ -189,8 +188,7 @@ module Gist
       when system("type putclip > /dev/null 2>&1")
         :putclip
       end
-    
-  
+
       if cmd
         IO.popen(cmd.to_s, 'r+') { |clip| clip.print content }
       end
