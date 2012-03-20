@@ -1,0 +1,603 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"ins",
+				"insheet-string	insheet_string"
+			],
+			[
+				"ge",
+				"gre	grep(/pattern/) { |match| .. }"
+			],
+			[
+				"do",
+				"dob	Insert do |variable| … end"
+			],
+			[
+				"def",
+				"def	def … end"
+			],
+			[
+				"put",
+				"putc  (function)"
+			],
+			[
+				"pri",
+				"print  (function)"
+			],
+			[
+				"tes",
+				"testing  (function)"
+			],
+			[
+				"eac",
+				"each  (function)"
+			],
+			[
+				"times",
+				"times  (function)"
+			],
+			[
+				"res",
+				"rescue  (function)"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"Snippet: ",
+				"Snippet: #!/usr/bin/env"
+			],
+			[
+				"proj",
+				"Project: Close"
+			],
+			[
+				"project",
+				"Project: Close"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			],
+			[
+				"pack",
+				"Package Control: Upgrade Package"
+			],
+			[
+				"git",
+				"Git: Custom Command"
+			],
+			[
+				"ruby",
+				"Set Syntax: Ruby"
+			],
+			[
+				"comm",
+				"Git: Custom Command"
+			],
+			[
+				"gitk",
+				"Git: Quick Commit"
+			],
+			[
+				"git cu",
+				"Git: Custom Command"
+			],
+			[
+				"install ",
+				"Package Control: Install Package"
+			],
+			[
+				"plain",
+				"Set Syntax: Plain Text"
+			],
+			[
+				"text",
+				"Set Syntax: reStructuredText"
+			],
+			[
+				"mul",
+				"Set Syntax: MultiMarkdown"
+			],
+			[
+				"mark",
+				"Set Syntax: Markdown"
+			],
+			[
+				"yam",
+				"Set Syntax: YAML"
+			],
+			[
+				"xml",
+				"Set Syntax: XML"
+			],
+			[
+				"arb",
+				"Git: Arbitrary Command"
+			],
+			[
+				"rails",
+				"Set Syntax: Ruby on Rails"
+			],
+			[
+				"close",
+				"Project: Close"
+			],
+			[
+				"acc",
+				"Snippet: attr_accessor .."
+			],
+			[
+				"each",
+				"Snippet: each { |e| .. }"
+			],
+			[
+				"git add",
+				"Git: Add Current File"
+			],
+			[
+				"open",
+				"View: Toggle Open Files in Side Bar"
+			],
+			[
+				"",
+				"About"
+			],
+			[
+				"termin",
+				"Git: Terminal Command"
+			],
+			[
+				"term",
+				"Git: Terminal Command"
+			],
+			[
+				"git ",
+				"Git: Custom Command"
+			],
+			[
+				"git stat",
+				"Git: Status"
+			],
+			[
+				"git com",
+				"Set Syntax: Git Commit Message"
+			],
+			[
+				"git gui",
+				"Git: Graph Current File"
+			],
+			[
+				"git commit",
+				"Git: Commit"
+			],
+			[
+				"gitcom",
+				"Git: Commit"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"f",
+				"Snippet: find { |e| .. }"
+			],
+			[
+				"fold",
+				"Code Folding: Unfold All"
+			],
+			[
+				"folding",
+				"Code Folding: Fold Tag Attributes"
+			],
+			[
+				"#!",
+				"Snippet: #!/usr/bin/env ruby -wKU"
+			],
+			[
+				"snippets",
+				"Snippet: #!/usr/bin/env ruby -wKU"
+			],
+			[
+				"insl",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: instal",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 536.0
+	},
+	"console":
+	{
+		"height": 239.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/D/dropbox/WorkSpaces/RubySpace/catspeak/test.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/test_octopress/.gitignore",
+		"/D/dropbox/Programs/Notepad++/config.xml",
+		"/C/Users/tomtom/Desktop/a.txt",
+		"/D/dropbox/WorkSpaces/RubySpace/lorem/lorem.gemspec",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/test/client_call2.rb",
+		"/D/dropbox/WorkSpaces/VSSpace/Projects/Michelle/Michelle/bin/ruby/bin/irb",
+		"/D/dropbox/WorkSpaces/VSSpace/Projects/Michelle/Michelle/bin/ruby/share/man/man1/ruby.1",
+		"/D/dropbox/WorkSpaces/VSSpace/Projects/Michelle/Michelle/bin/ruby/share/man/man1/irb.1",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/test.txt",
+		"/D/dropbox/WorkSpaces/test2.txt",
+		"/D/dropbox/WorkSpaces/test.txt",
+		"/D/dropbox/WorkSpaces/diff.txt",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/Gemfile",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/Rakefile",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/lib/michelle/server.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/test/test_code.rb",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Default/Preferences.sublime-settings",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/User/Ruby.sublime-settings",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/test.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/a.gemspec",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/lib/testing.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/michelle/lib/testing.txt",
+		"/D/dropbox/WorkSpaces/RubySpace/lorem/lib/lorem/version.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/lorem/lib/lorem/lorem2.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/lorem/lib/lorem/lorem3.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/lorem/lib/lorem.rb",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Terminal/Default (Windows).sublime-keymap",
+		"/C/Users/tomtom/Desktop/ruby.properties",
+		"/D/dropbox/WorkSpaces/RubySpace/auto_click/auto_click.sublime-project",
+		"/D/dropbox/WorkSpaces/RubySpace/auto_click/auto_click.sublime-workspace",
+		"/D/dropbox/WorkSpaces/RubySpace/auto_click/.gitignore",
+		"/C/Recovery.txt",
+		"/S/Recycler/Text/2008.txt",
+		"/C/Users/tomtom/Desktop/a.do",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Stata/test.sublime-snippet",
+		"/C/Users/tomtom/Desktop/testing.do",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Stata/genlog.sublime-snippet",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Stata/logging.sublime-snippet",
+		"/C/Users/tomtom/Desktop/group_by_search.rb",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/.project",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/Gemfile",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/User/Preferences.sublime-settings",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/CHANGELOG",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/Rakefile",
+		"/C/Users/tomtom/Desktop/abc.txt",
+		"/C/Users/tomtom/Desktop/mmdays - insurance.txt",
+		"/C/Users/tomtom/Desktop/New Text Document.txt",
+		"/D/Dropbox/programs/Sublime_Text/subl.bat",
+		"/C/Users/tomtom/Desktop/test.rbw",
+		"/C/Users/tomtom/Desktop/test.rb",
+		"/D/Dropbox/Public/email to lskc.txt",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/User/Preferences.sublime-settings",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Default/Preferences.sublime-settings",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/auto_click.sublime-project",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/lib/auto_click/user32.rb",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/auto_click-0.2.0.gem",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/Gemfile.lock",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Git/Default.sublime-commands",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Git/git.py",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/README.rdoc",
+		"/D/Dropbox/WorkSpaces/RubySpace/auto_click/lib/auto_click.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/erinata.sublime-project",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/erinata.sublime-workspace",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Default/Global.sublime-settings",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/User/Global.sublime-settings",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/abc.txt",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/app/controllers/greetings_controller.rb",
+		"/D/Dropbox/programs/Sublime_Text/Data/Settings/Session.sublime_session",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Terminal/Default (Windows).sublime-keymap",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/public/404.html",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/app/controllers/application_controller.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/Gemfile.lock",
+		"/D/Dropbox/WorkSpaces/RubySpace/erinata/a.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/.project",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/.gitignore",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Git/Git.sublime-settings",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Git/package-metadata.json",
+		"/D/New folder/a.txt",
+		"/D/Dropbox/programs/Sublime_Text/Data/Packages/Git/Main.sublime-menu",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/config/initializers/wrap_parameters.rb",
+		"/D/Dropbox/programs/Ruby/Devkit452/config.yml",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/config/routes.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/config.ru",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/Procfile",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/Gemfile",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Ruby/Ruby.tmLanguage",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Default/exec.py",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Git/Default.sublime-commands",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Default/delete_word.py",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Default/goto_line.py",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Git/git.py",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Git/package-metadata.json",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Git/Git.sublime-settings",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Git/Main.sublime-menu",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Git/git.pyc",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Default/Base File.sublime-settings",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/User/Base File.sublime-settings",
+		"/C/Users/tomtom/Desktop/basic.ics",
+		"/h",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/config/application.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/erinata/app/views/greetings/hello.html.erb",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/User/Terminal.sublime-settings",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Terminal/Terminal.sublime-settings",
+		"/D/dropbox/WorkSpaces/RubySpace/rails_tutorial/autotest/discover.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/rails_tutorial/app/views/layouts/application.html.erb",
+		"/D/dropbox/WorkSpaces/RubySpace/small_ruby/small_ruby.sublime-project",
+		"/D/dropbox/WorkSpaces/RubySpace/rails_tutorial/rails_tutorial.sublime-project",
+		"/D/dropbox/WorkSpaces/RubySpace/ruby.sublime-workspace",
+		"/D/dropbox/WorkSpaces/RubySpace/ruby.sublime-project",
+		"/C/Users/tomtom/Desktop/test.sublime-project",
+		"/D/dropbox/WorkSpaces/RubySpace/test_rails/.project",
+		"/D/dropbox/WorkSpaces/RubySpace/test_rails/config/application.rb",
+		"/D/dropbox/WorkSpaces/RubySpace/test_rails/app/views/layouts/application.html.erb",
+		"/D/dropbox/WorkSpaces/RubySpace/rails_tutorial/app/controllers/application_controller.rb",
+		"/C/Users/tomtom/Desktop/test.sublime-workspace",
+		"/D/dropbox/Programs/Sublime_Text/Data/Packages/Default/Default (Windows).sublime-keymap",
+		"/D/dropbox/Programs/Sublime_Text/subl.bat",
+		"/C/Users/tomtom/Desktop/abc",
+		"/C/Users/tomtom/Desktop/Sublime Text/abc.txt",
+		"/C/Users/tomtom/Desktop/Sublime Text/%*",
+		"/C/Users/tomtom/Desktop/Sublime Text/subl.bat",
+		"/C/Users/tomtom/Desktop/a.cpp",
+		"/C/Users/tomtom/Desktop/Sublime Text/Data/Packages/SublimeCodeIntel/SublimeCodeIntel.py",
+		"/C/Users/tomtom/Desktop/Sublime Text/aaa.rb",
+		"/C/Users/tomtom/Desktop/Sublime Text/Data/Packages/SublimeCodeIntel/README.markdown",
+		"/C/Users/tomtom/Desktop/Sublime Text/Data/Packages/SublimeCodeIntel/Base File.sublime-settings",
+		"/C/Users/tomtom/Desktop/Sublime Text/Data/Packages/SublimeCodeIntel/Default (Windows).sublime-keymap"
+	],
+	"find":
+	{
+		"height": 37.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"Messager",
+			"TODO",
+			"TODO	",
+			"TODO",
+			"project",
+			"CommandThread",
+			"run_command",
+			"rails_tut",
+			"rails",
+			"[0-9].??",
+			"[0-9].*",
+			"git_root",
+			"\\",
+			"git_root",
+			"working_dir=root",
+			"working_dir",
+			"run_command",
+			"custom",
+			"ExecCommand",
+			"run_command",
+			"get_file_name",
+			"stash",
+			"git_stash",
+			"Application",
+			"alt+shift",
+			"shift+alt",
+			"testing",
+			"test",
+			"p[r]",
+			"p????",
+			"p*",
+			"test",
+			"utf-8",
+			"utf"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"Michelle"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 37.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": false,
+	"replace":
+	{
+		"height": 60.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"gem",
+				"michelle.gemspec"
+			],
+			[
+				"cli",
+				"lib/michelle/client.rb"
+			],
+			[
+				"ver",
+				"lib/michelle/version.rb"
+			],
+			[
+				"git",
+				".gitignore"
+			],
+			[
+				"gems",
+				"michelle.gemspec"
+			],
+			[
+				"mi",
+				"lib/michelle.rb"
+			],
+			[
+				"auto",
+				"auto_click.sublime-project"
+			],
+			[
+				"",
+				"auto_click.sublime-workspace"
+			],
+			[
+				"test",
+				"test_build.rb"
+			],
+			[
+				"read",
+				"README.rdoc"
+			],
+			[
+				"viru",
+				"lib/auto_click/virtual_key.rb"
+			],
+			[
+				"abc",
+				"/D/dropbox/WorkSpaces/RubySpace/erinata/abc.txt"
+			],
+			[
+				"data",
+				"config/database.yml"
+			],
+			[
+				"app",
+				"app/assets/javascripts/application.js"
+			],
+			[
+				"erb",
+				"app/views/greetings/hello.html.erb"
+			],
+			[
+				"view/appl",
+				"app/views/layouts/application.html.erb"
+			],
+			[
+				"application",
+				"rails_tutorial/app/controllers/application_controller.rb"
+			],
+			[
+				"view/appli",
+				"app/views/layouts/application.html.erb"
+			],
+			[
+				"applic",
+				"config/application.rb"
+			],
+			[
+				"conf",
+				"config/application.rb"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+			[
+				"",
+				"/D/dropbox/WorkSpaces/RubySpace/auto_click/auto_click.sublime-project"
+			],
+			[
+				"au",
+				"/D/Dropbox/WorkSpaces/RubySpace/auto_click/auto_click.sublime-project"
+			],
+			[
+				"erinata",
+				"/D/dropbox/WorkSpaces/RubySpace/erinata/erinata.sublime-project"
+			],
+			[
+				"rails",
+				"/D/dropbox/WorkSpaces/RubySpace/rails_tutorial/rails_tutorial.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true
+}

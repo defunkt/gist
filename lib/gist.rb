@@ -177,17 +177,23 @@ module Gist
 
   # Tries to copy passed content to the clipboard.
   def copy(content)
-    cmd = case true
-    when system("type pbcopy > /dev/null 2>&1")
-      :pbcopy
-    when system("type xclip > /dev/null 2>&1")
-      :xclip
-    when system("type putclip > /dev/null 2>&1")
-      :putclip
-    end
+    if RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
+      system("echo #{content} | clip")
+    else
 
-    if cmd
-      IO.popen(cmd.to_s, 'r+') { |clip| clip.print content }
+      cmd = case true
+      when system("type pbcopy > /dev/null 2>&1")
+        :pbcopy
+      when system("type xclip > /dev/null 2>&1")
+        :xclip
+      when system("type putclip > /dev/null 2>&1")
+        :putclip
+      end
+    
+  
+      if cmd
+        IO.popen(cmd.to_s, 'r+') { |clip| clip.print content }
+      end
     end
 
     content
