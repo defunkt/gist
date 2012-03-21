@@ -207,7 +207,7 @@ private
 
     data = {"files" => file_data}
     data.merge!({ 'description' => description }) unless description.nil?
-    data.merge!({ 'public' => false }) if private_gist
+    data.merge!({ 'public' => !private_gist })
     data
   end
 
