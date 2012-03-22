@@ -2,9 +2,9 @@ require 'open-uri'
 require 'net/https'
 require 'optparse'
 
-require 'json'
 require 'base64'
 
+require 'gist/json'    unless defined?(JSON)
 require 'gist/manpage' unless defined?(Gist::Manpage)
 require 'gist/version' unless defined?(Gist::Version)
 
