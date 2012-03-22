@@ -2,7 +2,6 @@ require 'open-uri'
 require 'net/https'
 require 'optparse'
 
-require 'rubygems'
 require 'json'
 require 'base64'
 
