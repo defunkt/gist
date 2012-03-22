@@ -1,23 +1,15 @@
-#!/usr/bin/env ruby
-# encoding: utf-8
-#
-# This file, gist, is generated code.
-# Please DO NOT EDIT or send patches for it.
-#
-# Please take a look at the source from
-# http://github.com/defunkt/gist
-# and submit patches against the individual files
-# that build gist.
-#
-
 require 'strscan'
 
 module JSON
   module Pure
+    # This class implements the JSON parser that is used to parse a JSON string
+    # into a Ruby data structure.
     class Parser < StringScanner
       STRING                = /" ((?:[^\x0-\x1f"\\] |
+                                   # escaped special characters:
                                   \\["\\\/bfnrt] |
                                   \\u[0-9a-fA-F]{4} |
+                                   # match all but escaped special characters:
                                   \\[\x20-\x21\x23-\x2e\x30-\x5b\x5d-\x61\x63-\x65\x67-\x6d\x6f-\x71\x73\x75-\xff])*)
                               "/nx
       INTEGER               = /(-?0|-?[1-9]\d*)/
@@ -58,6 +50,26 @@ module JSON
 
       UNPARSED = Object.new
 
+      # Creates a new JSON::Pure::Parser instance for the string _source_.
+      #
+      # It will be configured by the _opts_ hash. _opts_ can have the following
+      # keys:
+      # * *max_nesting*: The maximum depth of nesting allowed in the parsed data
+      #   structures. Disable depth checking with :max_nesting => false|nil|0,
+      #   it defaults to 19.
+      # * *allow_nan*: If set to true, allow NaN, Infinity and -Infinity in
+      #   defiance of RFC 4627 to be parsed by the Parser. This option defaults
+      #   to false.
+      # * *symbolize_names*: If set to true, returns symbols for the names
+      #   (keys) in a JSON object. Otherwise strings are returned, which is also
+      #   the default.
+      # * *create_additions*: If set to false, the Parser doesn't create
+      #   additions even if a matchin class and create_id was found. This option
+      #   defaults to true.
+      # * *object_class*: Defaults to Hash
+      # * *array_class*: Defaults to Array
+      # * *quirks_mode*: Enables quirks_mode for parser, that is for example
+      #   parsing single JSON values instead of documents is possible.
       def initialize(source, opts = {})
         opts ||= {}
         unless @quirks_mode = opts[:quirks_mode]
@@ -95,6 +107,8 @@ module JSON
         @current_nesting = 0
       end
 
+      # Parses the current JSON string _source_ and returns the complete data
+      # structure as a result.
       def parse
         reset
         obj = nil
@@ -176,6 +190,7 @@ module JSON
         source
       end
 
+      # Unescape characters in strings.
       UNESCAPE_MAP = Hash.new { |h, k| h[k] = k.chr }
       UNESCAPE_MAP.update({
         ?"  => '"',
@@ -381,6 +396,8 @@ module JSON
     '\\'  =>  '\\\\',
   } # :nodoc:
 
+  # Convert a UTF8 encoded Ruby string _string_ to a JSON string, encoded with
+  # UTF16 big endian characters as \u????, and return it.
   if defined?(::Encoding)
     def utf8_to_json(string) # :nodoc:
       string = string.dup
@@ -441,7 +458,13 @@ module JSON
 
   module Pure
     module Generator
+      # This class is used to create State instances, that are use to hold data
+      # while generating a JSON text from a Ruby data structure.
       class State
+        # Creates a State object from _opts_, which ought to be Hash to create
+        # a new State instance configured by _opts_, something else to create
+        # an unconfigured instance. If _opts_ is a State object, it is just
+        # returned.
         def self.from_state(opts)
           case
           when self === opts
@@ -455,6 +478,23 @@ module JSON
           end
         end
 
+        # Instantiates a new State object, configured by _opts_.
+        #
+        # _opts_ can have the following keys:
+        #
+        # * *indent*: a string used to indent levels (default: ''),
+        # * *space*: a string that is put after, a : or , delimiter (default: ''),
+        # * *space_before*: a string that is put before a : pair delimiter (default: ''),
+        # * *object_nl*: a string that is put at the end of a JSON object (default: ''),
+        # * *array_nl*: a string that is put at the end of a JSON array (default: ''),
+        # * *check_circular*: is deprecated now, use the :max_nesting option instead,
+        # * *max_nesting*: sets the maximum level of data structure nesting in
+        #   the generated JSON, max_nesting = 0 if no maximum should be checked.
+        # * *allow_nan*: true if NaN, Infinity, and -Infinity should be
+        #   generated, otherwise an exception is thrown, if these values are
+        #   encountered. This options defaults to false.
+        # * *quirks_mode*: Enables quirks_mode for parser, that is for example
+        #   generating single JSON values instead of documents is possible.
         def initialize(opts = {})
           @indent                = ''
           @space                 = ''
@@ -468,20 +508,32 @@ module JSON
           configure opts
         end
 
+        # This string is used to indent levels in the JSON text.
         attr_accessor :indent
 
+        # This string is used to insert a space between the tokens in a JSON
+        # string.
         attr_accessor :space
 
+        # This string is used to insert a space before the ':' in JSON objects.
         attr_accessor :space_before
 
+        # This string is put at the end of a line that holds a JSON object (or
+        # Hash).
         attr_accessor :object_nl
 
+        # This string is put at the end of a line that holds a JSON array.
         attr_accessor :array_nl
 
+        # This integer returns the maximum level of data structure nesting in
+        # the generated JSON, max_nesting = 0 if no maximum is checked.
         attr_accessor :max_nesting
 
+        # If this attribute is set to true, quirks mode is enabled, otherwise
+        # it's disabled.
         attr_accessor :quirks_mode
 
+        # :stopdoc:
         attr_reader :buffer_initial_length
 
         def buffer_initial_length=(length)
@@ -489,7 +541,10 @@ module JSON
             @buffer_initial_length = length
           end
         end
+        # :startdoc:
 
+        # This integer returns the current depth data structure nesting in the
+        # generated JSON.
         attr_accessor :depth
 
         def check_max_nesting # :nodoc:
@@ -499,22 +554,31 @@ module JSON
             raise NestingError, "nesting of #{current_nesting} is too deep"
         end
 
+        # Returns true, if circular data structures are checked,
+        # otherwise returns false.
         def check_circular?
           !@max_nesting.zero?
         end
 
+        # Returns true if NaN, Infinity, and -Infinity should be considered as
+        # valid JSON and output.
         def allow_nan?
           @allow_nan
         end
 
+        # Returns true, if only ASCII characters should be generated. Otherwise
+        # returns false.
         def ascii_only?
           @ascii_only
         end
 
+        # Returns true, if quirks mode is enabled. Otherwise returns false.
         def quirks_mode?
           @quirks_mode
         end
 
+        # Configure this State instance with the Hash _opts_, and return
+        # itself.
         def configure(opts)
           @indent         = opts[:indent] if opts.key?(:indent)
           @space          = opts[:space] if opts.key?(:space)
@@ -536,6 +600,8 @@ module JSON
         end
         alias merge configure
 
+        # Returns the configuration instance variables as a hash, that can be
+        # passed to the configure method.
         def to_h
           result = {}
           for iv in %w[indent space space_before object_nl array_nl allow_nan max_nesting ascii_only quirks_mode buffer_initial_length depth]
@@ -544,6 +610,9 @@ module JSON
           result
         end
 
+        # Generates a valid JSON document from object +obj+ and returns the
+        # result. If no valid JSON document can be created this method raises a
+        # GeneratorError exception.
         def generate(obj)
           result = obj.to_json(self)
           unless @quirks_mode
@@ -556,6 +625,7 @@ module JSON
           result
         end
 
+        # Return the value returned by method +name+.
         def [](name)
           __send__ name
         end
@@ -563,10 +633,18 @@ module JSON
 
       module GeneratorMethods
         module Object
+          # Converts this object to a string (calling #to_s), converts
+          # it to a JSON string, and returns the result. This is a fallback, if no
+          # special method #to_json was defined for some object.
           def to_json(*) to_s.to_json end
         end
 
         module Hash
+          # Returns a JSON string containing a JSON object, that is unparsed from
+          # this Hash instance.
+          # _state_ is a JSON::State object, that can also be used to configure the
+          # produced JSON string output further.
+          # _depth_ is used to find out nesting depth, to indent accordingly.
           def to_json(state = nil, *)
             state = State.from_state(state)
             state.check_max_nesting
@@ -607,6 +685,10 @@ module JSON
         end
 
         module Array
+          # Returns a JSON string containing a JSON array, that is unparsed from
+          # this Array instance.
+          # _state_ is a JSON::State object, that can also be used to configure the
+          # produced JSON string output further.
           def to_json(state = nil, *)
             state = State.from_state(state)
             state.check_max_nesting
@@ -637,10 +719,12 @@ module JSON
         end
 
         module Integer
+          # Returns a JSON string representation for this Integer number.
           def to_json(*) to_s end
         end
 
         module Float
+          # Returns a JSON string representation for this Float number.
           def to_json(state = nil, *)
             state = State.from_state(state)
             case
@@ -664,6 +748,9 @@ module JSON
 
         module String
           if defined?(::Encoding)
+            # This string should be encoded with UTF-8 A call to this method
+            # returns a JSON string encoded with UTF16 big endian characters as
+            # \u????.
             def to_json(state = nil, *args)
               state = State.from_state(state)
               if encoding == ::Encoding::UTF_8
@@ -678,6 +765,9 @@ module JSON
               end
             end
           else
+            # This string should be encoded with UTF-8 A call to this method
+            # returns a JSON string encoded with UTF16 big endian characters as
+            # \u????.
             def to_json(state = nil, *args)
               state = State.from_state(state)
               if state.ascii_only?
@@ -688,16 +778,26 @@ module JSON
             end
           end
 
+          # Module that holds the extinding methods if, the String module is
+          # included.
           module Extend
+            # Raw Strings are JSON Objects (the raw bytes are stored in an
+            # array for the key "raw"). The Ruby String can be created by this
+            # module method.
             def json_create(o)
               o['raw'].pack('C*')
             end
           end
 
+          # Extends _modul_ with the String::Extend module.
           def self.included(modul)
             modul.extend Extend
           end
 
+          # This method creates a raw object hash, that can be nested into
+          # other data structures and will be unparsed as a raw string. This
+          # method should be used, if you want to convert raw strings to JSON
+          # instead of UTF-8 strings, e. g. binary data.
           def to_json_raw_object
             {
               JSON.create_id  => self.class.name,
@@ -705,20 +805,25 @@ module JSON
             }
           end
 
+          # This method creates a JSON text from the result of
+          # a call to to_json_raw_object of this String.
           def to_json_raw(*args)
             to_json_raw_object.to_json(*args)
           end
         end
 
         module TrueClass
+          # Returns a JSON string for true: 'true'.
           def to_json(*) 'true' end
         end
 
         module FalseClass
+          # Returns a JSON string for false: 'false'.
           def to_json(*) 'false' end
         end
 
         module NilClass
+          # Returns a JSON string for nil: 'null'.
           def to_json(*) 'null' end
         end
       end
@@ -728,6 +833,12 @@ end
 
 module JSON
   class << self
+    # If _object_ is string-like, parse the string and return the parsed result
+    # as a Ruby data structure. Otherwise generate a JSON text from the Ruby
+    # data structure object and return it.
+    #
+    # The _opts_ argument is passed through to generate/parse respectively. See
+    # generate and parse for their documentation.
     def [](object, opts = {})
       if object.respond_to? :to_str
         JSON.parse(object.to_str, opts)
@@ -736,14 +847,21 @@ module JSON
       end
     end
 
+    # Returns the JSON parser class that is used by JSON. This is either
+    # JSON::Ext::Parser or JSON::Pure::Parser.
     attr_reader :parser
 
+    # Set the JSON parser class _parser_ to be used by JSON.
     def parser=(parser) # :nodoc:
       @parser = parser
       remove_const :Parser if JSON.const_defined_in?(self, :Parser)
       const_set :Parser, parser
     end
 
+    # Return the constant located at _path_. The format of _path_ has to be
+    # either ::A::B::C or A::B::C. In any case, A has to be located at the top
+    # level (absolute namespace path?). If there doesn't exist a constant at
+    # the given path, an ArgumentError is raised.
     def deep_const_get(path) # :nodoc:
       path.to_s.split(/::/).inject(Object) do |p, c|
         case
@@ -759,6 +877,7 @@ module JSON
       end
     end
 
+    # Set the module _generator_ to be used by JSON.
     def generator=(generator) # :nodoc:
       old, $VERBOSE = $VERBOSE, nil
       @generator = generator
@@ -793,10 +912,16 @@ module JSON
       $VERBOSE = old
     end
 
+    # Returns the JSON generator module that is used by JSON. This is
+    # either JSON::Ext::Generator or JSON::Pure::Generator.
     attr_reader :generator
 
+    # Returns the JSON generator state class that is used by JSON. This is
+    # either JSON::Ext::Generator::State or JSON::Pure::Generator::State.
     attr_accessor :state
 
+    # This is create identifier, which is used to decide if the _json_create_
+    # hook of a class should be called. It defaults to 'json_class'.
     attr_accessor :create_id
   end
   self.create_id = 'json_class'
@@ -807,25 +932,68 @@ module JSON
 
   MinusInfinity = -Infinity
 
+  # The base exception for JSON errors.
   class JSONError < StandardError; end
 
+  # This exception is raised if a parser error occurs.
   class ParserError < JSONError; end
 
+  # This exception is raised if the nesting of parsed data structures is too
+  # deep.
   class NestingError < ParserError; end
 
+  # :stopdoc:
   class CircularDatastructure < NestingError; end
+  # :startdoc:
 
+  # This exception is raised if a generator or unparser error occurs.
   class GeneratorError < JSONError; end
+  # For backwards compatibility
   UnparserError = GeneratorError
 
+  # This exception is raised if the required unicode support is missing on the
+  # system. Usually this means that the iconv library is not installed.
   class MissingUnicodeSupport < JSONError; end
 
   module_function
 
+  # Parse the JSON document _source_ into a Ruby data structure and return it.
+  #
+  # _opts_ can have the following
+  # keys:
+  # * *max_nesting*: The maximum depth of nesting allowed in the parsed data
+  #   structures. Disable depth checking with :max_nesting => false. It defaults
+  #   to 19.
+  # * *allow_nan*: If set to true, allow NaN, Infinity and -Infinity in
+  #   defiance of RFC 4627 to be parsed by the Parser. This option defaults
+  #   to false.
+  # * *symbolize_names*: If set to true, returns symbols for the names
+  #   (keys) in a JSON object. Otherwise strings are returned. Strings are
+  #   the default.
+  # * *create_additions*: If set to false, the Parser doesn't create
+  #   additions even if a matching class and create_id was found. This option
+  #   defaults to true.
+  # * *object_class*: Defaults to Hash
+  # * *array_class*: Defaults to Array
   def parse(source, opts = {})
     Parser.new(source, opts).parse
   end
 
+  # Parse the JSON document _source_ into a Ruby data structure and return it.
+  # The bang version of the parse method defaults to the more dangerous values
+  # for the _opts_ hash, so be sure only to parse trusted _source_ documents.
+  #
+  # _opts_ can have the following keys:
+  # * *max_nesting*: The maximum depth of nesting allowed in the parsed data
+  #   structures. Enable depth checking with :max_nesting => anInteger. The parse!
+  #   methods defaults to not doing max depth checking: This can be dangerous
+  #   if someone wants to fill up your stack.
+  # * *allow_nan*: If set to true, allow NaN, Infinity, and -Infinity in
+  #   defiance of RFC 4627 to be parsed by the Parser. This option defaults
+  #   to true.
+  # * *create_additions*: If set to false, the Parser doesn't create
+  #   additions even if a matching class and create_id was found. This option
+  #   defaults to true.
   def parse!(source, opts = {})
     opts = {
       :max_nesting  => false,
@@ -834,6 +1002,32 @@ module JSON
     Parser.new(source, opts).parse
   end
 
+  # Generate a JSON document from the Ruby data structure _obj_ and return
+  # it. _state_ is * a JSON::State object,
+  # * or a Hash like object (responding to to_hash),
+  # * an object convertible into a hash by a to_h method,
+  # that is used as or to configure a State object.
+  #
+  # It defaults to a state object, that creates the shortest possible JSON text
+  # in one line, checks for circular data structures and doesn't allow NaN,
+  # Infinity, and -Infinity.
+  #
+  # A _state_ hash can have the following keys:
+  # * *indent*: a string used to indent levels (default: ''),
+  # * *space*: a string that is put after, a : or , delimiter (default: ''),
+  # * *space_before*: a string that is put before a : pair delimiter (default: ''),
+  # * *object_nl*: a string that is put at the end of a JSON object (default: ''),
+  # * *array_nl*: a string that is put at the end of a JSON array (default: ''),
+  # * *allow_nan*: true if NaN, Infinity, and -Infinity should be
+  #   generated, otherwise an exception is thrown if these values are
+  #   encountered. This options defaults to false.
+  # * *max_nesting*: The maximum depth of nesting allowed in the data
+  #   structures from which JSON is to be generated. Disable depth checking
+  #   with :max_nesting => false, it defaults to 19.
+  #
+  # See also the fast_generate for the fastest creation method with the least
+  # amount of sanity checks, and the pretty_generate method for some
+  # defaults for pretty output.
   def generate(obj, opts = nil)
     if State === opts
       state, opts = opts, nil
@@ -853,9 +1047,18 @@ module JSON
     state.generate(obj)
   end
 
+  # :stopdoc:
+  # I want to deprecate these later, so I'll first be silent about them, and
+  # later delete them.
   alias unparse generate
   module_function :unparse
+  # :startdoc:
 
+  # Generate a JSON document from the Ruby data structure _obj_ and return it.
+  # This method disables the checks for circles in Ruby objects.
+  #
+  # *WARNING*: Be careful not to pass any Ruby data structures with circles as
+  # _obj_ argument because this will cause JSON to go into an infinite loop.
   def fast_generate(obj, opts = nil)
     if State === opts
       state, opts = opts, nil
@@ -875,9 +1078,18 @@ module JSON
     state.generate(obj)
   end
 
+  # :stopdoc:
+  # I want to deprecate these later, so I'll first be silent about them, and later delete them.
   alias fast_unparse fast_generate
   module_function :fast_unparse
+  # :startdoc:
 
+  # Generate a JSON document from the Ruby data structure _obj_ and return it.
+  # The returned document is a prettier form of the document returned by
+  # #unparse.
+  #
+  # The _opts_ argument can be used to configure the generator. See the
+  # generate method for a more detailed explanation.
   def pretty_generate(obj, opts = nil)
     if State === opts
       state, opts = opts, nil
@@ -897,10 +1109,17 @@ module JSON
     state.generate(obj)
   end
 
+  # :stopdoc:
+  # I want to deprecate these later, so I'll first be silent about them, and later delete them.
   alias pretty_unparse pretty_generate
   module_function :pretty_unparse
+  # :startdoc:
 
   class << self
+    # The global default options for the JSON.load method:
+    #  :max_nesting: false
+    #  :allow_nan:   true
+    #  :quirks_mode: true
     attr_accessor :load_default_options
   end
   self.load_default_options = {
@@ -909,6 +1128,14 @@ module JSON
     :quirks_mode => true,
   }
 
+  # Load a ruby data structure from a JSON _source_ and return it. A source can
+  # either be a string-like object, an IO-like object, or an object responding
+  # to the read method. If _proc_ was given, it will be called with any nested
+  # Ruby object as an argument recursively in depth first order. The default
+  # options for the parser can be changed via the load_default_options method.
+  #
+  # This method is part of the implementation of the load/dump interface of
+  # Marshal and YAML.
   def load(source, proc = nil)
     opts = load_default_options
     if source.respond_to? :to_str
@@ -926,6 +1153,7 @@ module JSON
     result
   end
 
+  # Recursively calls passed _Proc_ if the parsed data structure is an _Array_ or _Hash_
   def recurse_proc(result, &proc)
     case result
     when Array
@@ -943,6 +1171,10 @@ module JSON
   module_function :restore
 
   class << self
+    # The global default options for the JSON.dump method:
+    #  :max_nesting: false
+    #  :allow_nan:   true
+    #  :quirks_mode: true
     attr_accessor :dump_default_options
   end
   self.dump_default_options = {
@@ -951,6 +1183,21 @@ module JSON
     :quirks_mode => true,
   }
 
+  # Dumps _obj_ as a JSON string, i.e. calls generate on the object and returns
+  # the result.
+  #
+  # If anIO (an IO-like object or an object that responds to the write method)
+  # was given, the resulting JSON is written to it.
+  #
+  # If the number of nested arrays or objects exceeds _limit_, an ArgumentError
+  # exception is raised. This argument is similar (but not exactly the
+  # same!) to the _limit_ argument in Marshal.dump.
+  #
+  # The default options for the generator can be changed via the
+  # dump_default_options method.
+  #
+  # This method is part of the implementation of the load/dump interface of
+  # Marshal and YAML.
   def dump(obj, anIO = nil, limit = nil)
     if anIO and limit.nil?
       anIO = anIO.to_io if anIO.respond_to?(:to_io)
@@ -972,6 +1219,7 @@ module JSON
     raise ArgumentError, "exceed depth limit"
   end
 
+  # Swap consecutive bytes of _string_ in place.
   def self.swap!(string) # :nodoc:
     0.upto(string.size / 2) do |i|
       break unless string[2 * i + 1]
@@ -980,12 +1228,15 @@ module JSON
     string
   end
 
+  # Shortuct for iconv.
   if ::String.method_defined?(:encode)
+    # Encodes string using Ruby's _String.encode_
     def self.iconv(to, from, string)
       string.encode(to, from)
     end
   else
     require 'iconv'
+    # Encodes string using _iconv_ library
     def self.iconv(to, from, string)
       Iconv.conv(to, from, string)
     end
@@ -1005,6 +1256,8 @@ end
 module ::Kernel
   private
 
+  # Outputs _objs_ to STDOUT as JSON strings in the shortest form, that is in
+  # one line.
   def j(*objs)
     objs.each do |obj|
       puts JSON::generate(obj, :allow_nan => true, :max_nesting => false)
@@ -1012,6 +1265,8 @@ module ::Kernel
     nil
   end
 
+  # Ouputs _objs_ to STDOUT as JSON strings in a pretty format, with
+  # indentation and over many lines.
   def jj(*objs)
     objs.each do |obj|
       puts JSON::pretty_generate(obj, :allow_nan => true, :max_nesting => false)
@@ -1019,6 +1274,12 @@ module ::Kernel
     nil
   end
 
+  # If _object_ is string-like, parse the string and return the parsed result as
+  # a Ruby data structure. Otherwise, generate a JSON text from the Ruby data
+  # structure object and return it.
+  #
+  # The _opts_ argument is passed through to generate/parse respectively. See
+  # generate and parse for their documentation.
   def JSON(object, *args)
     if object.respond_to? :to_str
       JSON.parse(object.to_str, args.first)
@@ -1028,7 +1289,12 @@ module ::Kernel
   end
 end
 
+# Extends any Class to include _json_creatable?_ method.
 class ::Class
+  # Returns true if this class can be used to create an instance
+  # from a serialised JSON string. The class has to implement a class
+  # method _json_create_ that expects a hash as first parameter. The hash
+  # should include the required data.
   def json_creatable?
     respond_to?(:json_create)
   end
@@ -1036,593 +1302,3 @@ end
 
 JSON.generator = JSON::Pure::Generator
 JSON.parser    = JSON::Pure::Parser
-module Gist
-  module Manpage
-    extend self
-
-    def display(name)
-      puts manpage(name)
-    end
-
-    def manpage(name)
-      return "** Can't find groff(1)" unless groff?
-
-      require 'open3'
-      out = nil
-      Open3.popen3(groff_command) do |stdin, stdout, _|
-        stdin.puts raw_manpage(name)
-        stdin.close
-        out = stdout.read.strip
-      end
-      out
-    end
-
-    def raw_manpage(name)
-      if File.exists? file = File.dirname(__FILE__) + "/../../man/#{name}.1"
-        File.read(file)
-      else
-        DATA.read.split("__CACERT__").first
-      end
-    end
-
-    def groff?
-      system("which groff > /dev/null")
-    end
-
-    def groff_command
-      "groff -Wall -mtty-char -mandoc -Tascii"
-    end
-
-    def puts(*args)
-      page_stdout
-      super
-    end
-
-    def page_stdout
-      return unless $stdout.tty?
-
-      read, write = IO.pipe
-
-      if Kernel.fork
-        $stdin.reopen(read)
-        read.close
-        write.close
-
-        ENV['LESS'] = 'FSRX'
-
-        Kernel.select [STDIN]
-
-        pager = ENV['PAGER'] || 'less -isr'
-        pager = 'cat' if pager.empty?
-
-        exec pager rescue exec "/bin/sh", "-c", pager
-      else
-        $stdout.reopen(write)
-        $stderr.reopen(write) if $stderr.tty?
-        read.close
-        write.close
-      end
-    end
-  end
-end
-module Gist
-  VERSION = Version = '3.0.2'
-end
-require 'open-uri'
-require 'net/https'
-require 'optparse'
-
-require 'base64'
-
-require 'gist/json'    unless defined?(JSON)
-require 'gist/manpage' unless defined?(Gist::Manpage)
-require 'gist/version' unless defined?(Gist::Version)
-
-module Gist
-  extend self
-
-  GIST_URL   = 'https://api.github.com/gists/%s'
-  CREATE_URL = 'https://api.github.com/gists'
-
-  if ENV['HTTPS_PROXY']
-    PROXY = URI(ENV['HTTPS_PROXY'])
-  elsif ENV['HTTP_PROXY']
-    PROXY = URI(ENV['HTTP_PROXY'])
-  else
-    PROXY = nil
-  end
-  PROXY_HOST = PROXY ? PROXY.host : nil
-  PROXY_PORT = PROXY ? PROXY.port : nil
-
-  def execute(*args)
-    private_gist = defaults["private"]
-    gist_filename = nil
-    gist_extension = defaults["extension"]
-    browse_enabled = defaults["browse"]
-    description = nil
-
-    opts = OptionParser.new do |opts|
-      opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
-        "Filename '-' forces gist to read from stdin."
-
-      opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
-        private_gist = priv
-      end
-
-      t_desc = 'Set syntax highlighting of the Gist by file extension'
-      opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
-        gist_extension = '.' + extension
-      end
-
-      opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
-        description = d
-      end
-
-      opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
-        browse_enabled = o
-      end
-
-      opts.on('-m', '--man', 'Print manual') do
-        Gist::Manpage.display("gist")
-      end
-
-      opts.on('-v', '--version', 'Print version') do
-        puts Gist::Version
-        exit
-      end
-
-      opts.on('-h', '--help', 'Display this screen') do
-        puts opts
-        exit
-      end
-    end
-
-    begin
-
-      opts.parse!(args)
-
-      if $stdin.tty? && args[0] != '-'
-
-        if args.empty?
-          puts opts
-          exit
-        end
-
-        files = args.inject([]) do |files, file|
-          abort "Can't find #{file}" unless File.exists?(file)
-
-          files.push({
-            :input     => File.read(file),
-            :filename  => file,
-            :extension => (File.extname(file) if file.include?('.'))
-          })
-        end
-
-      else
-        input = $stdin.read
-        files = [{:input => input, :extension => gist_extension}]
-      end
-
-      url = write(files, private_gist, description)
-      browse(url) if browse_enabled
-      puts copy(url)
-    rescue => e
-      warn e
-      puts opts
-    end
-  end
-
-  def write(files, private_gist = false, description = nil)
-    url = URI.parse(CREATE_URL)
-
-    if PROXY_HOST
-      proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
-      http  = proxy.new(url.host, url.port)
-    else
-      http = Net::HTTP.new(url.host, url.port)
-    end
-
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ca_file = ca_cert
-
-    req = Net::HTTP::Post.new(url.path)
-    req.body = JSON.generate(data(files, private_gist, description))
-
-    user, password = auth()
-    if user && password
-      req.basic_auth(user, password)
-    end
-
-    response = http.start{|h| h.request(req) }
-    case response
-    when Net::HTTPCreated
-      JSON.parse(response.body)['html_url']
-    else
-      puts "Creating gist failed: #{response.code} #{response.message}"
-      exit(false)
-    end
-  end
-
-  def read(gist_id)
-    data = JSON.parse(open(GIST_URL % gist_id).read)
-    data["files"].map{|name, content| content['content'] }.join("\n\n")
-  end
-
-  def browse(url)
-    if RUBY_PLATFORM =~ /darwin/
-      `open #{url}`
-    elsif RUBY_PLATFORM =~ /linux/
-       `#{ENV['BROWSER']} #{url}`
-    elsif ENV['OS'] == 'Windows_NT' or
-      RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
-      `start "" "#{url}"`
-    end
-  end
-
-  def copy(content)
-    cmd = case true
-    when system("type pbcopy > /dev/null 2>&1")
-      :pbcopy
-    when system("type xclip > /dev/null 2>&1")
-      :xclip
-    when system("type putclip > /dev/null 2>&1")
-      :putclip
-    end
-
-    if cmd
-      IO.popen(cmd.to_s, 'r+') { |clip| clip.print content }
-    end
-
-    content
-  end
-
-private
-  def data(files, private_gist, description)
-    i = 0
-    file_data = {}
-    files.each do |file|
-      i = i + 1
-      filename = file[:filename] ? file[:filename] : "gistfile#{i}"
-      file_data[filename] = {:content => file[:input]}
-    end
-
-    data = {"files" => file_data}
-    data.merge!({ 'description' => description }) unless description.nil?
-    data.merge!({ 'public' => !private_gist })
-    data
-  end
-
-  def auth
-    user  = config("github.user")
-    password = config("github.password")
-
-    token = config("github.token")
-    if password.to_s.empty? && !token.to_s.empty?
-      abort "Please set GITHUB_PASSWORD or github.password instead of using a token."
-    end
-
-    if user.to_s.empty? || password.to_s.empty?
-      nil
-    else
-      [ user, password ]
-    end
-  end
-
-  def defaults
-    extension = config("gist.extension")
-
-    return {
-      "private"   => config("gist.private"),
-      "browse"    => config("gist.browse"),
-      "extension" => extension
-    }
-  end
-
-  def config(key)
-    env_key = ENV[key.upcase.gsub(/\./, '_')]
-    return env_key if env_key and not env_key.strip.empty?
-
-    str_to_bool `git config --global #{key}`.strip
-  end
-
-  def str_to_bool(str)
-    if str.size > 0 and str[0].chr == '!'
-      command = str[1, str.length]
-      value = `#{command}`
-    else
-      value = str
-    end
-
-    case value.downcase.strip
-    when "false", "0", "nil", "", "no", "off"
-      nil
-    when "true", "1", "yes", "on"
-      true
-    else
-      value
-    end
-  end
-
-  def ca_cert
-    cert_file = [
-      File.expand_path("../gist/cacert.pem", __FILE__),
-      "/tmp/gist_cacert.pem"
-    ].find{|l| File.exist?(l) }
-
-    if cert_file
-      cert_file
-    else
-      File.open("/tmp/gist_cacert.pem", "w") do |f|
-        f.write(DATA.read.split("__CACERT__").last)
-      end
-      "/tmp/gist_cacert.pem"
-    end
-  end
-
-end
-Gist.execute(*ARGV)
-__END__
-.\" generated with Ronn/v0.7.3
-.\" http://github.com/rtomayko/ronn/tree/0.7.3
-.
-.TH "GIST" "1" "March 2012" "GITHUB" "Gist Manual"
-.
-.SH "NAME"
-\fBgist\fR \- gist on the command line
-.
-.SH "SYNOPSIS"
-\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE|\-\fR
-.
-.SH "DESCRIPTION"
-\fBgist\fR can be used to create gists on gist\.github\.com from the command line\. There are two primary methods of creating gists\.
-.
-.P
-If standard input is supplied, it will be used as the content of the new gist\. If \fIFILE\fR is provided, the content of that file will be used to create the gist\. If \fIFILE\fR is \'\-\' then gist will wait for content from standard input\.
-.
-.P
-Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
-.
-.SH "OPTIONS"
-\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist without description from it, tied to your GitHub account if you user and passwordare provided (see \fBCONFIGURATION\fR)\.
-.
-.P
-These options can be used to change this behavior:
-.
-.TP
-\fB\-p\fR, \fB\-\-private\fR
-Create a private gist instead of a public gist\.
-.
-.TP
-\fB\-t\fR, \fB\-\-type\fR
-Set the file extension explicitly\. Passing a type of \fBrb\fR ensures the gist is created as a Ruby file\.
-.
-.TP
-\fB\-d\fR, \fB\-\-description\fR
-Set a description\.
-.
-.TP
-\fB\-o\fR, \fB\-\-[no\-]open\fR
-Open the gist in your browser after creation\. Or don\'t\. Defaults to \-\-open
-.
-.P
-You may additionally ask for help:
-.
-.TP
-\fB\-h\fR, \fB\-\-help\fR
-Print help\.
-.
-.TP
-\fB\-m\fR, \fB\-\-man\fR
-Display this man page\.
-.
-.SH "AUTHENTICATION"
-There are two ways to set GitHub user and password info:
-.
-.IP "\(bu" 4
-Using environment vars GITHUB_USER and GITHUB_PASSWORD
-.
-.IP
-$ export GITHUB_USER=johndoe
-.
-.br
-$ export GITHUB_PASSWORD=mysecretgithubpassword
-.
-.br
-$ gist ~/example
-.
-.IP "\(bu" 4
-Using git\-config(1)
-.
-.IP "" 0
-.
-.P
-Use git\-config(1) to display the currently configured GitHub username:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\.user
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Or, set the GitHub username with:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\.user <username>
-.
-.fi
-.
-.IP "" 0
-.
-.P
-See \fIhttp://github\.com/guides/local\-github\-config\fR for more information\.
-.
-.SH "CONFIGURATION"
-You can set a few options in your git config (using git\-config(1)) to control the default behavior of gist(1)\.
-.
-.IP "\(bu" 4
-gist\.private \- boolean (yes or no) \- Determines whether to make a gist private by default
-.
-.IP "\(bu" 4
-gist\.extension \- string \- Default extension for gists you create\.
-.
-.IP "\(bu" 4
-gist\.browse \- boolean (yes or no) \- Whether to open the gist in your browser after creation\. Default: yes
-.
-.IP "" 0
-.
-.SH "ENVIRONMENT"
-The following environment variables affect the execution of \fBgist\fR:
-.
-.IP "\(bu" 4
-HTTP_PROXY \- Proxy to use when Gisting\. Should be "http://host:port/"
-.
-.IP "" 0
-.
-.SH "EXAMPLES"
-.
-.nf
-
-$ gist < file\.txt
-$ echo secret | gist \-\-private
-$ echo "puts :hi" | gist \-t rb
-$ gist script\.py
-$ gist \-
-the quick brown fox jumps over the lazy dog
-^D
-.
-.fi
-.
-.SH "BUGS"
-\fIhttp://github\.com/defunkt/gist/issues\fR
-.
-.SH "AUTHOR"
-Chris Wanstrath :: chris@ozmm\.org
-.
-.SH "SEE ALSO"
-hub(1), git(1), git\-clone(1), \fIhttp://github\.com\fR, \fIhttp://github\.com/defunkt/gist\fR
-__CACERT__
-Certificate chain
- 0 s:/O=*.github.com/OU=Domain Control Validated/CN=*.github.com
-   i:/C=US/ST=Arizona/L=Scottsdale/O=GoDaddy.com, Inc./OU=http://certificates.godaddy.com/repository/CN=Go Daddy Secure Certification Authority/serialNumber=07969287
------BEGIN CERTIFICATE-----
-MIIFVTCCBD2gAwIBAgIHBGX+dPs18DANBgkqhkiG9w0BAQUFADCByjELMAkGA1UE
-BhMCVVMxEDAOBgNVBAgTB0FyaXpvbmExEzARBgNVBAcTClNjb3R0c2RhbGUxGjAY
-BgNVBAoTEUdvRGFkZHkuY29tLCBJbmMuMTMwMQYDVQQLEypodHRwOi8vY2VydGlm
-aWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkxMDAuBgNVBAMTJ0dvIERhZGR5
-IFNlY3VyZSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTERMA8GA1UEBRMIMDc5Njky
-ODcwHhcNMDkxMjExMDUwMjM2WhcNMTQxMjExMDUwMjM2WjBRMRUwEwYDVQQKEwwq
-LmdpdGh1Yi5jb20xITAfBgNVBAsTGERvbWFpbiBDb250cm9sIFZhbGlkYXRlZDEV
-MBMGA1UEAxMMKi5naXRodWIuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
-CgKCAQEA7dOJw11wcgnzM08acnTZtlqVULtoYZ/3+x8Z4doEMa8VfBp/+XOvHeVD
-K1YJAEVpSujEW9/Cd1JRGVvRK9k5ZTagMhkcQXP7MrI9n5jsglsLN2Q5LLcQg3LN
-8OokS/rZlC7DhRU5qTr2iNr0J4mmlU+EojdOfCV4OsmDbQIXlXh9R6hVg+4TyBka
-szzxX/47AuGF+xFmqwldn0xD8MckXilyKM7UdWhPJHIprjko/N+NT02Dc3QMbxGb
-p91i3v/i6xfm/wy/wC0xO9ZZovLdh0pIe20zERRNNJ8yOPbIGZ3xtj3FRu9RC4rG
-M+1IYcQdFxu9fLZn6TnPpVKACvTqzQIDAQABo4IBtjCCAbIwDwYDVR0TAQH/BAUw
-AwEBADAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDgYDVR0PAQH/BAQD
-AgWgMDMGA1UdHwQsMCowKKAmoCSGImh0dHA6Ly9jcmwuZ29kYWRkeS5jb20vZ2Rz
-MS0xMS5jcmwwUwYDVR0gBEwwSjBIBgtghkgBhv1tAQcXATA5MDcGCCsGAQUFBwIB
-FitodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMIGA
-BggrBgEFBQcBAQR0MHIwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmdvZGFkZHku
-Y29tLzBKBggrBgEFBQcwAoY+aHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5LmNv
-bS9yZXBvc2l0b3J5L2dkX2ludGVybWVkaWF0ZS5jcnQwHwYDVR0jBBgwFoAU/axh
-MpNsRdbi7oVfmrrndplozOcwIwYDVR0RBBwwGoIMKi5naXRodWIuY29tggpnaXRo
-dWIuY29tMB0GA1UdDgQWBBSH0Y8ZbuSHb1OMd5EHUN+jv1VHIDANBgkqhkiG9w0B
-AQUFAAOCAQEAwIe/Bbuk1/r38aqb5wlXjoW6tAmLpzLRkKorDOcDUJLtN6a9XqAk
-cgMai7NCI1YV+A4IjEENj53mV2xWLpniqLDHI5y2NbQuL2deu1jQSSNz7xE/nZCk
-WGt8OEtm6YI2bUsq5EXy078avRbigBko1bqtFuG0s5+nFrKCjhQVIk+GX7cwiyr4
-XJ49FxETvePrxNYr7x7n/Jju59KXTw3juPET+bAwNlRXmScjrMylMNUMr3sFcyLz
-DciaVnnextu6+L0w1+5KNVbMKndRwgg/cRldBL4AgmtouTC3mlDGGG3U6eV75cdH
-D03DXDfrYYjxmWjTRdO2GdbYnt1ToEgxyA==
------END CERTIFICATE-----
- 1 s:/C=US/ST=Arizona/L=Scottsdale/O=GoDaddy.com, Inc./OU=http://certificates.godaddy.com/repository/CN=Go Daddy Secure Certification Authority/serialNumber=07969287
-   i:/C=US/O=The Go Daddy Group, Inc./OU=Go Daddy Class 2 Certification Authority
------BEGIN CERTIFICATE-----
-MIIE3jCCA8agAwIBAgICAwEwDQYJKoZIhvcNAQEFBQAwYzELMAkGA1UEBhMCVVMx
-ITAfBgNVBAoTGFRoZSBHbyBEYWRkeSBHcm91cCwgSW5jLjExMC8GA1UECxMoR28g
-RGFkZHkgQ2xhc3MgMiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTAeFw0wNjExMTYw
-MTU0MzdaFw0yNjExMTYwMTU0MzdaMIHKMQswCQYDVQQGEwJVUzEQMA4GA1UECBMH
-QXJpem9uYTETMBEGA1UEBxMKU2NvdHRzZGFsZTEaMBgGA1UEChMRR29EYWRkeS5j
-b20sIEluYy4xMzAxBgNVBAsTKmh0dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5j
-b20vcmVwb3NpdG9yeTEwMC4GA1UEAxMnR28gRGFkZHkgU2VjdXJlIENlcnRpZmlj
-YXRpb24gQXV0aG9yaXR5MREwDwYDVQQFEwgwNzk2OTI4NzCCASIwDQYJKoZIhvcN
-AQEBBQADggEPADCCAQoCggEBAMQt1RWMnCZM7DI161+4WQFapmGBWTtwY6vj3D3H
-KrjJM9N55DrtPDAjhI6zMBS2sofDPZVUBJ7fmd0LJR4h3mUpfjWoqVTr9vcyOdQm
-VZWt7/v+WIbXnvQAjYwqDL1CBM6nPwT27oDyqu9SoWlm2r4arV3aLGbqGmu75RpR
-SgAvSMeYddi5Kcju+GZtCpyz8/x4fKL4o/K1w/O5epHBp+YlLpyo7RJlbmr2EkRT
-cDCVw5wrWCs9CHRK8r5RsL+H0EwnWGu1NcWdrxcx+AuP7q2BNgWJCJjPOq8lh8BJ
-6qf9Z/dFjpfMFDniNoW1fho3/Rb2cRGadDAW/hOUoz+EDU8CAwEAAaOCATIwggEu
-MB0GA1UdDgQWBBT9rGEyk2xF1uLuhV+auud2mWjM5zAfBgNVHSMEGDAWgBTSxLDS
-kdRMEXGzYcs9of7dqGrU4zASBgNVHRMBAf8ECDAGAQH/AgEAMDMGCCsGAQUFBwEB
-BCcwJTAjBggrBgEFBQcwAYYXaHR0cDovL29jc3AuZ29kYWRkeS5jb20wRgYDVR0f
-BD8wPTA7oDmgN4Y1aHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5LmNvbS9yZXBv
-c2l0b3J5L2dkcm9vdC5jcmwwSwYDVR0gBEQwQjBABgRVHSAAMDgwNgYIKwYBBQUH
-AgEWKmh0dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeTAO
-BgNVHQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQEFBQADggEBANKGwOy9+aG2Z+5mC6IG
-OgRQjhVyrEp0lVPLN8tESe8HkGsz2ZbwlFalEzAFPIUyIXvJxwqoJKSQ3kbTJSMU
-A2fCENZvD117esyfxVgqwcSeIaha86ykRvOe5GPLL5CkKSkB2XIsKd83ASe8T+5o
-0yGPwLPk9Qnt0hCqU7S+8MxZC9Y7lhyVJEnfzuz9p0iRFEUOOjZv2kWzRaJBydTX
-RE4+uXR21aITVSzGh6O1mawGhId/dQb8vxRMDsxuxN89txJx9OjxUUAiKEngHUuH
-qDTMBqLdElrRhjZkAzVvb3du6/KFUJheqwNTrZEjYx8WnM25sgVjOuH0aBsXBTWV
-U+4=
------END CERTIFICATE-----
- 2 s:/C=US/O=The Go Daddy Group, Inc./OU=Go Daddy Class 2 Certification Authority
-   i:/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 2 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
------BEGIN CERTIFICATE-----
-MIIE+zCCBGSgAwIBAgICAQ0wDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1Zh
-bGlDZXJ0IFZhbGlkYXRpb24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIElu
-Yy4xNTAzBgNVBAsTLFZhbGlDZXJ0IENsYXNzIDIgUG9saWN5IFZhbGlkYXRpb24g
-QXV0aG9yaXR5MSEwHwYDVQQDExhodHRwOi8vd3d3LnZhbGljZXJ0LmNvbS8xIDAe
-BgkqhkiG9w0BCQEWEWluZm9AdmFsaWNlcnQuY29tMB4XDTA0MDYyOTE3MDYyMFoX
-DTI0MDYyOTE3MDYyMFowYzELMAkGA1UEBhMCVVMxITAfBgNVBAoTGFRoZSBHbyBE
-YWRkeSBHcm91cCwgSW5jLjExMC8GA1UECxMoR28gRGFkZHkgQ2xhc3MgMiBDZXJ0
-aWZpY2F0aW9uIEF1dGhvcml0eTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgC
-ggEBAN6d1+pXGEmhW+vXX0iG6r7d/+TvZxz0ZWizV3GgXne77ZtJ6XCAPVYYYwhv
-2vLM0D9/AlQiVBDYsoHUwHU9S3/Hd8M+eKsaA7Ugay9qK7HFiH7Eux6wwdhFJ2+q
-N1j3hybX2C32qRe3H3I2TqYXP2WYktsqbl2i/ojgC95/5Y0V4evLOtXiEqITLdiO
-r18SPaAIBQi2XKVlOARFmR6jYGB0xUGlcmIbYsUfb18aQr4CUWWoriMYavx4A6lN
-f4DD+qta/KFApMoZFv6yyO9ecw3ud72a9nmYvLEHZ6IVDd2gWMZEewo+YihfukEH
-U1jPEX44dMX4/7VpkI+EdOqXG68CAQOjggHhMIIB3TAdBgNVHQ4EFgQU0sSw0pHU
-TBFxs2HLPaH+3ahq1OMwgdIGA1UdIwSByjCBx6GBwaSBvjCBuzEkMCIGA1UEBxMb
-VmFsaUNlcnQgVmFsaWRhdGlvbiBOZXR3b3JrMRcwFQYDVQQKEw5WYWxpQ2VydCwg
-SW5jLjE1MDMGA1UECxMsVmFsaUNlcnQgQ2xhc3MgMiBQb2xpY3kgVmFsaWRhdGlv
-biBBdXRob3JpdHkxITAfBgNVBAMTGGh0dHA6Ly93d3cudmFsaWNlcnQuY29tLzEg
-MB4GCSqGSIb3DQEJARYRaW5mb0B2YWxpY2VydC5jb22CAQEwDwYDVR0TAQH/BAUw
-AwEB/zAzBggrBgEFBQcBAQQnMCUwIwYIKwYBBQUHMAGGF2h0dHA6Ly9vY3NwLmdv
-ZGFkZHkuY29tMEQGA1UdHwQ9MDswOaA3oDWGM2h0dHA6Ly9jZXJ0aWZpY2F0ZXMu
-Z29kYWRkeS5jb20vcmVwb3NpdG9yeS9yb290LmNybDBLBgNVHSAERDBCMEAGBFUd
-IAAwODA2BggrBgEFBQcCARYqaHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5LmNv
-bS9yZXBvc2l0b3J5MA4GA1UdDwEB/wQEAwIBBjANBgkqhkiG9w0BAQUFAAOBgQC1
-QPmnHfbq/qQaQlpE9xXUhUaJwL6e4+PrxeNYiY+Sn1eocSxI0YGyeR+sBjUZsE4O
-WBsUs5iB0QQeyAfJg594RAoYC5jcdnplDQ1tgMQLARzLrUc+cb53S8wGd9D0Vmsf
-SxOaFIqII6hR8INMqzW/Rn453HWkrugp++85j09VZw==
------END CERTIFICATE-----
- 3 s:/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 2 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
-   i:/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 2 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
------BEGIN CERTIFICATE-----
-MIIC5zCCAlACAQEwDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0
-IFZhbGlkYXRpb24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAz
-BgNVBAsTLFZhbGlDZXJ0IENsYXNzIDIgUG9saWN5IFZhbGlkYXRpb24gQXV0aG9y
-aXR5MSEwHwYDVQQDExhodHRwOi8vd3d3LnZhbGljZXJ0LmNvbS8xIDAeBgkqhkiG
-9w0BCQEWEWluZm9AdmFsaWNlcnQuY29tMB4XDTk5MDYyNjAwMTk1NFoXDTE5MDYy
-NjAwMTk1NFowgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0IFZhbGlkYXRpb24gTmV0d29y
-azEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAzBgNVBAsTLFZhbGlDZXJ0IENs
-YXNzIDIgUG9saWN5IFZhbGlkYXRpb24gQXV0aG9yaXR5MSEwHwYDVQQDExhodHRw
-Oi8vd3d3LnZhbGljZXJ0LmNvbS8xIDAeBgkqhkiG9w0BCQEWEWluZm9AdmFsaWNl
-cnQuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDOOnHK5avIWZJV16vY
-dA757tn2VUdZZUcOBVXc65g2PFxTXdMwzzjsvUGJ7SVCCSRrCl6zfN1SLUzm1NZ9
-WlmpZdRJEy0kTRxQb7XBhVQ7/nHk01xC+YDgkRoKWzk2Z/M/VXwbP7RfZHM047QS
-v4dk+NoS/zcnwbNDu+97bi5p9wIDAQABMA0GCSqGSIb3DQEBBQUAA4GBADt/UG9v
-UJSZSWI4OB9L+KXIPqeCgfYrx+jFzug6EILLGACOTb2oWH+heQC1u+mNr0HZDzTu
-IYEZoDJJKPTEjlbVUjP9UNV+mWwD5MlM/Mtsq2azSiGM5bUMMj4QssxsodyamEwC
-W/POuZ6lcg5Ktz885hZo+L7tdEy8W9ViH0Pd
------END CERTIFICATE-----
