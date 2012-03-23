@@ -2,10 +2,9 @@ require 'open-uri'
 require 'net/https'
 require 'optparse'
 
-require 'rubygems'
-require 'json'
 require 'base64'
 
+require 'gist/json'    unless defined?(JSON)
 require 'gist/manpage' unless defined?(Gist::Manpage)
 require 'gist/version' unless defined?(Gist::Version)
 
@@ -211,7 +210,7 @@ private
 
     data = {"files" => file_data}
     data.merge!({ 'description' => description }) unless description.nil?
-    data.merge!({ 'public' => false }) if private_gist
+    data.merge!({ 'public' => !private_gist })
     data
   end
 

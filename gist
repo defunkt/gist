@@ -1,0 +1,1628 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+#
+# This file, gist, is generated code.
+# Please DO NOT EDIT or send patches for it.
+#
+# Please take a look at the source from
+# http://github.com/defunkt/gist
+# and submit patches against the individual files
+# that build gist.
+#
+
+require 'strscan'
+
+module JSON
+  module Pure
+    class Parser < StringScanner
+      STRING                = /" ((?:[^\x0-\x1f"\\] |
+                                  \\["\\\/bfnrt] |
+                                  \\u[0-9a-fA-F]{4} |
+                                  \\[\x20-\x21\x23-\x2e\x30-\x5b\x5d-\x61\x63-\x65\x67-\x6d\x6f-\x71\x73\x75-\xff])*)
+                              "/nx
+      INTEGER               = /(-?0|-?[1-9]\d*)/
+      FLOAT                 = /(-?
+                                (?:0|[1-9]\d*)
+                                (?:
+                                  \.\d+(?i:e[+-]?\d+) |
+                                  \.\d+ |
+                                  (?i:e[+-]?\d+)
+                                )
+                                )/x
+      NAN                   = /NaN/
+      INFINITY              = /Infinity/
+      MINUS_INFINITY        = /-Infinity/
+      OBJECT_OPEN           = /\{/
+      OBJECT_CLOSE          = /\}/
+      ARRAY_OPEN            = /\[/
+      ARRAY_CLOSE           = /\]/
+      PAIR_DELIMITER        = /:/
+      COLLECTION_DELIMITER  = /,/
+      TRUE                  = /true/
+      FALSE                 = /false/
+      NULL                  = /null/
+      IGNORE                = %r(
+        (?:
+         //[^\n\r]*[\n\r]| # line comments
+         /\*               # c-style comments
+         (?:
+          [^*/]|        # normal chars
+          /[^*]|        # slashes that do not start a nested comment
+          \*[^/]|       # asterisks that do not end this comment
+          /(?=\*/)      # single slash before this comment's end
+         )*
+           \*/               # the End of this comment
+           |[ \t\r\n]+       # whitespaces: space, horicontal tab, lf, cr
+        )+
+      )mx
+
+      UNPARSED = Object.new
+
+      def initialize(source, opts = {})
+        opts ||= {}
+        unless @quirks_mode = opts[:quirks_mode]
+          source = convert_encoding source
+        end
+        super source
+        if !opts.key?(:max_nesting) # defaults to 19
+          @max_nesting = 19
+        elsif opts[:max_nesting]
+          @max_nesting = opts[:max_nesting]
+        else
+          @max_nesting = 0
+        end
+        @allow_nan = !!opts[:allow_nan]
+        @symbolize_names = !!opts[:symbolize_names]
+        if opts.key?(:create_additions)
+          @create_additions = !!opts[:create_additions]
+        else
+          @create_additions = true
+        end
+        @create_id = @create_additions ? JSON.create_id : nil
+        @object_class = opts[:object_class] || Hash
+        @array_class  = opts[:array_class] || Array
+        @match_string = opts[:match_string]
+      end
+
+      alias source string
+
+      def quirks_mode?
+        !!@quirks_mode
+      end
+
+      def reset
+        super
+        @current_nesting = 0
+      end
+
+      def parse
+        reset
+        obj = nil
+        if @quirks_mode
+          while !eos? && skip(IGNORE)
+          end
+          if eos?
+            raise ParserError, "source did not contain any JSON!"
+          else
+            obj = parse_value
+            obj == UNPARSED and raise ParserError, "source did not contain any JSON!"
+          end
+        else
+          until eos?
+            case
+            when scan(OBJECT_OPEN)
+              obj and raise ParserError, "source '#{peek(20)}' not in JSON!"
+              @current_nesting = 1
+              obj = parse_object
+            when scan(ARRAY_OPEN)
+              obj and raise ParserError, "source '#{peek(20)}' not in JSON!"
+              @current_nesting = 1
+              obj = parse_array
+            when skip(IGNORE)
+              ;
+            else
+              raise ParserError, "source '#{peek(20)}' not in JSON!"
+            end
+          end
+          obj or raise ParserError, "source did not contain any JSON!"
+        end
+        obj
+      end
+
+      private
+
+      def convert_encoding(source)
+        if source.respond_to?(:to_str)
+          source = source.to_str
+        else
+          raise TypeError, "#{source.inspect} is not like a string"
+        end
+        if defined?(::Encoding)
+          if source.encoding == ::Encoding::ASCII_8BIT
+            b = source[0, 4].bytes.to_a
+            source =
+              case
+              when b.size >= 4 && b[0] == 0 && b[1] == 0 && b[2] == 0
+                source.dup.force_encoding(::Encoding::UTF_32BE).encode!(::Encoding::UTF_8)
+              when b.size >= 4 && b[0] == 0 && b[2] == 0
+                source.dup.force_encoding(::Encoding::UTF_16BE).encode!(::Encoding::UTF_8)
+              when b.size >= 4 && b[1] == 0 && b[2] == 0 && b[3] == 0
+                source.dup.force_encoding(::Encoding::UTF_32LE).encode!(::Encoding::UTF_8)
+              when b.size >= 4 && b[1] == 0 && b[3] == 0
+                source.dup.force_encoding(::Encoding::UTF_16LE).encode!(::Encoding::UTF_8)
+              else
+                source.dup
+              end
+          else
+            source = source.encode(::Encoding::UTF_8)
+          end
+          source.force_encoding(::Encoding::ASCII_8BIT)
+        else
+          b = source
+          source =
+            case
+            when b.size >= 4 && b[0] == 0 && b[1] == 0 && b[2] == 0
+              JSON.iconv('utf-8', 'utf-32be', b)
+            when b.size >= 4 && b[0] == 0 && b[2] == 0
+              JSON.iconv('utf-8', 'utf-16be', b)
+            when b.size >= 4 && b[1] == 0 && b[2] == 0 && b[3] == 0
+              JSON.iconv('utf-8', 'utf-32le', b)
+            when b.size >= 4 && b[1] == 0 && b[3] == 0
+              JSON.iconv('utf-8', 'utf-16le', b)
+            else
+              b
+            end
+        end
+        source
+      end
+
+      UNESCAPE_MAP = Hash.new { |h, k| h[k] = k.chr }
+      UNESCAPE_MAP.update({
+        ?"  => '"',
+        ?\\ => '\\',
+        ?/  => '/',
+        ?b  => "\b",
+        ?f  => "\f",
+        ?n  => "\n",
+        ?r  => "\r",
+        ?t  => "\t",
+        ?u  => nil,
+      })
+
+      EMPTY_8BIT_STRING = ''
+      if ::String.method_defined?(:encode)
+        EMPTY_8BIT_STRING.force_encoding Encoding::ASCII_8BIT
+      end
+
+      def parse_string
+        if scan(STRING)
+          return '' if self[1].empty?
+          string = self[1].gsub(%r((?:\\[\\bfnrt"/]|(?:\\u(?:[A-Fa-f\d]{4}))+|\\[\x20-\xff]))n) do |c|
+            if u = UNESCAPE_MAP[$&[1]]
+              u
+            else # \uXXXX
+              bytes = EMPTY_8BIT_STRING.dup
+              i = 0
+              while c[6 * i] == ?\\ && c[6 * i + 1] == ?u
+                bytes << c[6 * i + 2, 2].to_i(16) << c[6 * i + 4, 2].to_i(16)
+                i += 1
+              end
+              JSON.iconv('utf-8', 'utf-16be', bytes)
+            end
+          end
+          if string.respond_to?(:force_encoding)
+            string.force_encoding(::Encoding::UTF_8)
+          end
+          if @create_additions and @match_string
+            for (regexp, klass) in @match_string
+              klass.json_creatable? or next
+              string =~ regexp and return klass.json_create(string)
+            end
+          end
+          string
+        else
+          UNPARSED
+        end
+      rescue => e
+        raise ParserError, "Caught #{e.class} at '#{peek(20)}': #{e}"
+      end
+
+      def parse_value
+        case
+        when scan(FLOAT)
+          Float(self[1])
+        when scan(INTEGER)
+          Integer(self[1])
+        when scan(TRUE)
+          true
+        when scan(FALSE)
+          false
+        when scan(NULL)
+          nil
+        when (string = parse_string) != UNPARSED
+          string
+        when scan(ARRAY_OPEN)
+          @current_nesting += 1
+          ary = parse_array
+          @current_nesting -= 1
+          ary
+        when scan(OBJECT_OPEN)
+          @current_nesting += 1
+          obj = parse_object
+          @current_nesting -= 1
+          obj
+        when @allow_nan && scan(NAN)
+          NaN
+        when @allow_nan && scan(INFINITY)
+          Infinity
+        when @allow_nan && scan(MINUS_INFINITY)
+          MinusInfinity
+        else
+          UNPARSED
+        end
+      end
+
+      def parse_array
+        raise NestingError, "nesting of #@current_nesting is too deep" if
+          @max_nesting.nonzero? && @current_nesting > @max_nesting
+        result = @array_class.new
+        delim = false
+        until eos?
+          case
+          when (value = parse_value) != UNPARSED
+            delim = false
+            result << value
+            skip(IGNORE)
+            if scan(COLLECTION_DELIMITER)
+              delim = true
+            elsif match?(ARRAY_CLOSE)
+              ;
+            else
+              raise ParserError, "expected ',' or ']' in array at '#{peek(20)}'!"
+            end
+          when scan(ARRAY_CLOSE)
+            if delim
+              raise ParserError, "expected next element in array at '#{peek(20)}'!"
+            end
+            break
+          when skip(IGNORE)
+            ;
+          else
+            raise ParserError, "unexpected token in array at '#{peek(20)}'!"
+          end
+        end
+        result
+      end
+
+      def parse_object
+        raise NestingError, "nesting of #@current_nesting is too deep" if
+          @max_nesting.nonzero? && @current_nesting > @max_nesting
+        result = @object_class.new
+        delim = false
+        until eos?
+          case
+          when (string = parse_string) != UNPARSED
+            skip(IGNORE)
+            unless scan(PAIR_DELIMITER)
+              raise ParserError, "expected ':' in object at '#{peek(20)}'!"
+            end
+            skip(IGNORE)
+            unless (value = parse_value).equal? UNPARSED
+              result[@symbolize_names ? string.to_sym : string] = value
+              delim = false
+              skip(IGNORE)
+              if scan(COLLECTION_DELIMITER)
+                delim = true
+              elsif match?(OBJECT_CLOSE)
+                ;
+              else
+                raise ParserError, "expected ',' or '}' in object at '#{peek(20)}'!"
+              end
+            else
+              raise ParserError, "expected value in object at '#{peek(20)}'!"
+            end
+          when scan(OBJECT_CLOSE)
+            if delim
+              raise ParserError, "expected next name, value pair in object at '#{peek(20)}'!"
+            end
+            if @create_additions and klassname = result[@create_id]
+              klass = JSON.deep_const_get klassname
+              break unless klass and klass.json_creatable?
+              result = klass.json_create(result)
+            end
+            break
+          when skip(IGNORE)
+            ;
+          else
+            raise ParserError, "unexpected token in object at '#{peek(20)}'!"
+          end
+        end
+        result
+      end
+    end
+  end
+end
+
+module JSON
+  MAP = {
+    "\x0" => '\u0000',
+    "\x1" => '\u0001',
+    "\x2" => '\u0002',
+    "\x3" => '\u0003',
+    "\x4" => '\u0004',
+    "\x5" => '\u0005',
+    "\x6" => '\u0006',
+    "\x7" => '\u0007',
+    "\b"  =>  '\b',
+    "\t"  =>  '\t',
+    "\n"  =>  '\n',
+    "\xb" => '\u000b',
+    "\f"  =>  '\f',
+    "\r"  =>  '\r',
+    "\xe" => '\u000e',
+    "\xf" => '\u000f',
+    "\x10" => '\u0010',
+    "\x11" => '\u0011',
+    "\x12" => '\u0012',
+    "\x13" => '\u0013',
+    "\x14" => '\u0014',
+    "\x15" => '\u0015',
+    "\x16" => '\u0016',
+    "\x17" => '\u0017',
+    "\x18" => '\u0018',
+    "\x19" => '\u0019',
+    "\x1a" => '\u001a',
+    "\x1b" => '\u001b',
+    "\x1c" => '\u001c',
+    "\x1d" => '\u001d',
+    "\x1e" => '\u001e',
+    "\x1f" => '\u001f',
+    '"'   =>  '\"',
+    '\\'  =>  '\\\\',
+  } # :nodoc:
+
+  if defined?(::Encoding)
+    def utf8_to_json(string) # :nodoc:
+      string = string.dup
+      string << '' # XXX workaround: avoid buffer sharing
+      string.force_encoding(::Encoding::ASCII_8BIT)
+      string.gsub!(/["\\\x0-\x1f]/) { MAP[$&] }
+      string.force_encoding(::Encoding::UTF_8)
+      string
+    end
+
+    def utf8_to_json_ascii(string) # :nodoc:
+      string = string.dup
+      string << '' # XXX workaround: avoid buffer sharing
+      string.force_encoding(::Encoding::ASCII_8BIT)
+      string.gsub!(/["\\\x0-\x1f]/) { MAP[$&] }
+      string.gsub!(/(
+                      (?:
+                        [\xc2-\xdf][\x80-\xbf]    |
+                        [\xe0-\xef][\x80-\xbf]{2} |
+                        [\xf0-\xf4][\x80-\xbf]{3}
+                      )+ |
+                      [\x80-\xc1\xf5-\xff]       # invalid
+                    )/nx) { |c|
+                      c.size == 1 and raise GeneratorError, "invalid utf8 byte: '#{c}'"
+                      s = JSON.iconv('utf-16be', 'utf-8', c).unpack('H*')[0]
+                      s.gsub!(/.{4}/n, '\\\\u\&')
+                    }
+      string.force_encoding(::Encoding::UTF_8)
+      string
+    rescue => e
+      raise GeneratorError, "Caught #{e.class}: #{e}"
+    end
+  else
+    def utf8_to_json(string) # :nodoc:
+      string.gsub(/["\\\x0-\x1f]/) { MAP[$&] }
+    end
+
+    def utf8_to_json_ascii(string) # :nodoc:
+      string = string.gsub(/["\\\x0-\x1f]/) { MAP[$&] }
+      string.gsub!(/(
+                      (?:
+                        [\xc2-\xdf][\x80-\xbf]    |
+                        [\xe0-\xef][\x80-\xbf]{2} |
+                        [\xf0-\xf4][\x80-\xbf]{3}
+                      )+ |
+                      [\x80-\xc1\xf5-\xff]       # invalid
+                    )/nx) { |c|
+        c.size == 1 and raise GeneratorError, "invalid utf8 byte: '#{c}'"
+        s = JSON.iconv('utf-16be', 'utf-8', c).unpack('H*')[0]
+        s.gsub!(/.{4}/n, '\\\\u\&')
+      }
+      string
+    rescue => e
+      raise GeneratorError, "Caught #{e.class}: #{e}"
+    end
+  end
+  module_function :utf8_to_json, :utf8_to_json_ascii
+
+  module Pure
+    module Generator
+      class State
+        def self.from_state(opts)
+          case
+          when self === opts
+            opts
+          when opts.respond_to?(:to_hash)
+            new(opts.to_hash)
+          when opts.respond_to?(:to_h)
+            new(opts.to_h)
+          else
+            SAFE_STATE_PROTOTYPE.dup
+          end
+        end
+
+        def initialize(opts = {})
+          @indent                = ''
+          @space                 = ''
+          @space_before          = ''
+          @object_nl             = ''
+          @array_nl              = ''
+          @allow_nan             = false
+          @ascii_only            = false
+          @quirks_mode           = false
+          @buffer_initial_length = 1024
+          configure opts
+        end
+
+        attr_accessor :indent
+
+        attr_accessor :space
+
+        attr_accessor :space_before
+
+        attr_accessor :object_nl
+
+        attr_accessor :array_nl
+
+        attr_accessor :max_nesting
+
+        attr_accessor :quirks_mode
+
+        attr_reader :buffer_initial_length
+
+        def buffer_initial_length=(length)
+          if length > 0
+            @buffer_initial_length = length
+          end
+        end
+
+        attr_accessor :depth
+
+        def check_max_nesting # :nodoc:
+          return if @max_nesting.zero?
+          current_nesting = depth + 1
+          current_nesting > @max_nesting and
+            raise NestingError, "nesting of #{current_nesting} is too deep"
+        end
+
+        def check_circular?
+          !@max_nesting.zero?
+        end
+
+        def allow_nan?
+          @allow_nan
+        end
+
+        def ascii_only?
+          @ascii_only
+        end
+
+        def quirks_mode?
+          @quirks_mode
+        end
+
+        def configure(opts)
+          @indent         = opts[:indent] if opts.key?(:indent)
+          @space          = opts[:space] if opts.key?(:space)
+          @space_before   = opts[:space_before] if opts.key?(:space_before)
+          @object_nl      = opts[:object_nl] if opts.key?(:object_nl)
+          @array_nl       = opts[:array_nl] if opts.key?(:array_nl)
+          @allow_nan      = !!opts[:allow_nan] if opts.key?(:allow_nan)
+          @ascii_only     = opts[:ascii_only] if opts.key?(:ascii_only)
+          @depth          = opts[:depth] || 0
+          @quirks_mode    = opts[:quirks_mode] if opts.key?(:quirks_mode)
+          if !opts.key?(:max_nesting) # defaults to 19
+            @max_nesting = 19
+          elsif opts[:max_nesting]
+            @max_nesting = opts[:max_nesting]
+          else
+            @max_nesting = 0
+          end
+          self
+        end
+        alias merge configure
+
+        def to_h
+          result = {}
+          for iv in %w[indent space space_before object_nl array_nl allow_nan max_nesting ascii_only quirks_mode buffer_initial_length depth]
+            result[iv.intern] = instance_variable_get("@#{iv}")
+          end
+          result
+        end
+
+        def generate(obj)
+          result = obj.to_json(self)
+          unless @quirks_mode
+            unless result =~ /\A\s*\[/ && result =~ /\]\s*\Z/ ||
+              result =~ /\A\s*\{/ && result =~ /\}\s*\Z/
+            then
+              raise GeneratorError, "only generation of JSON objects or arrays allowed"
+            end
+          end
+          result
+        end
+
+        def [](name)
+          __send__ name
+        end
+      end
+
+      module GeneratorMethods
+        module Object
+          def to_json(*) to_s.to_json end
+        end
+
+        module Hash
+          def to_json(state = nil, *)
+            state = State.from_state(state)
+            state.check_max_nesting
+            json_transform(state)
+          end
+
+          private
+
+          def json_shift(state)
+            state.object_nl.empty? or return ''
+            state.indent * state.depth
+          end
+
+          def json_transform(state)
+            delim = ','
+            delim << state.object_nl
+            result = '{'
+            result << state.object_nl
+            depth = state.depth += 1
+            first = true
+            indent = !state.object_nl.empty?
+            each { |key,value|
+              result << delim unless first
+              result << state.indent * depth if indent
+              result << key.to_s.to_json(state)
+              result << state.space_before
+              result << ':'
+              result << state.space
+              result << value.to_json(state)
+              first = false
+            }
+            depth = state.depth -= 1
+            result << state.object_nl
+            result << state.indent * depth if indent if indent
+            result << '}'
+            result
+          end
+        end
+
+        module Array
+          def to_json(state = nil, *)
+            state = State.from_state(state)
+            state.check_max_nesting
+            json_transform(state)
+          end
+
+          private
+
+          def json_transform(state)
+            delim = ','
+            delim << state.array_nl
+            result = '['
+            result << state.array_nl
+            depth = state.depth += 1
+            first = true
+            indent = !state.array_nl.empty?
+            each { |value|
+              result << delim unless first
+              result << state.indent * depth if indent
+              result << value.to_json(state)
+              first = false
+            }
+            depth = state.depth -= 1
+            result << state.array_nl
+            result << state.indent * depth if indent
+            result << ']'
+          end
+        end
+
+        module Integer
+          def to_json(*) to_s end
+        end
+
+        module Float
+          def to_json(state = nil, *)
+            state = State.from_state(state)
+            case
+            when infinite?
+              if state.allow_nan?
+                to_s
+              else
+                raise GeneratorError, "#{self} not allowed in JSON"
+              end
+            when nan?
+              if state.allow_nan?
+                to_s
+              else
+                raise GeneratorError, "#{self} not allowed in JSON"
+              end
+            else
+              to_s
+            end
+          end
+        end
+
+        module String
+          if defined?(::Encoding)
+            def to_json(state = nil, *args)
+              state = State.from_state(state)
+              if encoding == ::Encoding::UTF_8
+                string = self
+              else
+                string = encode(::Encoding::UTF_8)
+              end
+              if state.ascii_only?
+                '"' << JSON.utf8_to_json_ascii(string) << '"'
+              else
+                '"' << JSON.utf8_to_json(string) << '"'
+              end
+            end
+          else
+            def to_json(state = nil, *args)
+              state = State.from_state(state)
+              if state.ascii_only?
+                '"' << JSON.utf8_to_json_ascii(self) << '"'
+              else
+                '"' << JSON.utf8_to_json(self) << '"'
+              end
+            end
+          end
+
+          module Extend
+            def json_create(o)
+              o['raw'].pack('C*')
+            end
+          end
+
+          def self.included(modul)
+            modul.extend Extend
+          end
+
+          def to_json_raw_object
+            {
+              JSON.create_id  => self.class.name,
+              'raw'           => self.unpack('C*'),
+            }
+          end
+
+          def to_json_raw(*args)
+            to_json_raw_object.to_json(*args)
+          end
+        end
+
+        module TrueClass
+          def to_json(*) 'true' end
+        end
+
+        module FalseClass
+          def to_json(*) 'false' end
+        end
+
+        module NilClass
+          def to_json(*) 'null' end
+        end
+      end
+    end
+  end
+end
+
+module JSON
+  class << self
+    def [](object, opts = {})
+      if object.respond_to? :to_str
+        JSON.parse(object.to_str, opts)
+      else
+        JSON.generate(object, opts)
+      end
+    end
+
+    attr_reader :parser
+
+    def parser=(parser) # :nodoc:
+      @parser = parser
+      remove_const :Parser if JSON.const_defined_in?(self, :Parser)
+      const_set :Parser, parser
+    end
+
+    def deep_const_get(path) # :nodoc:
+      path.to_s.split(/::/).inject(Object) do |p, c|
+        case
+        when c.empty?                     then p
+        when JSON.const_defined_in?(p, c) then p.const_get(c)
+        else
+          begin
+            p.const_missing(c)
+          rescue NameError => e
+            raise ArgumentError, "can't get const #{path}: #{e}"
+          end
+        end
+      end
+    end
+
+    def generator=(generator) # :nodoc:
+      old, $VERBOSE = $VERBOSE, nil
+      @generator = generator
+      generator_methods = generator::GeneratorMethods
+      for const in generator_methods.constants
+        klass = deep_const_get(const)
+        modul = generator_methods.const_get(const)
+        klass.class_eval do
+          instance_methods(false).each do |m|
+            m.to_s == 'to_json' and remove_method m
+          end
+          include modul
+        end
+      end
+      self.state = generator::State
+      const_set :State, self.state
+      const_set :SAFE_STATE_PROTOTYPE, State.new
+      const_set :FAST_STATE_PROTOTYPE, State.new(
+        :indent         => '',
+        :space          => '',
+        :object_nl      => "",
+        :array_nl       => "",
+        :max_nesting    => false
+      )
+      const_set :PRETTY_STATE_PROTOTYPE, State.new(
+        :indent         => '  ',
+        :space          => ' ',
+        :object_nl      => "\n",
+        :array_nl       => "\n"
+      )
+    ensure
+      $VERBOSE = old
+    end
+
+    attr_reader :generator
+
+    attr_accessor :state
+
+    attr_accessor :create_id
+  end
+  self.create_id = 'json_class'
+
+  NaN           = 0.0/0
+
+  Infinity      = 1.0/0
+
+  MinusInfinity = -Infinity
+
+  class JSONError < StandardError; end
+
+  class ParserError < JSONError; end
+
+  class NestingError < ParserError; end
+
+  class CircularDatastructure < NestingError; end
+
+  class GeneratorError < JSONError; end
+  UnparserError = GeneratorError
+
+  class MissingUnicodeSupport < JSONError; end
+
+  module_function
+
+  def parse(source, opts = {})
+    Parser.new(source, opts).parse
+  end
+
+  def parse!(source, opts = {})
+    opts = {
+      :max_nesting  => false,
+      :allow_nan    => true
+    }.update(opts)
+    Parser.new(source, opts).parse
+  end
+
+  def generate(obj, opts = nil)
+    if State === opts
+      state, opts = opts, nil
+    else
+      state = SAFE_STATE_PROTOTYPE.dup
+    end
+    if opts
+      if opts.respond_to? :to_hash
+        opts = opts.to_hash
+      elsif opts.respond_to? :to_h
+        opts = opts.to_h
+      else
+        raise TypeError, "can't convert #{opts.class} into Hash"
+      end
+      state = state.configure(opts)
+    end
+    state.generate(obj)
+  end
+
+  alias unparse generate
+  module_function :unparse
+
+  def fast_generate(obj, opts = nil)
+    if State === opts
+      state, opts = opts, nil
+    else
+      state = FAST_STATE_PROTOTYPE.dup
+    end
+    if opts
+      if opts.respond_to? :to_hash
+        opts = opts.to_hash
+      elsif opts.respond_to? :to_h
+        opts = opts.to_h
+      else
+        raise TypeError, "can't convert #{opts.class} into Hash"
+      end
+      state.configure(opts)
+    end
+    state.generate(obj)
+  end
+
+  alias fast_unparse fast_generate
+  module_function :fast_unparse
+
+  def pretty_generate(obj, opts = nil)
+    if State === opts
+      state, opts = opts, nil
+    else
+      state = PRETTY_STATE_PROTOTYPE.dup
+    end
+    if opts
+      if opts.respond_to? :to_hash
+        opts = opts.to_hash
+      elsif opts.respond_to? :to_h
+        opts = opts.to_h
+      else
+        raise TypeError, "can't convert #{opts.class} into Hash"
+      end
+      state.configure(opts)
+    end
+    state.generate(obj)
+  end
+
+  alias pretty_unparse pretty_generate
+  module_function :pretty_unparse
+
+  class << self
+    attr_accessor :load_default_options
+  end
+  self.load_default_options = {
+    :max_nesting => false,
+    :allow_nan   => true,
+    :quirks_mode => true,
+  }
+
+  def load(source, proc = nil)
+    opts = load_default_options
+    if source.respond_to? :to_str
+      source = source.to_str
+    elsif source.respond_to? :to_io
+      source = source.to_io.read
+    elsif source.respond_to?(:read)
+      source = source.read
+    end
+    if opts[:quirks_mode] && (source.nil? || source.empty?)
+      source = 'null'
+    end
+    result = parse(source, opts)
+    recurse_proc(result, &proc) if proc
+    result
+  end
+
+  def recurse_proc(result, &proc)
+    case result
+    when Array
+      result.each { |x| recurse_proc x, &proc }
+      proc.call result
+    when Hash
+      result.each { |x, y| recurse_proc x, &proc; recurse_proc y, &proc }
+      proc.call result
+    else
+      proc.call result
+    end
+  end
+
+  alias restore load
+  module_function :restore
+
+  class << self
+    attr_accessor :dump_default_options
+  end
+  self.dump_default_options = {
+    :max_nesting => false,
+    :allow_nan   => true,
+    :quirks_mode => true,
+  }
+
+  def dump(obj, anIO = nil, limit = nil)
+    if anIO and limit.nil?
+      anIO = anIO.to_io if anIO.respond_to?(:to_io)
+      unless anIO.respond_to?(:write)
+        limit = anIO
+        anIO = nil
+      end
+    end
+    opts = JSON.dump_default_options
+    limit and opts.update(:max_nesting => limit)
+    result = generate(obj, opts)
+    if anIO
+      anIO.write result
+      anIO
+    else
+      result
+    end
+  rescue JSON::NestingError
+    raise ArgumentError, "exceed depth limit"
+  end
+
+  def self.swap!(string) # :nodoc:
+    0.upto(string.size / 2) do |i|
+      break unless string[2 * i + 1]
+      string[2 * i], string[2 * i + 1] = string[2 * i + 1], string[2 * i]
+    end
+    string
+  end
+
+  if ::String.method_defined?(:encode)
+    def self.iconv(to, from, string)
+      string.encode(to, from)
+    end
+  else
+    require 'iconv'
+    def self.iconv(to, from, string)
+      Iconv.conv(to, from, string)
+    end
+  end
+
+  if ::Object.method(:const_defined?).arity == 1
+    def self.const_defined_in?(modul, constant)
+      modul.const_defined?(constant)
+    end
+  else
+    def self.const_defined_in?(modul, constant)
+      modul.const_defined?(constant, false)
+    end
+  end
+end
+
+module ::Kernel
+  private
+
+  def j(*objs)
+    objs.each do |obj|
+      puts JSON::generate(obj, :allow_nan => true, :max_nesting => false)
+    end
+    nil
+  end
+
+  def jj(*objs)
+    objs.each do |obj|
+      puts JSON::pretty_generate(obj, :allow_nan => true, :max_nesting => false)
+    end
+    nil
+  end
+
+  def JSON(object, *args)
+    if object.respond_to? :to_str
+      JSON.parse(object.to_str, args.first)
+    else
+      JSON.generate(object, args.first)
+    end
+  end
+end
+
+class ::Class
+  def json_creatable?
+    respond_to?(:json_create)
+  end
+end
+
+JSON.generator = JSON::Pure::Generator
+JSON.parser    = JSON::Pure::Parser
+module Gist
+  module Manpage
+    extend self
+
+    def display(name)
+      puts manpage(name)
+    end
+
+    def manpage(name)
+      return "** Can't find groff(1)" unless groff?
+
+      require 'open3'
+      out = nil
+      Open3.popen3(groff_command) do |stdin, stdout, _|
+        stdin.puts raw_manpage(name)
+        stdin.close
+        out = stdout.read.strip
+      end
+      out
+    end
+
+    def raw_manpage(name)
+      if File.exists? file = File.dirname(__FILE__) + "/../../man/#{name}.1"
+        File.read(file)
+      else
+        DATA.read.split("__CACERT__").first
+      end
+    end
+
+    def groff?
+      system("which groff > /dev/null")
+    end
+
+    def groff_command
+      "groff -Wall -mtty-char -mandoc -Tascii"
+    end
+
+    def puts(*args)
+      page_stdout
+      super
+    end
+
+    def page_stdout
+      return unless $stdout.tty?
+
+      read, write = IO.pipe
+
+      if Kernel.fork
+        $stdin.reopen(read)
+        read.close
+        write.close
+
+        ENV['LESS'] = 'FSRX'
+
+        Kernel.select [STDIN]
+
+        pager = ENV['PAGER'] || 'less -isr'
+        pager = 'cat' if pager.empty?
+
+        exec pager rescue exec "/bin/sh", "-c", pager
+      else
+        $stdout.reopen(write)
+        $stderr.reopen(write) if $stderr.tty?
+        read.close
+        write.close
+      end
+    end
+  end
+end
+module Gist
+  VERSION = Version = '3.1.0'
+end
+require 'open-uri'
+require 'net/https'
+require 'optparse'
+
+require 'base64'
+
+require 'gist/json'    unless defined?(JSON)
+require 'gist/manpage' unless defined?(Gist::Manpage)
+require 'gist/version' unless defined?(Gist::Version)
+
+module Gist
+  extend self
+
+  GIST_URL   = 'https://api.github.com/gists/%s'
+  CREATE_URL = 'https://api.github.com/gists'
+
+  if ENV['HTTPS_PROXY']
+    PROXY = URI(ENV['HTTPS_PROXY'])
+  elsif ENV['HTTP_PROXY']
+    PROXY = URI(ENV['HTTP_PROXY'])
+  else
+    PROXY = nil
+  end
+  PROXY_HOST = PROXY ? PROXY.host : nil
+  PROXY_PORT = PROXY ? PROXY.port : nil
+
+  def execute(*args)
+    private_gist = defaults["private"]
+    gist_filename = nil
+    gist_extension = defaults["extension"]
+    browse_enabled = defaults["browse"]
+    description = nil
+
+    opts = OptionParser.new do |opts|
+      opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
+        "Filename '-' forces gist to read from stdin."
+
+      opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
+        private_gist = priv
+      end
+
+      t_desc = 'Set syntax highlighting of the Gist by file extension'
+      opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
+        gist_extension = '.' + extension
+      end
+
+      opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
+        description = d
+      end
+
+      opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
+        browse_enabled = o
+      end
+
+      opts.on('-m', '--man', 'Print manual') do
+        Gist::Manpage.display("gist")
+      end
+
+      opts.on('-v', '--version', 'Print version') do
+        puts Gist::Version
+        exit
+      end
+
+      opts.on('-h', '--help', 'Display this screen') do
+        puts opts
+        exit
+      end
+    end
+
+    begin
+
+      opts.parse!(args)
+
+      if $stdin.tty? && args[0] != '-'
+
+        if args.empty?
+          puts opts
+          exit
+        end
+
+        files = args.inject([]) do |files, file|
+          abort "Can't find #{file}" unless File.exists?(file)
+
+          files.push({
+            :input     => File.read(file),
+            :filename  => file,
+            :extension => (File.extname(file) if file.include?('.'))
+          })
+        end
+
+      else
+        input = $stdin.read
+        files = [{:input => input, :extension => gist_extension}]
+      end
+
+      url = write(files, private_gist, description)
+      browse(url) if browse_enabled
+      puts copy(url)
+    rescue => e
+      warn e
+      puts opts
+    end
+  end
+
+  def write(files, private_gist = false, description = nil)
+    url = URI.parse(CREATE_URL)
+
+    if PROXY_HOST
+      proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
+      http  = proxy.new(url.host, url.port)
+    else
+      http = Net::HTTP.new(url.host, url.port)
+    end
+
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    http.ca_file = ca_cert
+
+    req = Net::HTTP::Post.new(url.path)
+    req.body = JSON.generate(data(files, private_gist, description))
+
+    user, password = auth()
+    if user && password
+      req.basic_auth(user, password)
+    end
+
+    response = http.start{|h| h.request(req) }
+    case response
+    when Net::HTTPCreated
+      JSON.parse(response.body)['html_url']
+    else
+      puts "Creating gist failed: #{response.code} #{response.message}"
+      exit(false)
+    end
+  end
+
+  def read(gist_id)
+    data = JSON.parse(open(GIST_URL % gist_id).read)
+    data["files"].map{|name, content| content['content'] }.join("\n\n")
+  end
+
+  def browse(url)
+    if RUBY_PLATFORM =~ /darwin/
+      `open #{url}`
+    elsif RUBY_PLATFORM =~ /linux/
+       `#{ENV['BROWSER']} #{url}`
+    elsif ENV['OS'] == 'Windows_NT' or
+      RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
+      `start "" "#{url}"`
+    end
+  end
+
+  def copy(content)
+    cmd = case true
+    when system("type pbcopy > /dev/null 2>&1")
+      :pbcopy
+    when system("type xclip > /dev/null 2>&1")
+      :xclip
+    when system("type putclip > /dev/null 2>&1")
+      :putclip
+    end
+
+    if cmd
+      IO.popen(cmd.to_s, 'r+') { |clip| clip.print content }
+    end
+
+    content
+  end
+
+private
+  def data(files, private_gist, description)
+    i = 0
+    file_data = {}
+    files.each do |file|
+      i = i + 1
+      filename = file[:filename] ? file[:filename] : "gistfile#{i}"
+      file_data[filename] = {:content => file[:input]}
+    end
+
+    data = {"files" => file_data}
+    data.merge!({ 'description' => description }) unless description.nil?
+    data.merge!({ 'public' => !private_gist })
+    data
+  end
+
+  def auth
+    user  = config("github.user")
+    password = config("github.password")
+
+    token = config("github.token")
+    if password.to_s.empty? && !token.to_s.empty?
+      abort "Please set GITHUB_PASSWORD or github.password instead of using a token."
+    end
+
+    if user.to_s.empty? || password.to_s.empty?
+      nil
+    else
+      [ user, password ]
+    end
+  end
+
+  def defaults
+    extension = config("gist.extension")
+
+    return {
+      "private"   => config("gist.private"),
+      "browse"    => config("gist.browse"),
+      "extension" => extension
+    }
+  end
+
+  def config(key)
+    env_key = ENV[key.upcase.gsub(/\./, '_')]
+    return env_key if env_key and not env_key.strip.empty?
+
+    str_to_bool `git config --global #{key}`.strip
+  end
+
+  def str_to_bool(str)
+    if str.size > 0 and str[0].chr == '!'
+      command = str[1, str.length]
+      value = `#{command}`
+    else
+      value = str
+    end
+
+    case value.downcase.strip
+    when "false", "0", "nil", "", "no", "off"
+      nil
+    when "true", "1", "yes", "on"
+      true
+    else
+      value
+    end
+  end
+
+  def ca_cert
+    cert_file = [
+      File.expand_path("../gist/cacert.pem", __FILE__),
+      "/tmp/gist_cacert.pem"
+    ].find{|l| File.exist?(l) }
+
+    if cert_file
+      cert_file
+    else
+      File.open("/tmp/gist_cacert.pem", "w") do |f|
+        f.write(DATA.read.split("__CACERT__").last)
+      end
+      "/tmp/gist_cacert.pem"
+    end
+  end
+
+end
+Gist.execute(*ARGV)
+__END__
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "GIST" "1" "March 2012" "GITHUB" "Gist Manual"
+.
+.SH "NAME"
+\fBgist\fR \- gist on the command line
+.
+.SH "SYNOPSIS"
+\fBgist\fR [\fB\-p\fR] [\fB\-t extension\fR] \fIFILE|\-\fR
+.
+.SH "DESCRIPTION"
+\fBgist\fR can be used to create gists on gist\.github\.com from the command line\. There are two primary methods of creating gists\.
+.
+.P
+If standard input is supplied, it will be used as the content of the new gist\. If \fIFILE\fR is provided, the content of that file will be used to create the gist\. If \fIFILE\fR is \'\-\' then gist will wait for content from standard input\.
+.
+.P
+Once your gist is successfully created, the URL will be copied to your clipboard\. If you are on OS X, \fBgist\fR will open the gist in your browser, too\.
+.
+.SH "OPTIONS"
+\fBgist\fR\'s default mode of operation is to read content from standard input and create a public, text gist without description from it, tied to your GitHub account if you user and passwordare provided (see \fBCONFIGURATION\fR)\.
+.
+.P
+These options can be used to change this behavior:
+.
+.TP
+\fB\-p\fR, \fB\-\-private\fR
+Create a private gist instead of a public gist\.
+.
+.TP
+\fB\-t\fR, \fB\-\-type\fR
+Set the file extension explicitly\. Passing a type of \fBrb\fR ensures the gist is created as a Ruby file\.
+.
+.TP
+\fB\-d\fR, \fB\-\-description\fR
+Set a description\.
+.
+.TP
+\fB\-o\fR, \fB\-\-[no\-]open\fR
+Open the gist in your browser after creation\. Or don\'t\. Defaults to \-\-open
+.
+.P
+You may additionally ask for help:
+.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help\.
+.
+.TP
+\fB\-m\fR, \fB\-\-man\fR
+Display this man page\.
+.
+.SH "AUTHENTICATION"
+There are two ways to set GitHub user and password info:
+.
+.IP "\(bu" 4
+Using environment vars GITHUB_USER and GITHUB_PASSWORD
+.
+.IP
+$ export GITHUB_USER=johndoe
+.
+.br
+$ export GITHUB_PASSWORD=mysecretgithubpassword
+.
+.br
+$ gist ~/example
+.
+.IP "\(bu" 4
+Using git\-config(1)
+.
+.IP "" 0
+.
+.P
+Use git\-config(1) to display the currently configured GitHub username:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github\.user
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Or, set the GitHub username with:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github\.user <username>
+.
+.fi
+.
+.IP "" 0
+.
+.P
+See \fIhttp://github\.com/guides/local\-github\-config\fR for more information\.
+.
+.SH "CONFIGURATION"
+You can set a few options in your git config (using git\-config(1)) to control the default behavior of gist(1)\.
+.
+.IP "\(bu" 4
+gist\.private \- boolean (yes or no) \- Determines whether to make a gist private by default
+.
+.IP "\(bu" 4
+gist\.extension \- string \- Default extension for gists you create\.
+.
+.IP "\(bu" 4
+gist\.browse \- boolean (yes or no) \- Whether to open the gist in your browser after creation\. Default: yes
+.
+.IP "" 0
+.
+.SH "ENVIRONMENT"
+The following environment variables affect the execution of \fBgist\fR:
+.
+.IP "\(bu" 4
+HTTP_PROXY \- Proxy to use when Gisting\. Should be "http://host:port/"
+.
+.IP "" 0
+.
+.SH "EXAMPLES"
+.
+.nf
+
+$ gist < file\.txt
+$ echo secret | gist \-\-private
+$ echo "puts :hi" | gist \-t rb
+$ gist script\.py
+$ gist \-
+the quick brown fox jumps over the lazy dog
+^D
+.
+.fi
+.
+.SH "BUGS"
+\fIhttp://github\.com/defunkt/gist/issues\fR
+.
+.SH "AUTHOR"
+Chris Wanstrath :: chris@ozmm\.org
+.
+.SH "SEE ALSO"
+hub(1), git(1), git\-clone(1), \fIhttp://github\.com\fR, \fIhttp://github\.com/defunkt/gist\fR
+__CACERT__
+Certificate chain
+ 0 s:/O=*.github.com/OU=Domain Control Validated/CN=*.github.com
+   i:/C=US/ST=Arizona/L=Scottsdale/O=GoDaddy.com, Inc./OU=http://certificates.godaddy.com/repository/CN=Go Daddy Secure Certification Authority/serialNumber=07969287
+-----BEGIN CERTIFICATE-----
+MIIFVTCCBD2gAwIBAgIHBGX+dPs18DANBgkqhkiG9w0BAQUFADCByjELMAkGA1UE
+BhMCVVMxEDAOBgNVBAgTB0FyaXpvbmExEzARBgNVBAcTClNjb3R0c2RhbGUxGjAY
+BgNVBAoTEUdvRGFkZHkuY29tLCBJbmMuMTMwMQYDVQQLEypodHRwOi8vY2VydGlm
+aWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkxMDAuBgNVBAMTJ0dvIERhZGR5
+IFNlY3VyZSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTERMA8GA1UEBRMIMDc5Njky
+ODcwHhcNMDkxMjExMDUwMjM2WhcNMTQxMjExMDUwMjM2WjBRMRUwEwYDVQQKEwwq
+LmdpdGh1Yi5jb20xITAfBgNVBAsTGERvbWFpbiBDb250cm9sIFZhbGlkYXRlZDEV
+MBMGA1UEAxMMKi5naXRodWIuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+CgKCAQEA7dOJw11wcgnzM08acnTZtlqVULtoYZ/3+x8Z4doEMa8VfBp/+XOvHeVD
+K1YJAEVpSujEW9/Cd1JRGVvRK9k5ZTagMhkcQXP7MrI9n5jsglsLN2Q5LLcQg3LN
+8OokS/rZlC7DhRU5qTr2iNr0J4mmlU+EojdOfCV4OsmDbQIXlXh9R6hVg+4TyBka
+szzxX/47AuGF+xFmqwldn0xD8MckXilyKM7UdWhPJHIprjko/N+NT02Dc3QMbxGb
+p91i3v/i6xfm/wy/wC0xO9ZZovLdh0pIe20zERRNNJ8yOPbIGZ3xtj3FRu9RC4rG
+M+1IYcQdFxu9fLZn6TnPpVKACvTqzQIDAQABo4IBtjCCAbIwDwYDVR0TAQH/BAUw
+AwEBADAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDgYDVR0PAQH/BAQD
+AgWgMDMGA1UdHwQsMCowKKAmoCSGImh0dHA6Ly9jcmwuZ29kYWRkeS5jb20vZ2Rz
+MS0xMS5jcmwwUwYDVR0gBEwwSjBIBgtghkgBhv1tAQcXATA5MDcGCCsGAQUFBwIB
+FitodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMIGA
+BggrBgEFBQcBAQR0MHIwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmdvZGFkZHku
+Y29tLzBKBggrBgEFBQcwAoY+aHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5LmNv
+bS9yZXBvc2l0b3J5L2dkX2ludGVybWVkaWF0ZS5jcnQwHwYDVR0jBBgwFoAU/axh
+MpNsRdbi7oVfmrrndplozOcwIwYDVR0RBBwwGoIMKi5naXRodWIuY29tggpnaXRo
+dWIuY29tMB0GA1UdDgQWBBSH0Y8ZbuSHb1OMd5EHUN+jv1VHIDANBgkqhkiG9w0B
+AQUFAAOCAQEAwIe/Bbuk1/r38aqb5wlXjoW6tAmLpzLRkKorDOcDUJLtN6a9XqAk
+cgMai7NCI1YV+A4IjEENj53mV2xWLpniqLDHI5y2NbQuL2deu1jQSSNz7xE/nZCk
+WGt8OEtm6YI2bUsq5EXy078avRbigBko1bqtFuG0s5+nFrKCjhQVIk+GX7cwiyr4
+XJ49FxETvePrxNYr7x7n/Jju59KXTw3juPET+bAwNlRXmScjrMylMNUMr3sFcyLz
+DciaVnnextu6+L0w1+5KNVbMKndRwgg/cRldBL4AgmtouTC3mlDGGG3U6eV75cdH
+D03DXDfrYYjxmWjTRdO2GdbYnt1ToEgxyA==
+-----END CERTIFICATE-----
+ 1 s:/C=US/ST=Arizona/L=Scottsdale/O=GoDaddy.com, Inc./OU=http://certificates.godaddy.com/repository/CN=Go Daddy Secure Certification Authority/serialNumber=07969287
+   i:/C=US/O=The Go Daddy Group, Inc./OU=Go Daddy Class 2 Certification Authority
+-----BEGIN CERTIFICATE-----
+MIIE3jCCA8agAwIBAgICAwEwDQYJKoZIhvcNAQEFBQAwYzELMAkGA1UEBhMCVVMx
+ITAfBgNVBAoTGFRoZSBHbyBEYWRkeSBHcm91cCwgSW5jLjExMC8GA1UECxMoR28g
+RGFkZHkgQ2xhc3MgMiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTAeFw0wNjExMTYw
+MTU0MzdaFw0yNjExMTYwMTU0MzdaMIHKMQswCQYDVQQGEwJVUzEQMA4GA1UECBMH
+QXJpem9uYTETMBEGA1UEBxMKU2NvdHRzZGFsZTEaMBgGA1UEChMRR29EYWRkeS5j
+b20sIEluYy4xMzAxBgNVBAsTKmh0dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5j
+b20vcmVwb3NpdG9yeTEwMC4GA1UEAxMnR28gRGFkZHkgU2VjdXJlIENlcnRpZmlj
+YXRpb24gQXV0aG9yaXR5MREwDwYDVQQFEwgwNzk2OTI4NzCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAMQt1RWMnCZM7DI161+4WQFapmGBWTtwY6vj3D3H
+KrjJM9N55DrtPDAjhI6zMBS2sofDPZVUBJ7fmd0LJR4h3mUpfjWoqVTr9vcyOdQm
+VZWt7/v+WIbXnvQAjYwqDL1CBM6nPwT27oDyqu9SoWlm2r4arV3aLGbqGmu75RpR
+SgAvSMeYddi5Kcju+GZtCpyz8/x4fKL4o/K1w/O5epHBp+YlLpyo7RJlbmr2EkRT
+cDCVw5wrWCs9CHRK8r5RsL+H0EwnWGu1NcWdrxcx+AuP7q2BNgWJCJjPOq8lh8BJ
+6qf9Z/dFjpfMFDniNoW1fho3/Rb2cRGadDAW/hOUoz+EDU8CAwEAAaOCATIwggEu
+MB0GA1UdDgQWBBT9rGEyk2xF1uLuhV+auud2mWjM5zAfBgNVHSMEGDAWgBTSxLDS
+kdRMEXGzYcs9of7dqGrU4zASBgNVHRMBAf8ECDAGAQH/AgEAMDMGCCsGAQUFBwEB
+BCcwJTAjBggrBgEFBQcwAYYXaHR0cDovL29jc3AuZ29kYWRkeS5jb20wRgYDVR0f
+BD8wPTA7oDmgN4Y1aHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5LmNvbS9yZXBv
+c2l0b3J5L2dkcm9vdC5jcmwwSwYDVR0gBEQwQjBABgRVHSAAMDgwNgYIKwYBBQUH
+AgEWKmh0dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeTAO
+BgNVHQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQEFBQADggEBANKGwOy9+aG2Z+5mC6IG
+OgRQjhVyrEp0lVPLN8tESe8HkGsz2ZbwlFalEzAFPIUyIXvJxwqoJKSQ3kbTJSMU
+A2fCENZvD117esyfxVgqwcSeIaha86ykRvOe5GPLL5CkKSkB2XIsKd83ASe8T+5o
+0yGPwLPk9Qnt0hCqU7S+8MxZC9Y7lhyVJEnfzuz9p0iRFEUOOjZv2kWzRaJBydTX
+RE4+uXR21aITVSzGh6O1mawGhId/dQb8vxRMDsxuxN89txJx9OjxUUAiKEngHUuH
+qDTMBqLdElrRhjZkAzVvb3du6/KFUJheqwNTrZEjYx8WnM25sgVjOuH0aBsXBTWV
+U+4=
+-----END CERTIFICATE-----
+ 2 s:/C=US/O=The Go Daddy Group, Inc./OU=Go Daddy Class 2 Certification Authority
+   i:/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 2 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
+-----BEGIN CERTIFICATE-----
+MIIE+zCCBGSgAwIBAgICAQ0wDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1Zh
+bGlDZXJ0IFZhbGlkYXRpb24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIElu
+Yy4xNTAzBgNVBAsTLFZhbGlDZXJ0IENsYXNzIDIgUG9saWN5IFZhbGlkYXRpb24g
+QXV0aG9yaXR5MSEwHwYDVQQDExhodHRwOi8vd3d3LnZhbGljZXJ0LmNvbS8xIDAe
+BgkqhkiG9w0BCQEWEWluZm9AdmFsaWNlcnQuY29tMB4XDTA0MDYyOTE3MDYyMFoX
+DTI0MDYyOTE3MDYyMFowYzELMAkGA1UEBhMCVVMxITAfBgNVBAoTGFRoZSBHbyBE
+YWRkeSBHcm91cCwgSW5jLjExMC8GA1UECxMoR28gRGFkZHkgQ2xhc3MgMiBDZXJ0
+aWZpY2F0aW9uIEF1dGhvcml0eTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgC
+ggEBAN6d1+pXGEmhW+vXX0iG6r7d/+TvZxz0ZWizV3GgXne77ZtJ6XCAPVYYYwhv
+2vLM0D9/AlQiVBDYsoHUwHU9S3/Hd8M+eKsaA7Ugay9qK7HFiH7Eux6wwdhFJ2+q
+N1j3hybX2C32qRe3H3I2TqYXP2WYktsqbl2i/ojgC95/5Y0V4evLOtXiEqITLdiO
+r18SPaAIBQi2XKVlOARFmR6jYGB0xUGlcmIbYsUfb18aQr4CUWWoriMYavx4A6lN
+f4DD+qta/KFApMoZFv6yyO9ecw3ud72a9nmYvLEHZ6IVDd2gWMZEewo+YihfukEH
+U1jPEX44dMX4/7VpkI+EdOqXG68CAQOjggHhMIIB3TAdBgNVHQ4EFgQU0sSw0pHU
+TBFxs2HLPaH+3ahq1OMwgdIGA1UdIwSByjCBx6GBwaSBvjCBuzEkMCIGA1UEBxMb
+VmFsaUNlcnQgVmFsaWRhdGlvbiBOZXR3b3JrMRcwFQYDVQQKEw5WYWxpQ2VydCwg
+SW5jLjE1MDMGA1UECxMsVmFsaUNlcnQgQ2xhc3MgMiBQb2xpY3kgVmFsaWRhdGlv
+biBBdXRob3JpdHkxITAfBgNVBAMTGGh0dHA6Ly93d3cudmFsaWNlcnQuY29tLzEg
+MB4GCSqGSIb3DQEJARYRaW5mb0B2YWxpY2VydC5jb22CAQEwDwYDVR0TAQH/BAUw
+AwEB/zAzBggrBgEFBQcBAQQnMCUwIwYIKwYBBQUHMAGGF2h0dHA6Ly9vY3NwLmdv
+ZGFkZHkuY29tMEQGA1UdHwQ9MDswOaA3oDWGM2h0dHA6Ly9jZXJ0aWZpY2F0ZXMu
+Z29kYWRkeS5jb20vcmVwb3NpdG9yeS9yb290LmNybDBLBgNVHSAERDBCMEAGBFUd
+IAAwODA2BggrBgEFBQcCARYqaHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5LmNv
+bS9yZXBvc2l0b3J5MA4GA1UdDwEB/wQEAwIBBjANBgkqhkiG9w0BAQUFAAOBgQC1
+QPmnHfbq/qQaQlpE9xXUhUaJwL6e4+PrxeNYiY+Sn1eocSxI0YGyeR+sBjUZsE4O
+WBsUs5iB0QQeyAfJg594RAoYC5jcdnplDQ1tgMQLARzLrUc+cb53S8wGd9D0Vmsf
+SxOaFIqII6hR8INMqzW/Rn453HWkrugp++85j09VZw==
+-----END CERTIFICATE-----
+ 3 s:/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 2 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
+   i:/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 2 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
+-----BEGIN CERTIFICATE-----
+MIIC5zCCAlACAQEwDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0
+IFZhbGlkYXRpb24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAz
+BgNVBAsTLFZhbGlDZXJ0IENsYXNzIDIgUG9saWN5IFZhbGlkYXRpb24gQXV0aG9y
+aXR5MSEwHwYDVQQDExhodHRwOi8vd3d3LnZhbGljZXJ0LmNvbS8xIDAeBgkqhkiG
+9w0BCQEWEWluZm9AdmFsaWNlcnQuY29tMB4XDTk5MDYyNjAwMTk1NFoXDTE5MDYy
+NjAwMTk1NFowgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0IFZhbGlkYXRpb24gTmV0d29y
+azEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAzBgNVBAsTLFZhbGlDZXJ0IENs
+YXNzIDIgUG9saWN5IFZhbGlkYXRpb24gQXV0aG9yaXR5MSEwHwYDVQQDExhodHRw
+Oi8vd3d3LnZhbGljZXJ0LmNvbS8xIDAeBgkqhkiG9w0BCQEWEWluZm9AdmFsaWNl
+cnQuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDOOnHK5avIWZJV16vY
+dA757tn2VUdZZUcOBVXc65g2PFxTXdMwzzjsvUGJ7SVCCSRrCl6zfN1SLUzm1NZ9
+WlmpZdRJEy0kTRxQb7XBhVQ7/nHk01xC+YDgkRoKWzk2Z/M/VXwbP7RfZHM047QS
+v4dk+NoS/zcnwbNDu+97bi5p9wIDAQABMA0GCSqGSIb3DQEBBQUAA4GBADt/UG9v
+UJSZSWI4OB9L+KXIPqeCgfYrx+jFzug6EILLGACOTb2oWH+heQC1u+mNr0HZDzTu
+IYEZoDJJKPTEjlbVUjP9UNV+mWwD5MlM/Mtsq2azSiGM5bUMMj4QssxsodyamEwC
+W/POuZ6lcg5Ktz885hZo+L7tdEy8W9ViH0Pd
+-----END CERTIFICATE-----
