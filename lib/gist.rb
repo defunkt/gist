@@ -137,10 +137,16 @@ module Gist
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     http.ca_file = ca_cert
 
-    req = Net::HTTP::Post.new(url.path)
+
+    user, password, gist_oauth_token = auth()
+    if gist_oauth_token
+      req = Net::HTTP::Post.new(url.path + "?access_token=%s" % gist_oauth_token)
+    else
+      req = Net::HTTP::Post.new(url.path)
+    end
+
     req.body = JSON.generate(data(files, private_gist, description))
 
-    user, password = auth()
     if user && password
       req.basic_auth(user, password)
     end
@@ -218,16 +224,17 @@ private
   def auth
     user  = config("github.user")
     password = config("github.password")
+    gist_oauth_token = config("github.gist-oauth-token")
 
     token = config("github.token")
-    if password.to_s.empty? && !token.to_s.empty?
+    if password.to_s.empty? && !token.to_s.empty? && gist_oauth_token.to_s.empty?
       abort "Please set GITHUB_PASSWORD or github.password instead of using a token."
     end
 
-    if user.to_s.empty? || password.to_s.empty?
+    if (user.to_s.empty? || password.to_s.empty?) && gist_oauth_token.to_s.empty?
       nil
     else
-      [ user, password ]
+      [ user, password, gist_oauth_token ]
     end
   end
 
@@ -255,7 +262,7 @@ private
   #
   # return something useful or nil
   def config(key)
-    env_key = ENV[key.upcase.gsub(/\./, '_')]
+    env_key = ENV[key.upcase.gsub(/[-.]/, '_')]
     return env_key if env_key and not env_key.strip.empty?
 
     str_to_bool `git config --global #{key}`.strip

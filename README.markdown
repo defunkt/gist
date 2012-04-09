@@ -56,9 +56,32 @@ the quick brown fox jumps over the lazy dog
 
 Authentication
 --------------
-There are two ways to set GitHub user and password info:
+There are three ways to set GitHub authentication info:
 
-Using env vars GITHUB_USER and GITHUB_PASSWORD:
+__Generating an oauth token for gist access:__
+
+Set your github username either in an environment variable or the git config:
+```bash
+$ GITHUB_USER="your-github-username"
+$ # (or)
+$ git config --global github.user "your-github-username"
+```
+
+Generate an oauth token that can write gists:
+
+```bash
+$ curl -s -u${GITHUB_USER:-$(git config --global github.user)} -d '{ "scopes": [ "gist" ], "note": "gist cli" }' https://api.github.com/authorizations | grep '"token"' | cut -d\" -f4
+Enter host password for user 'your-github-username':
+9ba165eb3147168e9e56bdc1c997c8d0fd4fe25c
+```
+
+Set that token in your git config:
+
+```bash
+$ git config --global github.gist-oauth-token 9ba165eb3147168e9e56bdc1c997c8d0fd4fe25c
+```
+
+__Using env vars GITHUB_USER and GITHUB_PASSWORD:__
 
 ```bash
 $ export GITHUB_USER="your-github-username"
@@ -66,7 +89,7 @@ $ export GITHUB_PASSWORD="your-github-password"
 $ gist ~/example
 ```
 
-Or by having your git config set up with your GitHub username and password.
+__Using git config options github.user and github.password__
 
 ```bash
 git config --global github.user "your-github-username"
