@@ -1164,6 +1164,7 @@ module Gist
 
       opts.on('-m', '--man', 'Print manual') do
         Gist::Manpage.display("gist")
+        exit
       end
 
       opts.on('-v', '--version', 'Print version') do
