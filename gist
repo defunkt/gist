@@ -1240,6 +1240,13 @@ module Gist
       JSON.parse(response.body)['html_url']
     else
       puts "Creating gist failed: #{response.code} #{response.message}"
+      begin
+        pretty_body = JSON.pretty_generate(JSON.parse(response.body))
+        puts "JSON response from GitHub:"
+        puts pretty_body
+      rescue JSON::ParseError
+        puts "(unable to parse JSON body response from GitHub)"
+      end
       exit(false)
     end
   end
