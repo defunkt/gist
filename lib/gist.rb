@@ -43,7 +43,7 @@ module Gist
   def execute(*args)
     private_gist = defaults["private"]
     gist_filename = nil
-    gist_extension = defaults["extension"]
+    @gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
     description = nil
 
@@ -57,7 +57,7 @@ module Gist
 
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
-        gist_extension = '.' + extension
+        @gist_extension = '.' + extension
       end
 
       opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
@@ -110,7 +110,7 @@ module Gist
       else
         # Read from standard input.
         input = $stdin.read
-        files = [{:input => input, :extension => gist_extension}]
+        files = [{:input => input, :extension => @gist_extension}]
       end
 
       url = write(files, private_gist, description)
@@ -200,7 +200,8 @@ private
     file_data = {}
     files.each do |file|
       i = i + 1
-      filename = file[:filename] ? file[:filename] : "gistfile#{i}"
+      filename = "#{filename}#{file[:extension]}" if file[:extension]
+      filename = file[:filename] ? "#{file[:filename]}#{@gist_extension}" : "gist_content#{i}#{@gist_extension}"
       file_data[filename] = {:content => file[:input]}
     end
 
