@@ -36,7 +36,7 @@ preamble
       standalone = ''
       standalone << PREAMBLE
 
-      Dir["#{root}/../**/*.rb"].each do |file|
+      (Dir["#{root}/../*/*.rb"].sort + Dir["#{root}/../*.rb"].sort).each do |file|
         # skip standalone.rb
         next if File.expand_path(file) == File.expand_path(__FILE__)
 
