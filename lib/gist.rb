@@ -109,7 +109,17 @@ module Gist
 
       else
         # Read from standard input.
-        input = $stdin.read
+        input    = $stdin.read
+
+        # Since we don't have a read filename,
+        # create one based on timestamp and extension.
+        # NOTE.  github gist API doesn't seem to 
+        # pay any attention to :extension here.  
+        # Automatic syntax highlighting must be inferred
+        # from filename with extension.
+        filename = Time.now.utc.iso8601.gsub('-', '').gsub(':', '') + gist_extension
+        files    = [{:input => input, :extension => gist_extension, :filename => filename}]
+
         files = [{:input => input, :extension => gist_extension}]
       end
 
