@@ -1204,8 +1204,14 @@ module Gist
       end
 
       url = write(files, private_gist, description)
+      copy(url)
       browse(url) if browse_enabled
-      puts copy(url)
+
+      if $stdout.tty?
+        $stdout.puts(url)
+      else
+        files.each{|file| $stdout.write(file[:input])}
+      end
     rescue => e
       warn e
       puts opts

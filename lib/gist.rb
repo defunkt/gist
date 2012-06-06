@@ -114,8 +114,16 @@ module Gist
       end
 
       url = write(files, private_gist, description)
+      copy(url)
       browse(url) if browse_enabled
-      puts copy(url)
+
+      puts(
+        if $stdout.tty?
+          url
+        else
+          files.map{|f| f[:input]}.join
+        end
+      )
     rescue => e
       warn e
       puts opts
@@ -196,18 +204,35 @@ private
   # Give an array of file information and private boolean, returns
   # an appropriate payload for POSTing to gist.github.com
   def data(files, private_gist, description)
-    i = 0
-    file_data = {}
-    files.each do |file|
-      i = i + 1
-      filename = file[:filename] ? file[:filename] : "gistfile#{i}"
-      file_data[filename] = {:content => file[:input]}
+    file_data = Hash.new{|h,k| h[k] = {}} 
+
+    files.each_with_index do |file, i|
+      filename = file[:filename] ? file[:filename] : default_filename(i)
+      file_data[filename][:content] = file[:input]
+      file_data[filename][:extension] = normalize_extension(file[:extension])
     end
 
     data = {"files" => file_data}
     data.merge!({ 'description' => description }) unless description.nil?
     data.merge!({ 'public' => !private_gist })
     data
+  end
+
+  # generates numbered filenames based on
+  #
+  #   basename (git config --global 'gist.basename' 'teh_sweet_basename')
+  #   extension (git config --global 'gist.extension' 'rb')
+  def default_filename(n)
+    basename = [defaults['basename'], (n if n > 0)].compact.join('-')
+    ext = normalize_extension(defaults['extension'])
+    "#{ basename }#{ ext }"
+  end
+
+  # teh hubz hate too many or not enough dots in the file extension so be
+  # careful to normalize it
+  #
+  def normalize_extension(ext)
+    ext.to_s.sub(/\A\.*/, '.')
   end
 
   # Returns a basic auth string of the user's GitHub credentials if set.
@@ -237,14 +262,18 @@ private
   # Settings applicable to gist.rb are:
   #
   # gist.private - boolean
+  # gist.browse - boolean
   # gist.extension - string
+  # gist.basename - string
   def defaults
-    extension = config("gist.extension")
+    extension = config("gist.extension") || ".txt"
+    basename = config("gist.basename") || "gistfile"
 
     return {
       "private"   => config("gist.private"),
       "browse"    => config("gist.browse"),
-      "extension" => extension
+      "extension" => extension,
+      "basename"    => basename
     }
   end
 
