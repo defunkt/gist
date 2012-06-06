@@ -114,8 +114,16 @@ module Gist
       end
 
       url = write(files, private_gist, description)
+      copy(url)
       browse(url) if browse_enabled
-      puts copy(url)
+
+      puts(
+        if $stdout.tty?
+          url
+        else
+          files.map{|f| f[:input]}.join
+        end
+      )
     rescue => e
       warn e
       puts opts
