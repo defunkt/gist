@@ -202,6 +202,7 @@ private
       i = i + 1
       filename = file[:filename] ? file[:filename] : "gistfile#{i}"
       file_data[filename] = {:content => file[:input]}
+      file_data[filename][:extension] = file[:extension].to_s.sub(/\A\.*/, '.')
     end
 
     data = {"files" => file_data}
