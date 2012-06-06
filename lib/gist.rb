@@ -240,7 +240,7 @@ private
   # gist.private - boolean
   # gist.extension - string
   def defaults
-    extension = config("gist.extension")
+    extension = config("gist.extension") || '.txt'
 
     return {
       "private"   => config("gist.private"),
