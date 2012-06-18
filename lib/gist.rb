@@ -135,6 +135,8 @@ module Gist
 
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    http.cert_store = OpenSSL::X509::Store.new
+    http.cert_store.set_default_paths
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
