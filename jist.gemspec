@@ -8,6 +8,8 @@ Gem::Specification.new do |s|
   s.authors       = ['Conrad Irwin']
   s.files         = Dir["lib/**/*.rb"]
   s.require_paths = ["lib"]
+  
+  s.executables << 'jist'
 
   s.add_dependency 'multi_json'
 end
