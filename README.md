@@ -15,16 +15,10 @@ If you need more advanced features you can also pass:
 * `:public` if you want your gist to have a guessable url.
 * `:description` to add a description to your gist.
 
-Todo
-====
-
-It'd be nice to add a binary so that you can use it from your terminal. In the meantime you can use:
+There's also a command-line wrapper that you can use
 
 ```shell
-
-$ ruby -rjist -e'puts Jist.gist(ARGF.read)["html_url"]' <<EOF
-Look.at(:my => 'awesome').code
-EOF
+jist a.rb
 ```
 
 Meta-fu
