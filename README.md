@@ -12,7 +12,7 @@ If you need more advanced features you can also pass:
 
 * `:username` and `:password` to log in and post an authenticated gist.
 * `:filename` to change the syntax highlighting (default is `a.rb`).
-* `:public` if you want your hist to have a guessable url.
+* `:public` if you want your gist to have a guessable url.
 * `:description` to add a description to your gist.
 
 Todo

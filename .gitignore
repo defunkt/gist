@@ -1,0 +1,5 @@
+.rvmrc
+Gemfile.lock
+
+# OS X
+.DS_Store

@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+require 'jist'
+
+# For the holdings of options.
+options = {}
+
+
+opts = OptionParser.new do |opts|
+  executable_name = File.split($0)[1]
+  opts.banner = <<-EOS
+Jist is a simple command that let's you create new gists from the terminal.
+
+Usage: #{executable_name} [options] file
+  EOS
+  
+  opts.on("-a", "--auth USERNAME,PASSWORD", Array, "Provide a USERNAME and PASSWORD to log in and post an authenticated gist") do |one,two|
+    options[:username] = one
+    options[:password] = two
+  end
+
+  opts.on("-f", "--filename [NAME.EXTENSION]", Array,"Change the syntax highlighting (default is a.rb)") do |filename,b|
+    options[:filename] = filename
+    options[:derp] = b
+  end
+
+  opts.on("-p", "--public", "Add this flag you want your gist to have a guessable url") do |public|
+    options[:public] = public
+  end
+
+  opts.on("-d", "--description DESCRIPTION", "Adds a description to your gist") do |description|
+    options[:description] = description
+  end
+  
+  opts.on_tail("-h","--help", "Show this message") do
+    $stdout.puts opts
+    exit
+  end
+
+  opts.on_tail("-v", "--version") do
+    puts 'jist cli wrapper v0.0.1' # hardcoded for now
+    exit
+  end
+
+end
+opts.parse!
+
+if ARGV.empty?
+  $stdout << opts.help
+else
+  $stdout.puts Jist.gist(ARGF.read, options)["html_url"]
+end
