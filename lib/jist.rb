@@ -1,4 +1,4 @@
-require 'net/http'
+require 'net/https'
 require 'multi_json'
 
 # It just gists.
