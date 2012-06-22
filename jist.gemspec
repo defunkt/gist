@@ -1,6 +1,7 @@
+require './lib/jist'
 Gem::Specification.new do |s|
   s.name          = 'jist'
-  s.version       = '0.1'
+  s.version       = Jist::VERSION
   s.summary       = 'Just allows you to upload gists'
   s.description   = 'Provides a single function (Jist.gist) that uploads a gist.'
   s.homepage      = 'https://github.com/ConradIrwin/jist'

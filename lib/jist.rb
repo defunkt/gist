@@ -4,6 +4,8 @@ require 'multi_json'
 # It just gists.
 module Jist
 
+  VERSION = '0.2'
+
   module_function
   # Upload a gist to https://gist.github.com/
   #

@@ -23,7 +23,6 @@ Usage: #{executable_name} [options] file
 
   opts.on("-f", "--filename [NAME.EXTENSION]", Array,"Change the syntax highlighting (default is a.rb)") do |filename,b|
     options[:filename] = filename
-    options[:derp] = b
   end
 
   opts.on("-p", "--public", "Add this flag you want your gist to have a guessable url") do |public|
@@ -40,7 +39,7 @@ Usage: #{executable_name} [options] file
   end
 
   opts.on_tail("-v", "--version") do
-    puts 'jist cli wrapper v0.0.1' # hardcoded for now
+    puts "jist v#{Jist::VERSION}" # hardcoded for now
     exit
   end
 
