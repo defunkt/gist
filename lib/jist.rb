@@ -59,10 +59,16 @@ module Jist
   # and OAuth2 access token, which is then stored in ~/.jist
   def login!
     puts "Obtaining OAuth2 access_token from github."
-    print "Github username:"
+    print "Github username: "
     username = gets.strip
-    print "Github password:"
-    password = gets.strip
+    print "Github password: "
+    password = begin
+      `stty -echo 2>/dev/null`
+      gets.strip
+    ensure
+      `stty echo 2>/dev/null`
+    end
+    puts ""
 
     request = Net::HTTP::Post.new("/authorizations")
     request.body = MultiJson.encode({
