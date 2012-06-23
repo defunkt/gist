@@ -16,7 +16,7 @@ Jist (v#{Jist::VERSION}) let's you upload to https://gist.github.com/
 Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN] [-f FILENAME] [FILE]
        #{executable_name} --login
 
-When used with no arguments, jist creates an Anonymous, private, gist, with
+When used with no arguments, jist creates an anonymous, private, gist, with
 no description. The FILENAME defaults to "a.rb" and we read the contents of
 STDIN.
 
@@ -73,6 +73,7 @@ end
 opts.parse!
 
 if ARGV.size == 0
+  $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
   puts Jist.gist(ARGF.read, options)['html_url']
 elsif ARGV.size == 1
   puts Jist.gist(File.read(File.expand_path(ARGV[0])), {:filename => File.basename(ARGV[0])}.merge(options))['html_url']
