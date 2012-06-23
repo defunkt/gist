@@ -5,7 +5,7 @@ require 'json'
 # It just gists.
 module Jist
 
-  VERSION = '0.5'
+  VERSION = '0.6'
 
   module_function
   # Upload a gist to https://gist.github.com
@@ -60,11 +60,11 @@ module Jist
   def login!
     puts "Obtaining OAuth2 access_token from github."
     print "Github username: "
-    username = gets.strip
+    username = $stdin.gets.strip
     print "Github password: "
     password = begin
       `stty -echo` rescue nil
-      gets.strip
+      $stdin.gets.strip
     ensure
       `stty echo` rescue nil
     end
