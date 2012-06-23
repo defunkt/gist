@@ -35,6 +35,7 @@ module Jist
 
     connection = Net::HTTP.new("api.github.com", 443)
     connection.use_ssl = true
+    connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
     connection.read_timeout = 10
 
     request = Net::HTTP::Post.new("/gists")
@@ -43,7 +44,6 @@ module Jist
     if options[:username]
       request.basic_auth(options[:username], options[:password])
     end
-
     response = connection.start do |http|
                  http.request(request)
                end
