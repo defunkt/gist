@@ -11,51 +11,60 @@ options = {}
 opts = OptionParser.new do |opts|
   executable_name = File.split($0)[1]
   opts.banner = <<-EOS
-Jist is a simple command that let's you create new gists from the terminal.
+Jist (v#{Jist::VERSION}) let's you upload to https://gist.github.com/
 
-Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN] [-f FILENAME] file
+Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN] [-f FILENAME] [FILE]
        #{executable_name} --login
 
-By default it will create anonymous, private gists. To create gists using your
-GitHub account, first use `jist --login` and it will exchange your username
-and password for an access token that is stored in ~/.jist.
+When used with no arguments, jist creates an Anonymous, private, gist, with
+no description. The FILENAME defaults to "a.rb" and we read the contents of
+STDIN.
 
-If you want to make gists public (in practice this means that they have a
-guessable url) then use `jist -p`
+If you'd like your gists to be associated with your github account, so that
+you can edit them, and find them in future, first use `jist --login` to obtain
+an Oauth2 access token. This is stored and used for all future uses of jist.
 
-If you want to call jist from another progam that already has an access token
-for the current user, and that access_token has the 'gist' scope, then you can
-use `jist -t abcdef0123456789abcdef0123456789abcdef01`
+If you're calling jist from another program that already has an access_token
+with the "gist" scope, then pass it using `jist -t`.
+
+If you specify a FILE on the command line, then jist will use that as the
+default value for FILENAME too. If not, jist will assume that the file you
+provide on STDIN is called "a.rb". The FILENAME is mostly important for
+determining which language to use for syntax highlighting.
+
+Making a gist public causes it to have a prettier, guessable url. And adding
+a description can provide useful context to people who stumble across your
+gist.
 
   EOS
 
-  opts.on("-t", "--token OAUTH_TOKEN", "Provide an Oauth2 token to authenticate with github.") do |token|
-    options[:access_token] = token
-  end
-
-  opts.on("-f", "--filename [NAME.EXTENSION]", Array,"Change the syntax highlighting (default is a.rb)") do |filename|
-    options[:filename] = filename
-  end
-
-  opts.on("-p", "--public", "Add this flag you want your gist to have a guessable url") do |public|
-    options[:public] = public
-  end
-
-  opts.on("-d", "--description DESCRIPTION", "Adds a description to your gist") do |description|
-    options[:description] = description
-  end
-
-  opts.on("--login", "Obtain a gist-only Oauth2 token and store it for later use.") do
+  opts.on("--login", "Authenticate jist on this computer.") do
     Jist.login!
     exit
   end
 
-  opts.on_tail("-h","--help", "Show this message") do
-    $stdout.puts opts
+  opts.on("-f", "--filename [NAME.EXTENSION]", "Sets the filename and syntax type.") do |filename|
+    options[:filename] = filename
+  end
+
+  opts.on("-p", "--public", "Makes your gist public.") do |public|
+    options[:public] = public
+  end
+
+  opts.on("-d", "--description DESCRIPTION", "Adds a description to your gist.") do |description|
+    options[:description] = description
+  end
+
+  opts.on("-t", "--token OAUTH_TOKEN", "The OAuth2 access_token to use.") do |token|
+    options[:access_token] = token
+  end
+
+  opts.on_tail("-h","--help", "Show this message.") do
+    puts opts
     exit
   end
 
-  opts.on_tail("-v", "--version") do
+  opts.on_tail("-v", "--version", "Print the version.") do
     puts "jist v#{Jist::VERSION}"
     exit
   end
@@ -63,13 +72,10 @@ use `jist -t abcdef0123456789abcdef0123456789abcdef01`
 end
 opts.parse!
 
-if options[:login]
-  Jist.login!
-  exit
-end
-
-if ARGV.empty?
-  $stdout << opts.help
+if ARGV.size == 0
+  puts Jist.gist(ARGF.read, options)['html_url']
+elsif ARGV.size == 1
+  puts Jist.gist(File.read(File.expand_path(ARGV[0])), {:filename => File.basename(ARGV[0])}.merge(options))['html_url']
 else
-  $stdout.puts Jist.gist(ARGF.read, options)["html_url"]
+  puts opts
 end
