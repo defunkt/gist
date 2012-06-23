@@ -11,7 +11,7 @@ options = {}
 opts = OptionParser.new do |opts|
   executable_name = File.split($0)[1]
   opts.banner = <<-EOS
-Jist (v#{Jist::VERSION}) let's you upload to https://gist.github.com/
+Jist (v#{Jist::VERSION}) lets you upload to https://gist.github.com/
 
 Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN] [-f FILENAME] [FILE]
        #{executable_name} --login

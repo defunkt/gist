@@ -2,50 +2,46 @@ Jist is a gem that allows you to publish a [gist](https://gist.github.com) from 
 
 # Command
 
-The jist gem provides a `jist` command that you can use from your terminal.
+The jist gem provides a `jist` command that you can use from your terminal to
+upload content to https://gist.github.com/.
+
+It's easy to use. To upload the contents of `a.rb` just:
 
 ```shell
-$ jist --login  # optional
 $ jist a.rb
+https://gist.github.com/0d07bc98c139810a4075
 ```
 
-It supports everything that the library supports, the output of `jist --help`
-is included below for reference.
+By default it reads from STDIN, and you can set a filename with `-f`.
 
+```shell
+$ jist -f test.rb <a.rb
+https://gist.github.com/7db51bb5f4f35c480fc8
 ```
-Jist (v0.3) let's you upload to https://gist.github.com/
 
-Usage: jist [-p] [-d DESC] [-t TOKEN] [-f FILENAME] [FILE]
-       jist --login
-
-When used with no arguments, jist creates an anonymous, private, gist, with
-no description. The FILENAME defaults to "a.rb" and we read the contents of
-STDIN.
-
-If you'd like your gists to be associated with your github account, so that
-you can edit them, and find them in future, first use `jist --login` to obtain
-an Oauth2 access token. This is stored and used for all future uses of jist.
-
-If you're calling jist from another program that already has an access_token
-with the "gist" scope, then pass it using `jist -t`.
-
-If you specify a FILE on the command line, then jist will use that as the
-default value for FILENAME too. If not, jist will assume that the file you
-provide on STDIN is called "a.rb". The FILENAME is mostly important for
-determining which language to use for syntax highlighting.
-
-Making a gist public causes it to have a prettier, guessable url. And adding
-a description can provide useful context to people who stumble across your
-gist.
-
-        --login                      Authenticate jist on this computer.
-    -f, --filename [NAME.EXTENSION]  Sets the filename and syntax type.
-    -p, --public                     Makes your gist public.
-    -d, --description DESCRIPTION    Adds a description to your gist.
-    -t, --token OAUTH_TOKEN          The OAuth2 access_token to use.
-    -h, --help                       Show this message.
-    -v, --version                    Print the version.
+Use `-p` and `-d` to add finishing touches:
+```shell
+$ jist -p -d "Random rbx bug" a.rb
+https://gist.github.com/2977722
 ```
+
+## Login
+
+If you want to associate your gists with your github account, you need to login
+with jist. It doesn't store your username and password, it just uses them to get
+an OAuth2 token (with the "gist" permission).
+
+```shell
+jist --login
+Obtaining OAuth2 access_token from github.
+Github username: ConradIrwin
+Github password:
+Success! https://github.com/settings/applications
+```
+
+This token is stored in `~/.jist` and used for all future gisting. If you need to
+you can revoke it from https://github.com/settings/applications, or just delete the
+file.
 
 # Library
 
@@ -73,6 +69,22 @@ Jist.login!
 
 This will take them through the process of obtaining an OAuth2 token, and storing it
 in `~/.jist`, where it can later be read by `Jist.gist`
+
+# Installation
+
+As with all ruby gems, you can install Jist (assuming you have ruby and rubygems) with:
+
+```shell
+$ gem install jist
+```
+
+If you want to use the library in your application, and you're using Bundler. Add the
+following to your Gemfile.
+
+```ruby
+source :rubygems
+gem 'jist'
+```
 
 Meta-fu
 =======
