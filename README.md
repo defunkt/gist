@@ -21,6 +21,17 @@ There's also a command-line wrapper that you can use
 jist a.rb
 ```
 
+# Authentication
+
+If you'd like to always be logged in when using the jist command, you can use `git config`:
+
+```shell
+git config --global jist.username ConradIrwin
+git config --global jist.password zuperzecret
+```
+
+Alternatively use a wrapper script that provides the correct password.
+
 Meta-fu
 =======
 

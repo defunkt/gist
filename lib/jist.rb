@@ -44,8 +44,11 @@ module Jist
     request = Net::HTTP::Post.new("/gists")
     request.body = MultiJson.encode(json)
 
-    if options[:username]
-      request.basic_auth(options[:username], options[:password])
+    username = (options[:username] || `git config jist.username 2>/dev/null`.strip).to_s
+    password = (options[:password] || `git config jist.password 2>/dev/null`.strip).to_s
+    if username != ""
+
+      request.basic_auth(username, password)
     end
     response = connection.start do |http|
                  http.request(request)
