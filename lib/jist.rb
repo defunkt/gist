@@ -1,11 +1,11 @@
 require 'net/https'
 require 'cgi'
-require 'multi_json'
+require 'json'
 
 # It just gists.
 module Jist
 
-  VERSION = '0.3'
+  VERSION = '0.4'
 
   module_function
   # Upload a gist to https://gist.github.com
@@ -42,12 +42,12 @@ module Jist
     url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
     request = Net::HTTP::Post.new(url)
-    request.body = MultiJson.encode(json)
+    request.body = JSON.dump(json)
 
     response = http(request)
 
     if Net::HTTPCreated === response
-      MultiJson.decode(response.body)
+      JSON.parse(response.body)
     else
       raise RuntimeError.new "Got #{response.class} from gist: #{response.body}"
     end
@@ -63,15 +63,15 @@ module Jist
     username = gets.strip
     print "Github password: "
     password = begin
-      `stty -echo 2>/dev/null`
+      `stty -echo` rescue nil
       gets.strip
     ensure
-      `stty echo 2>/dev/null`
+      `stty echo` rescue nil
     end
     puts ""
 
     request = Net::HTTP::Post.new("/authorizations")
-    request.body = MultiJson.encode({
+    request.body = JSON.dump({
       :scopes => [:gist],
       :note => "The jist gem",
       :note_url => "https://github.com/ConradIrwin/jist"
@@ -82,7 +82,7 @@ module Jist
 
     if Net::HTTPCreated === response
       File.open(File.expand_path("~/.jist"), 'w') do |f|
-        f.write MultiJson.decode(response.body)['token']
+        f.write JSON.parse(response.body)['token']
       end
       puts "Success! https://github.com/settings/applications"
     else
