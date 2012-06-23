@@ -7,18 +7,21 @@ module Jist
   VERSION = '0.2'
 
   module_function
-  # Upload a gist to https://gist.github.com/
+  # Upload a gist to https://gist.github.com
   #
-  # @param content  the code you'd like to gist
+  # @param [String] content  the code you'd like to gist
+  # @param [Hash] options  more detailed options
   #
-  # @option :description  the description
-  # @option :filename  the filename (default 'a.rb')
-  # @option :public  to make it a public gist (default private)
-  # @option :username  if you wish to log in to github
-  # @option :password  (required if username is set)
+  # @option options [String] :description  the description
+  # @option options [String] :filename  ('a.rb') the filename
+  # @option options [Boolean] :public  (false) is this gist public
+  # @option options [String] :username  if you wish to log in to github
+  # @option options [String] :password  required if username is set
   #
-  # @return Hash  the decoded JSON response from the server
-  # @raise Exception  if something went wrong
+  # @return [Hash]  the decoded JSON response from the server
+  # @raise [Exception]  if something went wrong
+  #
+  # @see http://developer.github.com/v3/gists/
   def gist(content, options={})
     json = {}
 

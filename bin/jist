@@ -21,7 +21,7 @@ Usage: #{executable_name} [options] file
     options[:password] = two
   end
 
-  opts.on("-f", "--filename [NAME.EXTENSION]", Array,"Change the syntax highlighting (default is a.rb)") do |filename,b|
+  opts.on("-f", "--filename [NAME.EXTENSION]", Array,"Change the syntax highlighting (default is a.rb)") do |filename|
     options[:filename] = filename
   end
 
