@@ -5,7 +5,7 @@ require 'json'
 # It just gists.
 module Jist
 
-  VERSION = '0.6'
+  VERSION = '0.7'
 
   module_function
   # Upload a gist to https://gist.github.com
@@ -24,18 +24,34 @@ module Jist
   #
   # @see http://developer.github.com/v3/gists/
   def gist(content, options={})
+    filename = options[:filename] || "a.rb"
+    multi_gist({filename => content}, options)
+  end
+
+  # Upload a gist to https://gist.github.com
+  #
+  # @param [Hash] files  the code you'd like to gist {filename => content}
+  # @param [Hash] options  more detailed options
+  #
+  # @option options [String] :description  the description
+  # @option options [Boolean] :public  (false) is this gist public
+  # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
+  # @option options [String] :update  the URL or id of a gist to update
+  #
+  # @return [Hash]  the decoded JSON response from the server
+  # @raise [Exception]  if something went wrong
+  #
+  # @see http://developer.github.com/v3/gists/
+  def multi_gist(files, options={})
     json = {}
 
     json[:description] = options[:description] if options[:description]
     json[:public] = !!options[:public]
+    json[:files] = {}
 
-    filename = options[:filename] || 'a.rb'
-
-    json[:files] = {
-      filename => {
-        :content => content
-      }
-    }
+    files.each_pair do |(name, content)|
+      json[:files][File.basename(name)] = {:content => content}
+    end
 
     existing_gist = options[:update].to_s.split("/").last
     access_token = (options[:access_token] || File.read(File.expand_path("~/.jist")) rescue nil)

@@ -25,6 +25,13 @@ $ jist -p -d "Random rbx bug" a.rb
 https://gist.github.com/2977722
 ```
 
+You can update existing gists with `-u`:
+
+```shell
+$ jist lib/jist.rb bin/jist -u 42f2c239d2eb57299408
+https://gist.github.com/42f2c239d2eb57299408
+```
+
 ## Login
 
 If you want to associate your gists with your github account, you need to login
@@ -57,8 +64,15 @@ If you need more advanced features you can also pass:
 * `:filename` to change the syntax highlighting (default is `a.rb`).
 * `:public` if you want your gist to have a guessable url.
 * `:description` to add a description to your gist.
+* `:update` to update an existing gist (can be a URL or an id).
 
 NOTE: The access_token must have the "gist" scope.
+
+If you want to upload multiple files in the same gist, you can:
+
+```ruby
+Jist.multi_gist("a.rb" => "Foo.bar", "a.py" => "Foo.bar")
+```
 
 If you'd rather use jist's builtin access_token, then you can force the user to
 obtain one by calling:

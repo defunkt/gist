@@ -6,14 +6,14 @@ require 'jist'
 
 # For the holdings of options.
 options = {}
-
+filenames = []
 
 opts = OptionParser.new do |opts|
   executable_name = File.split($0)[1]
   opts.banner = <<-EOS
 Jist (v#{Jist::VERSION}) lets you upload to https://gist.github.com/
 
-Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN] [-f NAME] [-u URL] [FILE]
+Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN] [-u URL] [-f NAME]* [FILE]*
        #{executable_name} --login
 
 When used with no arguments, jist creates an anonymous, private, gist, with
@@ -27,10 +27,11 @@ an Oauth2 access token. This is stored and used for all future uses of jist.
 If you're calling jist from another program that already has an access_token
 with the "gist" scope, then pass it using `jist -t`.
 
-If you specify a FILE on the command line, then jist will use that as the
-default value for FILENAME too. If not, jist will assume that the file you
-provide on STDIN is called "a.rb". The FILENAME is mostly important for
-determining which language to use for syntax highlighting.
+If you specify FILEs on the command line, then jist will use the names of the
+files you specify as the filenames for the gist. If you'd rather override the
+name you can specify the -f parameter once per file. If you don't specify any
+files, then the -f parameter will be used to name the contents of STDIN. If you
+don't specify the -f parameter at all when using STDIN, "a.rb" will be used.
 
 Making a gist public causes it to have a prettier, guessable url. And adding
 a description can provide useful context to people who stumble across your
@@ -44,6 +45,7 @@ gist.
   end
 
   opts.on("-f", "--filename [NAME.EXTENSION]", "Sets the filename and syntax type.") do |filename|
+    filenames << filename
     options[:filename] = filename
   end
 
@@ -79,8 +81,11 @@ opts.parse!
 if ARGV.size == 0
   $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
   puts Jist.gist(ARGF.read, options)['html_url']
-elsif ARGV.size == 1
-  puts Jist.gist(File.read(File.expand_path(ARGV[0])), {:filename => File.basename(ARGV[0])}.merge(options))['html_url']
 else
-  puts opts
+  files = {}
+  ARGV.zip(filenames).each do |(file, name)|
+    files[name || file] = File.read(File.expand_path(file))
+  end
+
+  puts Jist.multi_gist(files, options)['html_url']
 end
