@@ -1,5 +1,21 @@
 Jist is a gem that allows you to publish a [gist](https://gist.github.com) from Ruby.
 
+# Installation
+
+As with all ruby gems, you can install Jist (assuming you have ruby and rubygems) with:
+
+```shell
+$ gem install jist
+```
+
+If you want to use the library in your application, and you're using Bundler. Add the
+following to your Gemfile.
+
+```ruby
+source :rubygems
+gem 'jist'
+```
+
 # Command
 
 The jist gem provides a `jist` command that you can use from your terminal to
@@ -83,22 +99,6 @@ Jist.login!
 
 This will take them through the process of obtaining an OAuth2 token, and storing it
 in `~/.jist`, where it can later be read by `Jist.gist`
-
-# Installation
-
-As with all ruby gems, you can install Jist (assuming you have ruby and rubygems) with:
-
-```shell
-$ gem install jist
-```
-
-If you want to use the library in your application, and you're using Bundler. Add the
-following to your Gemfile.
-
-```ruby
-source :rubygems
-gem 'jist'
-```
 
 Meta-fu
 =======
