@@ -17,6 +17,7 @@ module Jist
   # @option options [String] :filename  ('a.rb') the filename
   # @option options [Boolean] :public  (false) is this gist public
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
+  # @option options [String] :update  the URL or id of a gist to update
   #
   # @return [Hash]  the decoded JSON response from the server
   # @raise [Exception]  if something went wrong
@@ -36,9 +37,11 @@ module Jist
       }
     }
 
+    existing_gist = options[:update].to_s.split("/").last
     access_token = (options[:access_token] || File.read(File.expand_path("~/.jist")) rescue nil)
 
     url = "/gists"
+    url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
     url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
     request = Net::HTTP::Post.new(url)
@@ -46,7 +49,7 @@ module Jist
 
     response = http(request)
 
-    if Net::HTTPCreated === response
+    if Net::HTTPSuccess === response
       JSON.parse(response.body)
     else
       raise RuntimeError.new "Got #{response.class} from gist: #{response.body}"
