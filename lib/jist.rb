@@ -5,7 +5,7 @@ require 'json'
 # It just gists.
 module Jist
 
-  VERSION = '0.7'
+  VERSION = '0.7.1'
 
   module_function
   # Upload a gist to https://gist.github.com

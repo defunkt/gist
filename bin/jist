@@ -78,14 +78,18 @@ gist.
 end
 opts.parse!
 
-if ARGV.size == 0
-  $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
-  puts Jist.gist(ARGF.read, options)['html_url']
-else
-  files = {}
-  ARGV.zip(filenames).each do |(file, name)|
-    files[name || file] = File.read(File.expand_path(file))
-  end
+begin
+  if ARGV.size == 0
+    $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
+    puts Jist.gist(ARGF.read, options)['html_url']
+  else
+    files = {}
+    ARGV.zip(filenames).each do |(file, name)|
+      files[name || file] = File.read(File.expand_path(file))
+    end
 
-  puts Jist.multi_gist(files, options)['html_url']
+    puts Jist.multi_gist(files, options)['html_url']
+  end
+rescue Interrupt
+  # bye!
 end
