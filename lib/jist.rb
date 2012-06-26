@@ -23,14 +23,14 @@ module Jist
   # @raise [Exception]  if something went wrong
   #
   # @see http://developer.github.com/v3/gists/
-  def gist(content, options={})
+  def gist(content, options = {})
     filename = options[:filename] || "a.rb"
     multi_gist({filename => content}, options)
   end
 
   # Upload a gist to https://gist.github.com
   #
-  # @param [Hash] files  the code you'd like to gist {filename => content}
+  # @param [Hash] files  the code you'd like to gist: filename => content
   # @param [Hash] options  more detailed options
   #
   # @option options [String] :description  the description
@@ -114,7 +114,7 @@ module Jist
   module_function
   # Run an HTTP operation against api.github.com
   #
-  # @param [Net::HTTP::Request]
+  # @param [Net::HTTP::Request] request
   # @return [Net::HTTP::Response]
   def http(request)
     connection = Net::HTTP.new("api.github.com", 443)
