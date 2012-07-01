@@ -5,7 +5,10 @@ require 'json'
 # It just gists.
 module Jist
 
-  VERSION = '0.7.1'
+  VERSION = '0.8.0'
+
+  # Exception tag for errors raised while gisting.
+  module Error; end
 
   module_function
   # Upload a gist to https://gist.github.com
@@ -20,7 +23,7 @@ module Jist
   # @option options [String] :update  the URL or id of a gist to update
   #
   # @return [Hash]  the decoded JSON response from the server
-  # @raise [Exception]  if something went wrong
+  # @raise [Jist::Error]  if something went wrong
   #
   # @see http://developer.github.com/v3/gists/
   def gist(content, options = {})
@@ -39,7 +42,7 @@ module Jist
   # @option options [String] :update  the URL or id of a gist to update
   #
   # @return [Hash]  the decoded JSON response from the server
-  # @raise [Exception]  if something went wrong
+  # @raise [Jist::Error]  if something went wrong
   #
   # @see http://developer.github.com/v3/gists/
   def multi_gist(files, options={})
@@ -50,6 +53,7 @@ module Jist
     json[:files] = {}
 
     files.each_pair do |(name, content)|
+      raise "Cannot gist empty files" if content.to_s.strip == ""
       json[:files][File.basename(name)] = {:content => content}
     end
 
@@ -68,14 +72,19 @@ module Jist
     if Net::HTTPSuccess === response
       JSON.parse(response.body)
     else
-      raise RuntimeError.new "Got #{response.class} from gist: #{response.body}"
+      raise "Got #{response.class} from gist: #{response.body}"
     end
+  rescue => e
+    raise e.extend Error
   end
 
   # Log the user into jist.
   #
   # This method asks the user for a username and password, and tries to obtain
   # and OAuth2 access token, which is then stored in ~/.jist
+  #
+  # @raise [Jist::Error]  if something went wrong
+  # @see http://developer.github.com/v3/oauth/
   def login!
     puts "Obtaining OAuth2 access_token from github."
     print "Github username: "
@@ -105,8 +114,10 @@ module Jist
       end
       puts "Success! https://github.com/settings/applications"
     else
-      raise RuntimeError.new "Got #{response.class} from gist: #{response.body}"
+      raise "Got #{response.class} from gist: #{response.body}"
     end
+  rescue => e
+    raise e.extend Error
   end
 
   private
@@ -120,9 +131,12 @@ module Jist
     connection = Net::HTTP.new("api.github.com", 443)
     connection.use_ssl = true
     connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    connection.open_timeout = 5
     connection.read_timeout = 10
     connection.start do |http|
       http.request request
     end
+  rescue Timeout::Error
+    raise "Could not connect to https://api.github.com/"
   end
 end

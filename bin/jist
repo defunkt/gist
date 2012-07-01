@@ -90,6 +90,9 @@ begin
 
     puts Jist.multi_gist(files, options)['html_url']
   end
+rescue Jist::Error => e
+  puts "Error: #{e.message}"
+  exit 1
 rescue Interrupt
   # bye!
 end
