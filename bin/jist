@@ -22,7 +22,8 @@ STDIN.
 
 If you'd like your gists to be associated with your github account, so that
 you can edit them, and find them in future, first use `jist --login` to obtain
-an Oauth2 access token. This is stored and used for all future uses of jist.
+an Oauth2 access token. This is stored and used for all future uses of jist
+(though it's ignored if you use the -a flag).
 
 If you're calling jist from another program that already has an access_token
 with the "gist" scope, then pass it using `jist -t`.
@@ -44,10 +45,6 @@ gist.
     exit
   end
 
-  opts.on("-a", "--anonymous", "Anonymous gist.") do
-    options[:anonymous] = true
-  end
-
   opts.on("-f", "--filename [NAME.EXTENSION]", "Sets the filename and syntax type.") do |filename|
     filenames << filename
     options[:filename] = filename
@@ -63,6 +60,10 @@ gist.
 
   opts.on("-u", "--update [ URL | ID ]", "Update an existing gist.") do |update|
     options[:update] = update
+  end
+
+  opts.on("-a", "--anonymous", "Create an anonymous gist.") do
+    options[:anonymous] = true
   end
 
   opts.on("-t", "--token OAUTH_TOKEN", "The OAuth2 access_token to use.") do |token|

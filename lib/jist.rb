@@ -5,7 +5,7 @@ require 'json'
 # It just gists.
 module Jist
 
-  VERSION = '0.8.0'
+  VERSION = '0.9.0'
 
   # Exception tag for errors raised while gisting.
   module Error; end
@@ -19,6 +19,7 @@ module Jist
   # @option options [String] :description  the description
   # @option options [String] :filename  ('a.rb') the filename
   # @option options [Boolean] :public  (false) is this gist public
+  # @option options [Boolean] :anonymous  (false) is this gist anonymous
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   #
@@ -38,6 +39,7 @@ module Jist
   #
   # @option options [String] :description  the description
   # @option options [Boolean] :public  (false) is this gist public
+  # @option options [Boolean] :anonymous  (false) is this gist anonymous
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   #

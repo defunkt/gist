@@ -66,6 +66,8 @@ This token is stored in `~/.jist` and used for all future gisting. If you need t
 you can revoke it from https://github.com/settings/applications, or just delete the
 file.
 
+After you've done this, you can still upload gists anonymously with `-a`.
+
 # Library
 
 You can also use Jist as a library from inside your ruby code:
