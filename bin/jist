@@ -44,6 +44,10 @@ gist.
     exit
   end
 
+  opts.on("-a", "--anonymous", "Anonymous gist.") do
+    options[:anonymous] = true
+  end
+
   opts.on("-f", "--filename [NAME.EXTENSION]", "Sets the filename and syntax type.") do |filename|
     filenames << filename
     options[:filename] = filename

@@ -58,7 +58,11 @@ module Jist
     end
 
     existing_gist = options[:update].to_s.split("/").last
-    access_token = (options[:access_token] || File.read(File.expand_path("~/.jist")) rescue nil)
+    if options[:anonymous]
+      access_token = nil
+    else
+      access_token = (options[:access_token] || File.read(File.expand_path("~/.jist")) rescue nil)
+    end
 
     url = "/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
