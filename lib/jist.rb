@@ -137,7 +137,7 @@ module Jist
     connection = Net::HTTP.new("api.github.com", 443)
     connection.use_ssl = true
     connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    connection.open_timeout = 5
+    connection.open_timeout = 10
     connection.read_timeout = 10
     connection.start do |http|
       http.request request
