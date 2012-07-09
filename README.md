@@ -48,6 +48,8 @@ $ jist lib/jist.rb bin/jist -u 42f2c239d2eb57299408
 https://gist.github.com/42f2c239d2eb57299408
 ```
 
+See `jist --help` for more detail.
+
 ## Login
 
 If you want to associate your gists with your github account, you need to login
@@ -68,6 +70,11 @@ file.
 
 After you've done this, you can still upload gists anonymously with `-a`.
 
+```shell
+jist -a a.rb
+https://gist.github.com/6bf7ec379fc9119b1f15
+```
+
 # Library
 
 You can also use Jist as a library from inside your ruby code:
@@ -83,6 +90,7 @@ If you need more advanced features you can also pass:
 * `:public` if you want your gist to have a guessable url.
 * `:description` to add a description to your gist.
 * `:update` to update an existing gist (can be a URL or an id).
+* `:anonymous` to submit an anonymous gist (default is false).
 
 NOTE: The access_token must have the "gist" scope.
 

@@ -13,30 +13,28 @@ opts = OptionParser.new do |opts|
   opts.banner = <<-EOS
 Jist (v#{Jist::VERSION}) lets you upload to https://gist.github.com/
 
-Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN] [-u URL] [-f NAME]* [FILE]*
+Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-f NAME]* [FILE]*
        #{executable_name} --login
 
-When used with no arguments, jist creates an anonymous, private, gist, with
-no description. The FILENAME defaults to "a.rb" and we read the contents of
-STDIN.
+The content to be uploaded can be passed as a list of files, if none are
+specified STDIN will be read. The default filename for STDIN is "a.rb", and all
+filenames can be overridden by repeating the "-f" flag. The most useful reason
+to do this is to change the syntax highlighting.
 
-If you'd like your gists to be associated with your github account, so that
-you can edit them, and find them in future, first use `jist --login` to obtain
-an Oauth2 access token. This is stored and used for all future uses of jist
-(though it's ignored if you use the -a flag).
+If you'd like your gists to be associated with your GitHub account, so that you
+can edit them and find them in future, first use `jist --login` to obtain an
+Oauth2 access token. This is stored and used by jist in the future.
 
-If you're calling jist from another program that already has an access_token
-with the "gist" scope, then pass it using `jist -t`.
+Public gists have guessable URLs and can be created with "-p", you can also set
+the description at the top of the gist by passing "-d".
 
-If you specify FILEs on the command line, then jist will use the names of the
-files you specify as the filenames for the gist. If you'd rather override the
-name you can specify the -f parameter once per file. If you don't specify any
-files, then the -f parameter will be used to name the contents of STDIN. If you
-don't specify the -f parameter at all when using STDIN, "a.rb" will be used.
+Anonymous gists are not associated with your GitHub account, they can be created
+with "-a" even after you have used "jist --login". If you already have an access
+token with the "gist" scope, you can pass that with "-t".
 
-Making a gist public causes it to have a prettier, guessable url. And adding
-a description can provide useful context to people who stumble across your
-gist.
+Instead of creating a new jist, you can update an existing one by passing its ID
+or URL with "-u". For this to work, you must be logged in, and have created the
+original gist with the same GitHub account.
 
   EOS
 
