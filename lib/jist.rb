@@ -5,7 +5,7 @@ require 'json'
 # It just gists.
 module Jist
 
-  VERSION = '0.9.0'
+  VERSION = '0.9.1'
 
   # Exception tag for errors raised while gisting.
   module Error; end
@@ -73,13 +73,21 @@ module Jist
     request = Net::HTTP::Post.new(url)
     request.body = JSON.dump(json)
 
-    response = http(request)
+    retried = false
 
-    if Net::HTTPSuccess === response
-      JSON.parse(response.body)
-    else
-      raise "Got #{response.class} from gist: #{response.body}"
+    begin
+      response = http(request)
+      if Net::HTTPSuccess === response
+        JSON.parse(response.body)
+      else
+        raise "Got #{response.class} from gist: #{response.body}"
+      end
+    rescue => e
+      raise if retried
+      retried = true
+      retry
     end
+
   rescue => e
     raise e.extend Error
   end
