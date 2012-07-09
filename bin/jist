@@ -90,7 +90,11 @@ begin
   else
     files = {}
     ARGV.zip(filenames).each do |(file, name)|
-      files[name || file] = File.read(File.expand_path(file))
+      files[name || file] = begin
+        File.read(File.expand_path(file))
+      rescue => e
+        raise e.extend(Jist::Error)
+      end
     end
 
     puts Jist.multi_gist(files, options)['html_url']
