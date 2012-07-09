@@ -126,13 +126,10 @@ module Jist
     raise e.extend Error
   end
 
-  private
-
-  module_function
   # Run an HTTP operation against api.github.com
   #
-  # @param [Net::HTTP::Request] request
-  # @return [Net::HTTP::Response]
+  # @param [Net::HTTPRequest] request
+  # @return [Net::HTTPResponse]
   def http(request)
     connection = Net::HTTP.new("api.github.com", 443)
     connection.use_ssl = true
