@@ -138,6 +138,7 @@ module Gist
     http.ca_file = ca_cert
 
     req = Net::HTTP::Post.new(url.path)
+    req.add_field("Content-Type", "application/json")
     req.body = JSON.generate(data(files, private_gist, description))
 
     user, password = auth()
