@@ -26,9 +26,6 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'https://api.github.com/gists/%s'
-  CREATE_URL = 'https://api.github.com/gists'
-
   if ENV['HTTPS_PROXY']
     PROXY = URI(ENV['HTTPS_PROXY'])
   elsif ENV['HTTP_PROXY']
@@ -124,7 +121,7 @@ module Gist
 
   # Create a gist on gist.github.com
   def write(files, private_gist = false, description = nil)
-    url = URI.parse(CREATE_URL)
+    url = URI.parse(gist_url)
 
     if PROXY_HOST
       proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
@@ -157,7 +154,7 @@ module Gist
 
   # Given a gist id, returns its content.
   def read(gist_id)
-    data = JSON.parse(open(GIST_URL % gist_id).read)
+    data = JSON.parse(open('%s/%s' % [ gist_url, gist_id ]).read)
     data["files"].map{|name, content| content['content'] }.join("\n\n")
   end
 
@@ -229,6 +226,16 @@ private
     else
       [ user, password ]
     end
+  end
+
+  # return the API url for github
+  def github_url
+    config('github.url') || 'https://api.github.com'
+  end
+
+  # return API url for making gists
+  def gist_url
+    github_url + '/gists'
   end
 
   # Returns default values based on settings in your gitconfig. See

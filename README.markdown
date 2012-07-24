@@ -97,6 +97,23 @@ control the default behavior of gist(1).
 * gist.browse - boolean (yes or no) - Whether to open the gist in your
   browser after creation. Default: yes
 
+GitHub Enterprise
+-----------------
+
+If you're a GitHub Enterprise user you can point gist at your
+installation using environment variables or with git config:
+
+```bash
+$ export GITHUB_URL=https://my.github.com/api/v3
+```
+
+```bash
+$ git config --global github.url https://my.github.com/api/v3
+```
+
+You'll need to have the authentication details for your GitHub install
+setup as above for this to work.
+
 Proxies
 -------
 
