@@ -5,7 +5,7 @@ require 'json'
 # It just gists.
 module Jist
 
-  VERSION = '0.9.1'
+  VERSION = '0.9.2'
 
   # Exception tag for errors raised while gisting.
   module Error; end
@@ -72,6 +72,7 @@ module Jist
 
     request = Net::HTTP::Post.new(url)
     request.body = JSON.dump(json)
+    request.content_type = 'application/json'
 
     retried = false
 
@@ -118,6 +119,7 @@ module Jist
       :note => "The jist gem",
       :note_url => "https://github.com/ConradIrwin/jist"
     })
+    request.content_type = 'application/json'
     request.basic_auth(username, password)
 
     response = http(request)
