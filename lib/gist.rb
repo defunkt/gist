@@ -119,7 +119,7 @@ module Gist
         files = [{
           :input     => input,
           :extension => gist_extension,
-          :filename  => Time.now.utc.to_s.gsub(/\W/, '') + gist_extension
+          :filename  => Time.now.utc.to_s.gsub(/\W/, '') + gist_extension.to_s
         }]
       end
 
