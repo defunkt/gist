@@ -258,7 +258,7 @@ private
     env_key = ENV[key.upcase.gsub(/\./, '_')]
     return env_key if env_key and not env_key.strip.empty?
 
-    str_to_bool `git config --global #{key}`.strip
+    str_to_bool `git config #{key}`.strip
   end
 
   # Parses a value that might appear in a .gitconfig file into
