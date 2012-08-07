@@ -13,7 +13,7 @@ opts = OptionParser.new do |opts|
   opts.banner = <<-EOS
 Jist (v#{Jist::VERSION}) lets you upload to https://gist.github.com/
 
-Usage: #{executable_name} [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-f NAME]* [FILE]*
+Usage: #{executable_name} [-o|-c] [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-f NAME]* [FILE]*
        #{executable_name} --login
 
 The content to be uploaded can be passed as a list of files, if none are
@@ -32,9 +32,9 @@ Anonymous gists are not associated with your GitHub account, they can be created
 with "-a" even after you have used "jist --login". If you already have an access
 token with the "gist" scope, you can pass that with "-t".
 
-To copy the resulting URL to your clipboard you can use the -c option. If you'd
-prefer this to be the default behaviour, add `alias jist='jist -c'` to your
-shell's rc file.
+To copy the resulting URL to your clipboard you can use the -c option, or to just
+open it directly in your browser, use -o. You can add `alias jist='jist -c'` to
+your shell's rc file to configure this behaviour by default.
 
 Instead of creating a new jist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
@@ -74,6 +74,10 @@ original gist with the same GitHub account.
 
   opts.on("-c", "--copy", "Copy the resulting URL to the clipboard") do
     options[:copy] = true
+  end
+
+  opts.on("-o", "--open", "Copy the resulting URL to the clipboard") do
+    options[:open] = true
   end
 
   opts.on_tail("-h","--help", "Show this message.") do

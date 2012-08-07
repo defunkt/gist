@@ -6,7 +6,7 @@ require 'json'
 module Jist
   extend self
 
-  VERSION = '0.9.2'
+  VERSION = '0.10.0'
 
   # Which clipboard commands do we support?
   CLIP_COMMANDS = %w(xclip xsel pbcopy putclip)
@@ -26,6 +26,7 @@ module Jist
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
+  # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
   #
   # @return [Hash]  the decoded JSON response from the server
   # @raise [Jist::Error]  if something went wrong
@@ -47,6 +48,7 @@ module Jist
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
+  # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
   #
   # @return [Hash]  the decoded JSON response from the server
   # @raise [Jist::Error]  if something went wrong
@@ -167,9 +169,8 @@ module Jist
   def on_success(body, options={})
     json = JSON.parse(body)
 
-    if options[:copy]
-      Jist.copy(json['html_url'])
-    end
+    Jist.copy(json['html_url']) if options[:copy]
+    Jist.open(json['html_url']) if options[:open]
 
     json
   end
@@ -177,13 +178,11 @@ module Jist
   # Copy a string to the clipboard.
   #
   # @param [String] content
-  # @return content
   # @raise [RuntimeError] if no clipboard integration could be found
   #
   # This method was heavily inspired by defunkt's Gist#copy,
   # @see https://github.com/defunkt/gist/blob/bca9b29/lib/gist.rb#L178
   def copy(content)
-
     command = CLIP_COMMANDS.detect do |cmd|
       system("type #{cmd} >/dev/null 2>&1")
     end
@@ -193,5 +192,28 @@ module Jist
     else
       raise "Could not find copy command, tried: #{CLIP_COMMANDS}"
     end
+  end
+
+  # Open a URL in a browser.
+  #
+  # @param [String] url
+  # @raise [RuntimeError] if no browser integration could be found
+  #
+  # This method was heavily inspired by defunkt's Gist#open,
+  # @see https://github.com/defunkt/gist/blob/bca9b29/lib/gist.rb#L157
+  def open(url)
+    command = if ENV['BROWSER']
+                ENV['BROWSER']
+              elsif RUBY_PLATFORM =~ /darwin/
+                'open'
+              elsif RUBY_PLATFORM =~ /linux/
+                'sensible-browser'
+              elsif ENV['OS'] == 'Windows_NT' || RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
+                'start ""'
+              else
+                raise "Could not work out how to use a browser."
+              end
+
+    `#{command} #{url}`
   end
 end
