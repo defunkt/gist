@@ -35,7 +35,7 @@ $ jist -f test.rb <a.rb
 https://gist.github.com/7db51bb5f4f35c480fc8
 ```
 
-Use `-p` and `-d` to add finishing touches:
+Use `-p` to make the gist public and `-d` to add a description.
 ```shell
 $ jist -p -d "Random rbx bug" a.rb
 https://gist.github.com/2977722
@@ -46,6 +46,20 @@ You can update existing gists with `-u`:
 ```shell
 $ jist lib/jist.rb bin/jist -u 42f2c239d2eb57299408
 https://gist.github.com/42f2c239d2eb57299408
+```
+
+If you'd like to copy the resulting URL to your clipboard, use `-c`.
+
+```shell
+$ jist -c <a.rb
+https://gist.github.com/7db51bb5f4f35c480fc8
+```
+
+And you can just ask jist to open a browser window directly with `-o`.
+
+```shell
+$ jist -o <a.rb
+https://gist.github.com/7db51bb5f4f35c480fc8
 ```
 
 See `jist --help` for more detail.
