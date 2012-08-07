@@ -76,7 +76,7 @@ original gist with the same GitHub account.
     options[:copy] = true
   end
 
-  opts.on("-o", "--open", "Copy the resulting URL to the clipboard") do
+  opts.on("-o", "--open", "Open the resulting URL in a browser") do
     options[:open] = true
   end
 
