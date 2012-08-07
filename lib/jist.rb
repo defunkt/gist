@@ -6,10 +6,15 @@ require 'json'
 module Jist
   extend self
 
-  VERSION = '0.10.0'
+  VERSION = '1.0.0'
 
-  # Which clipboard commands do we support?
-  CLIP_COMMANDS = %w(xclip xsel pbcopy putclip)
+  # A list of clipboard commands with copy and paste support.
+  CLIPBOARD_COMMANDS = {
+    'xclip'   => 'xclip -o',
+    'xsel'    => 'xsel -o',
+    'pbcopy'  => 'pbpaste',
+    'putclip' => 'getclip'
+  }
 
   # Exception tag for errors raised while gisting.
   module Error; end
@@ -183,15 +188,29 @@ module Jist
   # This method was heavily inspired by defunkt's Gist#copy,
   # @see https://github.com/defunkt/gist/blob/bca9b29/lib/gist.rb#L178
   def copy(content)
-    command = CLIP_COMMANDS.detect do |cmd|
+    IO.popen(clipboard_command(:copy), 'r+') { |clip| clip.print content }
+    raise "Copying to clipboard failed" unless paste == content
+  end
+
+  # Get a string from the clipboard.
+  #
+  # @param [String] content
+  # @raise [RuntimeError] if no clipboard integration could be found
+  def paste
+    `#{clipboard_command(:paste)}`
+  end
+
+  # Get the command to use for the clipboard action.
+  #
+  # @param [Symbol] action  either :copy or :paste
+  # @return [String]  the command to run
+  # @raise [RuntimeError] if no clipboard integration could be found
+  def clipboard_command(action)
+    command = CLIPBOARD_COMMANDS.keys.detect do |cmd|
       system("type #{cmd} >/dev/null 2>&1")
     end
-
-    if command
-      IO.popen(command, 'r+') { |clip| clip.print content }
-    else
-      raise "Could not find copy command, tried: #{CLIP_COMMANDS}"
-    end
+    raise "Could not find copy command, tried: #{CLIPBOARD_COMMANDS}" unless command
+    action == :copy ? command : CLIPBOARD_COMMANDS[command]
   end
 
   # Open a URL in a browser.

@@ -13,7 +13,7 @@ opts = OptionParser.new do |opts|
   opts.banner = <<-EOS
 Jist (v#{Jist::VERSION}) lets you upload to https://gist.github.com/
 
-Usage: #{executable_name} [-o|-c] [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-f NAME]* [FILE]*
+Usage: #{executable_name} [-o|-c] [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f NAME]* FILE*
        #{executable_name} --login
 
 The content to be uploaded can be passed as a list of files, if none are
@@ -80,6 +80,10 @@ original gist with the same GitHub account.
     options[:open] = true
   end
 
+  opts.on("-P", "--paste", "Paste from the clipboard to jist") do
+    options[:paste] = true
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -94,7 +98,9 @@ end
 opts.parse!
 
 begin
-  if ARGV.size == 0
+  if options[:paste]
+    puts Jist.gist(Jist.paste, options)['html_url']
+  elsif ARGV.size == 0
     $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
     puts Jist.gist(ARGF.read, options)['html_url']
   else

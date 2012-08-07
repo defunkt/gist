@@ -35,6 +35,13 @@ $ jist -f test.rb <a.rb
 https://gist.github.com/7db51bb5f4f35c480fc8
 ```
 
+Alternatively, you can just paste from the clipboard:
+
+```shell
+$ jist -P
+https://gist.github.com/6a330a11a0db8e52a6ee
+```
+
 Use `-p` to make the gist public and `-d` to add a description.
 ```shell
 $ jist -p -d "Random rbx bug" a.rb
