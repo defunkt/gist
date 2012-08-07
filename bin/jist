@@ -13,9 +13,6 @@ opts = OptionParser.new do |opts|
   opts.banner = <<-EOS
 Jist (v#{Jist::VERSION}) lets you upload to https://gist.github.com/
 
-Usage: #{executable_name} [-o|-c] [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f NAME]* FILE*
-       #{executable_name} --login
-
 The content to be uploaded can be passed as a list of files, if none are
 specified STDIN will be read. The default filename for STDIN is "a.rb", and all
 filenames can be overridden by repeating the "-f" flag. The most useful reason
@@ -39,6 +36,9 @@ your shell's rc file to configure this behaviour by default.
 Instead of creating a new jist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
+
+Usage: #{executable_name} [-o|-c] [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f NAME]* FILE*
+       #{executable_name} --login
 
   EOS
 
