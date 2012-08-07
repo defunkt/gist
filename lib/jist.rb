@@ -190,10 +190,10 @@ module Jist
       system("type #{cmd} >/dev/null 2>&1")
     end
 
-    unless command
+    if command
+      IO.popen(command, 'r+') { |clip| clip.print content }
+    else
       raise "Could not find copy command, tried: #{CLIP_COMMANDS}"
     end
-
-    IO.popen(copy_cmd.to_s, 'r+') { |clip| clip.print content }
   end
 end
