@@ -4,6 +4,7 @@ require 'json'
 
 # It just gists.
 module Jist
+  extend self
 
   VERSION = '0.9.2'
 
@@ -13,7 +14,6 @@ module Jist
   # Exception tag for errors raised while gisting.
   module Error; end
 
-  module_function
   # Upload a gist to https://gist.github.com
   #
   # @param [String] content  the code you'd like to gist
@@ -157,8 +157,6 @@ module Jist
   rescue Timeout::Error
     raise "Could not connect to https://api.github.com/"
   end
-
-  module_function
 
   # Called after an HTTP response to gist to perform post-processing.
   #
