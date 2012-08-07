@@ -7,6 +7,9 @@ module Jist
 
   VERSION = '0.9.2'
 
+  # Which clipboard commands do we support?
+  CLIP_COMMANDS = %w(xclip xsel pbcopy putclip)
+
   # Exception tag for errors raised while gisting.
   module Error; end
 
@@ -22,6 +25,7 @@ module Jist
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
+  # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   #
   # @return [Hash]  the decoded JSON response from the server
   # @raise [Jist::Error]  if something went wrong
@@ -42,6 +46,7 @@ module Jist
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
+  # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   #
   # @return [Hash]  the decoded JSON response from the server
   # @raise [Jist::Error]  if something went wrong
@@ -79,7 +84,7 @@ module Jist
     begin
       response = http(request)
       if Net::HTTPSuccess === response
-        JSON.parse(response.body)
+        on_success(response.body, options)
       else
         raise "Got #{response.class} from gist: #{response.body}"
       end
@@ -151,5 +156,44 @@ module Jist
     end
   rescue Timeout::Error
     raise "Could not connect to https://api.github.com/"
+  end
+
+  module_function
+
+  # Called after an HTTP response to gist to perform post-processing.
+  #
+  # @param [String] body  the HTTP-200 response
+  # @param [Hash] options  any options
+  # @option options [Boolean] :copy  copy the URL to the clipboard
+  # @return [Hash]  the parsed JSON response from the server
+  def on_success(body, options={})
+    json = JSON.parse(body)
+
+    if options[:copy]
+      Jist.copy(json['html_url'])
+    end
+
+    json
+  end
+
+  # Copy a string to the clipboard.
+  #
+  # @param [String] content
+  # @return content
+  # @raise [RuntimeError] if no clipboard integration could be found
+  #
+  # This method was heavily inspired by defunkt's Gist#copy,
+  # @see https://github.com/defunkt/gist/blob/bca9b29/lib/gist.rb#L178
+  def copy(content)
+
+    command = CLIP_COMMANDS.detect do |cmd|
+      system("type #{cmd} >/dev/null 2>&1")
+    end
+
+    unless command
+      raise "Could not find copy command, tried: #{CLIP_COMMANDS}"
+    end
+
+    IO.popen(copy_cmd.to_s, 'r+') { |clip| clip.print content }
   end
 end

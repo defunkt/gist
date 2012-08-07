@@ -32,6 +32,10 @@ Anonymous gists are not associated with your GitHub account, they can be created
 with "-a" even after you have used "jist --login". If you already have an access
 token with the "gist" scope, you can pass that with "-t".
 
+To copy the resulting URL to your clipboard you can use the -c option. If you'd
+prefer this to be the default behaviour, add `alias jist='jist -c'` to your
+shell's rc file.
+
 Instead of creating a new jist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
@@ -66,6 +70,10 @@ original gist with the same GitHub account.
 
   opts.on("-t", "--token OAUTH_TOKEN", "The OAuth2 access_token to use.") do |token|
     options[:access_token] = token
+  end
+
+  opts.on("-c", "--copy", "Copy the resulting URL to the clipboard") do
+    options[:copy] = true
   end
 
   opts.on_tail("-h","--help", "Show this message.") do

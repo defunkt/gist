@@ -1,0 +1,3 @@
+--color
+--format progress
+-r ./spec/spec_helper.rb
