@@ -112,6 +112,8 @@ If you need more advanced features you can also pass:
 * `:description` to add a description to your gist.
 * `:update` to update an existing gist (can be a URL or an id).
 * `:anonymous` to submit an anonymous gist (default is false).
+* `:copy` to copy the resulting URL to the clipboard (default is false).
+* `:open` to open the resulting URL in a browser (default is false).
 
 NOTE: The access_token must have the "gist" scope.
 
@@ -130,6 +132,26 @@ Jist.login!
 
 This will take them through the process of obtaining an OAuth2 token, and storing it
 in `~/.jist`, where it can later be read by `Jist.gist`
+
+Configuration
+=============
+
+If you'd like `-o` or `-c` to be the default when you use the jist executable, add an
+alias to your `~/.bashrc` (or equivalent). For example:
+
+```ruby
+alias jist='jist -c'
+```
+
+If you'd prefer jist to open a different browser, then you can export the BROWSER
+environment variable:
+
+```ruby
+export BROWSER=google-chrome
+```
+
+If clipboard or browser integration don't work on your platform, please file a bug or
+(more ideally) a pull request.
 
 Meta-fu
 =======
