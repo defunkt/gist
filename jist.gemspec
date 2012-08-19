@@ -7,7 +7,9 @@ Gem::Specification.new do |s|
   s.homepage      = 'https://github.com/ConradIrwin/jist'
   s.email         = 'conrad.irwin@gmail.com'
   s.authors       = ['Conrad Irwin']
+  s.license       = 'MIT'
   s.files         = Dir["lib/**/*.rb"]
+  s.files        += %w( README.md LICENSE.MIT )
   s.require_paths = ["lib"]
 
   s.executables << 'jist'
