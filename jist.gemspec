@@ -8,8 +8,7 @@ Gem::Specification.new do |s|
   s.email         = 'conrad.irwin@gmail.com'
   s.authors       = ['Conrad Irwin']
   s.license       = 'MIT'
-  s.files         = Dir["lib/**/*.rb"]
-  s.files        += %w( README.md LICENSE.MIT )
+  s.files         = `git ls-files`.split("\n")
   s.require_paths = ["lib"]
 
   s.executables << 'jist'
