@@ -153,7 +153,14 @@ module Jist
   # @param [Net::HTTPRequest] request
   # @return [Net::HTTPResponse]
   def http(request)
-    connection = Net::HTTP.new("api.github.com", 443)
+    env = ENV['http_proxy']
+    if env then
+      uri = URI(env)
+      proxy_host, proxy_port = uri.host, uri.port
+    else
+      proxy_host, proxy_port = nil, nil
+    end
+    connection = Net::HTTP::Proxy(proxy_host, proxy_port).new("api.github.com", 443)
     connection.use_ssl = true
     connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
     connection.open_timeout = 10
