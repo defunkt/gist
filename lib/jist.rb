@@ -148,6 +148,9 @@ module Jist
     raise e.extend Error
   end
 
+  # Return HTTP connection
+  #
+  # @return [Net::HTTP]
   def http_connection()
     env = ENV['http_proxy']
     if env then
