@@ -148,11 +148,7 @@ module Jist
     raise e.extend Error
   end
 
-  # Run an HTTP operation against api.github.com
-  #
-  # @param [Net::HTTPRequest] request
-  # @return [Net::HTTPResponse]
-  def http(request)
+  def http_connection()
     env = ENV['http_proxy']
     if env then
       uri = URI(env)
@@ -165,7 +161,15 @@ module Jist
     connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
     connection.open_timeout = 10
     connection.read_timeout = 10
-    connection.start do |http|
+    connection
+  end
+
+  # Run an HTTP operation against api.github.com
+  #
+  # @param [Net::HTTPRequest] request
+  # @return [Net::HTTPResponse]
+  def http(request)
+    http_connection().start do |http|
       http.request request
     end
   rescue Timeout::Error
