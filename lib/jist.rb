@@ -6,7 +6,7 @@ require 'json'
 module Jist
   extend self
 
-  VERSION = '1.0.1'
+  VERSION = '1.1.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {

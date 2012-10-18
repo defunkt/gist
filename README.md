@@ -153,6 +153,9 @@ export BROWSER=google-chrome
 If clipboard or browser integration don't work on your platform, please file a bug or
 (more ideally) a pull request.
 
+If you need to use an HTTP proxy to access the internet, export the `HTTP_PROXY` or
+`http_proxy` environment variable and jist will use it.
+
 Meta-fu
 =======
 
