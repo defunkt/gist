@@ -152,7 +152,7 @@ module Jist
   #
   # @return [Net::HTTP]
   def http_connection()
-    env = ENV['http_proxy']
+    env = ENV['http_proxy'] || ENV['HTTP_PROXY']
     if env then
       uri = URI(env)
       proxy_host, proxy_port = uri.host, uri.port
