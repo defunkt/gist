@@ -214,6 +214,23 @@ module Jist
     `#{clipboard_command(:paste)}`
   end
 
+  # Find command from PATH environment.
+  #
+  # @param [String] cmd  command name to find
+  # @param [String] options  PATH environment variable
+  # @return [String]  the command found
+  def which(cmd, path=ENV['PATH'])
+    if RUBY_PLATFORM.downcase =~ /mswin(?!ce)|mingw|bccwin|cygwin/
+      path.split(File::PATH_SEPARATOR).each {|dir|
+        f = File.join(dir, cmd+".exe")
+        return f if File.executable?(f) && !File.directory?(f)
+      }
+      nil
+    else
+      return system("which #{cmd} > /dev/null 2>&1")
+    end
+  end
+
   # Get the command to use for the clipboard action.
   #
   # @param [Symbol] action  either :copy or :paste
@@ -221,7 +238,7 @@ module Jist
   # @raise [RuntimeError] if no clipboard integration could be found
   def clipboard_command(action)
     command = CLIPBOARD_COMMANDS.keys.detect do |cmd|
-      system("type #{cmd} >/dev/null 2>&1")
+      which cmd
     end
     raise "Could not find copy command, tried: #{CLIPBOARD_COMMANDS}" unless command
     action == :copy ? command : CLIPBOARD_COMMANDS[command]
