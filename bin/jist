@@ -29,6 +29,9 @@ Anonymous gists are not associated with your GitHub account, they can be created
 with "-a" even after you have used "jist --login". If you already have an access
 token with the "gist" scope, you can pass that with "-t".
 
+If you would like to shorten the resulting gist URL, use the -s flag. This will
+use GitHub's URL shortener, git.io.
+
 To copy the resulting URL to your clipboard you can use the -c option, or to just
 open it directly in your browser, use -o. You can add `alias jist='jist -c'` to
 your shell's rc file to configure this behaviour by default.
@@ -37,7 +40,7 @@ Instead of creating a new jist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c] [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f NAME]* FILE*
+Usage: #{executable_name} [-o|-c] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f NAME]* FILE*
        #{executable_name} --login
 
   EOS
@@ -66,6 +69,10 @@ Usage: #{executable_name} [-o|-c] [-p] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f
 
   opts.on("-a", "--anonymous", "Create an anonymous gist.") do
     options[:anonymous] = true
+  end
+
+  opts.on("-s", "--shorten", "Shorten the gist URL using git.io.") do |shorten|
+    options[:shorten] = shorten
   end
 
   opts.on("-t", "--token OAUTH_TOKEN", "The OAuth2 access_token to use.") do |token|

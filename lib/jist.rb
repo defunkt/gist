@@ -28,6 +28,7 @@ module Jist
   # @option options [String] :filename  ('a.rb') the filename
   # @option options [Boolean] :public  (false) is this gist public
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
+  # @option options [Boolean] :shorten  (false) Shorten the resulting URL using git.io.
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
@@ -50,6 +51,7 @@ module Jist
   # @option options [String] :description  the description
   # @option options [Boolean] :public  (false) is this gist public
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
+  # @option options [Boolean] :shorten  (false) Shorten the resulting URL using git.io.
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
@@ -91,7 +93,12 @@ module Jist
     begin
       response = http(request)
       if Net::HTTPSuccess === response
-        on_success(response.body, options)
+        response = on_success(response.body, options)
+        if options[:shorten]
+          {'html_url' => shorten(response['html_url'])}
+        else
+          response
+        end
       else
         raise "Got #{response.class} from gist: #{response.body}"
       end
@@ -103,6 +110,20 @@ module Jist
 
   rescue => e
     raise e.extend Error
+  end
+
+  # Given a URL, shorten it
+  #
+  # Based on https://gist.github.com/1762136
+  def shorten(url)
+    response = Net::HTTP.post_form(URI("http://git.io/"), :url => url)
+    case response.code
+    when "201"
+      response['Location']
+    else
+      # If the shortener failed, just return the unshortened URL.
+      url
+    end
   end
 
   # Log the user into jist.
