@@ -26,8 +26,9 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'https://api.github.com/gists/%s'
-  CREATE_URL = 'https://api.github.com/gists'
+  GIST_URL    = 'https://api.github.com/gists/%s'
+  CREATE_URL  = 'https://api.github.com/gists'
+  SHORTEN_URL = 'http://git.io/'
 
   if ENV['HTTPS_PROXY']
     PROXY = URI(ENV['HTTPS_PROXY'])
@@ -45,6 +46,7 @@ module Gist
     gist_filename = nil
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
+    shorten = defaults["shorten"]
     description = nil
 
     opts = OptionParser.new do |opts|
@@ -66,6 +68,10 @@ module Gist
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
         browse_enabled = o
+      end
+
+      opts.on('-s','--shorten', 'Shorten gist URL') do |s|
+        shorten = s
       end
 
       opts.on('-m', '--man', 'Print manual') do
@@ -113,7 +119,7 @@ module Gist
         files = [{:input => input, :extension => gist_extension}]
       end
 
-      url = write(files, private_gist, description)
+      url = write(files, private_gist, description, shorten)
       browse(url) if browse_enabled
       puts copy(url)
     rescue => e
@@ -123,7 +129,7 @@ module Gist
   end
 
   # Create a gist on gist.github.com
-  def write(files, private_gist = false, description = nil)
+  def write(files, private_gist = false, description = nil, shorten = false)
     url = URI.parse(CREATE_URL)
 
     if PROXY_HOST
@@ -148,10 +154,27 @@ module Gist
     response = http.start{|h| h.request(req) }
     case response
     when Net::HTTPCreated
-      JSON.parse(response.body)['html_url']
+      url = JSON.parse(response.body)['html_url']
+      if shorten
+        shorten(url)
+      else
+        url
+      end
     else
       puts "Creating gist failed: #{response.code} #{response.message}"
       exit(false)
+    end
+  end
+
+  # Given a URL, shorten it
+  def shorten(url)
+    response = Net::HTTP.post_form(URI(SHORTEN_URL), :url => url)
+    case response.code
+    when "201"
+      response['Location']
+    else
+      # If the shortener failed, just return the unshortened URL.
+      url
     end
   end
 
@@ -238,13 +261,15 @@ private
   #
   # gist.private - boolean
   # gist.extension - string
+  # gist.shorten - boolean
   def defaults
     extension = config("gist.extension")
 
     return {
       "private"   => config("gist.private"),
       "browse"    => config("gist.browse"),
-      "extension" => extension
+      "extension" => extension,
+      "shorten"   => config("gist.shorten"),
     }
   end
 
