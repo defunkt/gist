@@ -109,6 +109,7 @@ to your GitHub account if you user and passwordare provided (see
 <dt><code>-t</code>, <code>--type</code></dt><dd><p>Set the file extension explicitly. Passing a type of <code>rb</code> ensures
 the gist is created as a Ruby file.</p></dd>
 <dt><code>-d</code>, <code>--description</code></dt><dd><p>Set a description.</p></dd>
+<dt><code>-s</code>, <code>--shorten</code></dt><dd><p>Shorten the resulting gist URL using http://git.io/.</p></dd>
 <dt><code>-o</code>, <code>--[no-]open</code></dt><dd><p>Open the gist in your browser after creation. Or don't. Defaults
 to --open</p></dd>
 </dl>
@@ -146,7 +147,7 @@ $ gist ~/example</p></li>
 <pre><code>$ git config --global github.user &lt;username>
 </code></pre>
 
-<p>See <a href="http://github.com/guides/local-github-config" data-bare-link="true">http://github.com/guides/local-github-config</a> for more
+<p>See <a data-bare-link="true" href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more
 information.</p>
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
@@ -160,6 +161,8 @@ private by default</p></li>
 <li><p>gist.extension - string - Default extension for gists you create.</p></li>
 <li><p>gist.browse - boolean (yes or no) - Whether to open the gist in your
 browser after creation. Default: yes</p></li>
+<li><p>gist.shorten - boolean (yes or no) - Determines whether to shorten the
+resulting gist using http://git.io/. Default: no</p></li>
 </ul>
 
 
@@ -185,7 +188,7 @@ the quick brown fox jumps over the lazy dog
 
 <h2 id="BUGS">BUGS</h2>
 
-<p><a href="http://github.com/defunkt/gist/issues" data-bare-link="true">http://github.com/defunkt/gist/issues</a></p>
+<p><a data-bare-link="true" href="http://github.com/defunkt/gist/issues">http://github.com/defunkt/gist/issues</a></p>
 
 <h2 id="AUTHOR">AUTHOR</h2>
 
@@ -194,8 +197,8 @@ the quick brown fox jumps over the lazy dog
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
 <p><span class="man-ref">hub<span class="s">(1)</span></span>, <span class="man-ref">git<span class="s">(1)</span></span>, <span class="man-ref">git-clone<span class="s">(1)</span></span>,
-<a href="http://github.com" data-bare-link="true">http://github.com</a>,
-<a href="http://github.com/defunkt/gist" data-bare-link="true">http://github.com/defunkt/gist</a></p>
+<a data-bare-link="true" href="http://github.com">http://github.com</a>,
+<a data-bare-link="true" href="http://github.com/defunkt/gist">http://github.com/defunkt/gist</a></p>
 
 
   <ol class='man-decor man-foot man foot'>
