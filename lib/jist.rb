@@ -93,11 +93,9 @@ module Jist
     begin
       response = http(request)
       if Net::HTTPSuccess === response
-        response = on_success(response.body, options)
+        payload = on_success(response.body, options)
         if options[:shorten]
-          {'html_url' => shorten(response['html_url'])}
-        else
-          response
+          {'html_url' => shorten(payload['html_url'])}
         end
       else
         raise "Got #{response.class} from gist: #{response.body}"
