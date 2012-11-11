@@ -63,16 +63,16 @@ Usage: #{executable_name} [-o|-c] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] [-P
     options[:description] = description
   end
 
+  opts.on("-s", "--shorten", "Shorten the gist URL using git.io.") do |shorten|
+    options[:shorten] = shorten
+  end
+
   opts.on("-u", "--update [ URL | ID ]", "Update an existing gist.") do |update|
     options[:update] = update
   end
 
   opts.on("-a", "--anonymous", "Create an anonymous gist.") do
     options[:anonymous] = true
-  end
-
-  opts.on("-s", "--shorten", "Shorten the gist URL using git.io.") do |shorten|
-    options[:shorten] = shorten
   end
 
   opts.on("-t", "--token OAUTH_TOKEN", "The OAuth2 access_token to use.") do |token|
