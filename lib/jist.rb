@@ -95,8 +95,9 @@ module Jist
       if Net::HTTPSuccess === response
         payload = on_success(response.body, options)
         if options[:shorten]
-          {'html_url' => shorten(payload['html_url'])}
+          payload['html_url'] = shorten(payload['html_url'])
         end
+        payload
       else
         raise "Got #{response.class} from gist: #{response.body}"
       end
@@ -110,16 +111,16 @@ module Jist
     raise e.extend Error
   end
 
-  # Given a URL, shorten it
+  # Convert long github urls into shotr git.io ones
   #
-  # Based on https://gist.github.com/1762136
+  # @param [String] url
+  # @return [String] shortened url, or long url if shortening fails
   def shorten(url)
     response = Net::HTTP.post_form(URI("http://git.io/"), :url => url)
     case response.code
     when "201"
       response['Location']
     else
-      # If the shortener failed, just return the unshortened URL.
       url
     end
   end
