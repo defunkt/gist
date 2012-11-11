@@ -107,7 +107,7 @@ module Jist
     raise e.extend Error
   end
 
-  # Convert long github urls into shotr git.io ones
+  # Convert long github urls into short git.io ones
   #
   # @param [String] url
   # @return [String] shortened url, or long url if shortening fails
