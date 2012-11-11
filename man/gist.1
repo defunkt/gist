@@ -37,6 +37,10 @@ Set the file extension explicitly\. Passing a type of \fBrb\fR ensures the gist 
 Set a description\.
 .
 .TP
+\fB\-s\fR, \fB\-\-shorten\fR
+Shorten the resulting gist URL using http://git\.io/\.
+.
+.TP
 \fB\-o\fR, \fB\-\-[no\-]open\fR
 Open the gist in your browser after creation\. Or don\'t\. Defaults to \-\-open
 .
@@ -111,6 +115,9 @@ gist\.extension \- string \- Default extension for gists you create\.
 .
 .IP "\(bu" 4
 gist\.browse \- boolean (yes or no) \- Whether to open the gist in your browser after creation\. Default: yes
+.
+.IP "\(bu" 4
+gist\.shorten \- boolean (yes or no) \- Determines whether to shorten the resulting gist using http://git\.io/\. Default: no
 .
 .IP "" 0
 .

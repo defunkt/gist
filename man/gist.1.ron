@@ -38,6 +38,9 @@ These options can be used to change this behavior:
   * `-d`, `--description`:
     Set a description.
 
+  * `-s`, `--shorten`:
+    Shorten the resulting gist URL using http://git.io/.
+
   * `-o`, `--[no-]open`:
     Open the gist in your browser after creation. Or don't. Defaults
     to --open
@@ -85,6 +88,9 @@ control the default behavior of gist(1).
 
 * gist.browse - boolean (yes or no) - Whether to open the gist in your
   browser after creation. Default: yes
+
+* gist.shorten - boolean (yes or no) - Determines whether to shorten the
+  resulting gist using http://git.io/. Default: no
 
 ## ENVIRONMENT
 

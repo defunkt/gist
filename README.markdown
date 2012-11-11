@@ -97,6 +97,9 @@ control the default behavior of gist(1).
 * gist.browse - boolean (yes or no) - Whether to open the gist in your
   browser after creation. Default: yes
 
+* gist.shorten - boolean (yes or no) - Determines whether to shorten the
+  resulting gist using http://git.io/. Default: no
+
 Proxies
 -------
 
