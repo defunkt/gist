@@ -10,7 +10,6 @@ RSpec.configure do |config|
   config.filter_run :focus
 end
 
-require 'extensions/all'
 require 'webmock/rspec'
 require_relative '../lib/jist'
 

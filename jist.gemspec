@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.executables << 'jist'
 
   s.add_dependency 'json'
-  %w(rake rspec).each do |gem|
+  %w(rake rspec webmock).each do |gem|
     s.add_development_dependency gem
   end
 end
