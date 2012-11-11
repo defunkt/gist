@@ -93,11 +93,7 @@ module Jist
     begin
       response = http(request)
       if Net::HTTPSuccess === response
-        payload = on_success(response.body, options)
-        if options[:shorten]
-          payload['html_url'] = shorten(payload['html_url'])
-        end
-        payload
+        on_success(response.body, options)
       else
         raise "Got #{response.class} from gist: #{response.body}"
       end
@@ -208,6 +204,7 @@ module Jist
   def on_success(body, options={})
     json = JSON.parse(body)
 
+    json['html_url'] = shorten(json['html_url']) if options[:shorten]
     Jist.copy(json['html_url']) if options[:copy]
     Jist.open(json['html_url']) if options[:open]
 
