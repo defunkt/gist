@@ -112,7 +112,9 @@ module Jist
   # @param [String] url
   # @return [String] shortened url, or long url if shortening fails
   def shorten(url)
-    response = Net::HTTP.post_form(URI("http://git.io/"), :url => url)
+    request = Net::HTTP::Post.new("/")
+    request.set_form_data(:url => url)
+    response = http(request, :host => 'git.io', :port => 80)
     case response.code
     when "201"
       response['Location']
@@ -166,18 +168,21 @@ module Jist
 
   # Return HTTP connection
   #
+  # @param [Hash] options  any options
   # @return [Net::HTTP]
-  def http_connection
+  def http_connection(options)
     env = ENV['http_proxy'] || ENV['HTTP_PROXY']
     connection = if env
                    uri = URI(env)
                    proxy_host, proxy_port = uri.host, uri.port
-                   Net::HTTP::Proxy(proxy_host, proxy_port).new("api.github.com", 443)
+                   Net::HTTP::Proxy(proxy_host, proxy_port).new(options[:host], options[:port])
                  else
-                   Net::HTTP.new("api.github.com", 443)
+                   Net::HTTP.new(options[:host], options[:port])
                  end
-    connection.use_ssl = true
-    connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    if options[:port] == 443
+      connection.use_ssl = true
+      connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
     connection.open_timeout = 10
     connection.read_timeout = 10
     connection
@@ -185,10 +190,10 @@ module Jist
 
   # Run an HTTP operation against api.github.com
   #
-  # @param [Net::HTTPRequest] request
+  # @param [Hash] options  any options
   # @return [Net::HTTPResponse]
-  def http(request)
-    http_connection().start do |http|
+  def http(request, options={:host => 'api.github.com', :port => 443})
+    http_connection(options).start do |http|
       http.request request
     end
   rescue Timeout::Error
