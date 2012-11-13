@@ -1,6 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'json'
+require 'uri'
 
 # It just gists.
 module Jist
@@ -15,6 +16,9 @@ module Jist
     'pbcopy'  => 'pbpaste',
     'putclip' => 'getclip'
   }
+
+  GITHUB_API_URL = URI("https://api.github.com/")
+  GIT_IO_URL     = URI("http://git.io")
 
   # Exception tag for errors raised while gisting.
   module Error; end
@@ -91,7 +95,7 @@ module Jist
     retried = false
 
     begin
-      response = http(request)
+      response = http(GITHUB_API_URL, request)
       if Net::HTTPSuccess === response
         on_success(response.body, options)
       else
@@ -114,7 +118,7 @@ module Jist
   def shorten(url)
     request = Net::HTTP::Post.new("/")
     request.set_form_data(:url => url)
-    response = http(request, :host => 'git.io', :port => 80)
+    response = http(GIT_IO_URL, request)
     case response.code
     when "201"
       response['Location']
@@ -152,7 +156,7 @@ module Jist
     request.content_type = 'application/json'
     request.basic_auth(username, password)
 
-    response = http(request)
+    response = http(GITHUB_API_URL, request)
 
     if Net::HTTPCreated === response
       File.open(File.expand_path("~/.jist"), 'w') do |f|
@@ -168,18 +172,17 @@ module Jist
 
   # Return HTTP connection
   #
-  # @param [Hash] options  any options
+  # @param [URI::HTTP] The URI to which to connect
   # @return [Net::HTTP]
-  def http_connection(options)
+  def http_connection(uri)
     env = ENV['http_proxy'] || ENV['HTTP_PROXY']
     connection = if env
-                   uri = URI(env)
-                   proxy_host, proxy_port = uri.host, uri.port
-                   Net::HTTP::Proxy(proxy_host, proxy_port).new(options[:host], options[:port])
+                   proxy = URI(env)
+                   Net::HTTP::Proxy(proxy.host, proxy.port).new(uri.host, uri.port)
                  else
-                   Net::HTTP.new(options[:host], options[:port])
+                   Net::HTTP.new(uri.host, uri.port)
                  end
-    if options[:port] == 443
+    if uri.scheme == "https"
       connection.use_ssl = true
       connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
     end
@@ -188,12 +191,13 @@ module Jist
     connection
   end
 
-  # Run an HTTP operation against api.github.com
+  # Run an HTTP operation
   #
-  # @param [Hash] options  any options
+  # @param [URI::HTTP] The URI to which to connect
+  # @param [Net::HTTPRequest] The request to make
   # @return [Net::HTTPResponse]
-  def http(request, options={:host => 'api.github.com', :port => 443})
-    http_connection(options).start do |http|
+  def http(url, request)
+    http_connection(url).start do |http|
       http.request request
     end
   rescue Timeout::Error
