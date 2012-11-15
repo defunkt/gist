@@ -80,7 +80,7 @@ password from an item named "github.password" on the Mac OS
 Keychain:
 
 ```bash
-password = !security 2>&1 >/dev/null find-generic-password -gs github.password -w | tr -d '\n'
+password = !security find-generic-password -gs github.password -w | tr -d '\n'
 ```
 
 Defaults
