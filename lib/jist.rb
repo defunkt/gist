@@ -7,7 +7,7 @@ require 'uri'
 module Jist
   extend self
 
-  VERSION = '1.2.0'
+  VERSION = '1.3.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -22,6 +22,7 @@ module Jist
 
   # Exception tag for errors raised while gisting.
   module Error; end
+  class ClipboardError < RuntimeError; include Error end
 
   # Upload a gist to https://gist.github.com
   #
@@ -223,19 +224,19 @@ module Jist
   # Copy a string to the clipboard.
   #
   # @param [String] content
-  # @raise [RuntimeError] if no clipboard integration could be found
+  # @raise [Jist::Error] if no clipboard integration could be found
   #
-  # This method was heavily inspired by defunkt's Gist#copy,
-  # @see https://github.com/defunkt/gist/blob/bca9b29/lib/gist.rb#L178
   def copy(content)
     IO.popen(clipboard_command(:copy), 'r+') { |clip| clip.print content }
-    raise "Copying to clipboard failed" unless paste == content
+    raise Error, 'Copying to clipboard failed.' unless paste == content
+  rescue Error => e
+    raise ClipboardError, e.message + "\nAttempted to copy: #{content}"
   end
 
   # Get a string from the clipboard.
   #
   # @param [String] content
-  # @raise [RuntimeError] if no clipboard integration could be found
+  # @raise [Jist::Error] if no clipboard integration could be found
   def paste
     `#{clipboard_command(:paste)}`
   end
@@ -261,12 +262,15 @@ module Jist
   #
   # @param [Symbol] action  either :copy or :paste
   # @return [String]  the command to run
-  # @raise [RuntimeError] if no clipboard integration could be found
+  # @raise [Jist::ClipboardError] if no clipboard integration could be found
   def clipboard_command(action)
     command = CLIPBOARD_COMMANDS.keys.detect do |cmd|
       which cmd
     end
-    raise "Could not find copy command, tried: #{CLIPBOARD_COMMANDS}" unless command
+    raise ClipboardError, <<-EOT unless command
+Could not find copy command, tried:
+    #{CLIPBOARD_COMMANDS.values.join(' || ')}
+    EOT
     action == :copy ? command : CLIPBOARD_COMMANDS[command]
   end
 

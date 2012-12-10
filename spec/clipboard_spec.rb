@@ -29,6 +29,6 @@ describe '...' do
     ENV['PATH'] = ''
     lambda{
       ask_for_copy
-    }.should raise_error(/Could not find copy command/)
+    }.should raise_error(/Could not find copy command.*http/m)
   end
 end
