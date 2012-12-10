@@ -287,7 +287,13 @@ Could not find copy command, tried:
               elsif RUBY_PLATFORM =~ /darwin/
                 'open'
               elsif RUBY_PLATFORM =~ /linux/
-                'sensible-browser'
+                %w(
+                  sensible-browser
+                  firefox
+                  firefox-bin
+                ).detect do |cmd|
+                  which cmd
+                end
               elsif ENV['OS'] == 'Windows_NT' || RUBY_PLATFORM =~ /djgpp|(cyg|ms|bcc)win|mingw|wince/i
                 'start ""'
               else
