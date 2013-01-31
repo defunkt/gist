@@ -1264,7 +1264,7 @@ module Gist
     cmd = case true
     when system("type pbcopy > /dev/null 2>&1")
       :pbcopy
-    when system("type xclip > /dev/null 2>&1")
+    when system("type xclip > /dev/null 2>&1") && !ENV['DISPLAY'].empty?
       :xclip
     when system("type putclip > /dev/null 2>&1")
       :putclip
