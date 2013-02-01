@@ -76,8 +76,16 @@ git config --global github.password "your-github-password"
 You can also define github.password to be a command which returns the
 actual password on stdout by setting the variable to a command string
 prefixed with `!`. For example, the following command fetches the
-password from an item named "github.password" on the Mac OS
-Keychain:
+password from the Mac OS Keychain entry for the GitHub website (if you
+allow your browser to save passwords):
+
+```bash
+password = !security find-internet-password -u <your github username> -s github.com -w | tr -d '\n'
+```
+
+If you don't allow your browser to save passwords, you can use the following
+to fetch the password from a Keychain entry named "github.password" (you'll
+also need to create the Keychain entry):
 
 ```bash
 password = !security find-generic-password -gs github.password -w | tr -d '\n'
