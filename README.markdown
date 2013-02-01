@@ -80,7 +80,7 @@ password from the Mac OS Keychain entry for the GitHub website (if you
 allow your browser to save passwords):
 
 ```bash
-password = !security find-internet-password -u <your github username> -s github.com -w | tr -d '\n'
+password = !security find-internet-password -a <your github username> -s github.com -w | tr -d '\n'
 ```
 
 If you don't allow your browser to save passwords, you can use the following
