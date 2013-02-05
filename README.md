@@ -28,6 +28,12 @@ $ jist a.rb
 https://gist.github.com/0d07bc98c139810a4075
 ```
 
+Upload multiple files : 
+```shell
+$ jist a b c
+$ jist *.rb
+```
+
 By default it reads from STDIN, and you can set a filename with `-f`.
 
 ```shell
