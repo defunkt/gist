@@ -46,6 +46,7 @@ module Gist
     gist_extension = defaults["extension"]
     browse_enabled = defaults["browse"]
     description = nil
+    embed_enabled = nil
 
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -66,6 +67,10 @@ module Gist
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
         browse_enabled = o
+      end
+
+      opts.on('-e', '--embed', 'Print javascript embed code') do |o|
+        embed_enabled = o
       end
 
       opts.on('-m', '--man', 'Print manual') do
@@ -115,11 +120,17 @@ module Gist
 
       url = write(files, private_gist, description)
       browse(url) if browse_enabled
-      puts copy(url)
+      puts copy(to_embed(url)) if embed_enabled
+      puts copy(url) unless embed_enabled
     rescue => e
       warn e
       puts opts
     end
+  end
+
+  # Create a javascript embed code
+  def to_embed(url)
+    %Q[<script src="#{url}.js"></script>]
   end
 
   # Create a gist on gist.github.com
