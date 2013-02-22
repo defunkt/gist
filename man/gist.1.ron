@@ -28,8 +28,18 @@ to your GitHub account if you user and passwordare provided (see
 
 These options can be used to change this behavior:
 
-  * `-p`, `--private`:
+  * `-a`, `--api-url`:
+    Set the specific API Provider URL to use for requests. If you have
+    multiple API Providers listed in your git-config, using this option
+    is an effective way of pre-selecting the provider you wish to use.
+
+  * `-p`, `--[no-]private`:
     Create a private gist instead of a public gist.
+
+  * `-s`, `--setup-credentials`:
+    Generates git-config sections for the API Provider and stores
+    the user's credentials in it after verifying them with the
+    Provider.
 
   * `-t`, `--type`:
     Set the file extension explicitly. Passing a type of `rb` ensures
@@ -42,6 +52,9 @@ These options can be used to change this behavior:
     Open the gist in your browser after creation. Or don't. Defaults
     to --open
 
+  * `-e`, `--embed`:
+    Prints javascript embed code for the newly created gist.
+
 You may additionally ask for help:
 
   * `-h`, `--help`:
@@ -50,15 +63,30 @@ You may additionally ask for help:
   * `-m`, `--man`:
     Display this man page.
 
+## PROVIDERS
+
+Gist supports multiple API Providers, or API Endpoints. An example where
+this might be necessary is where you have an internal Github Enterprise
+server for your company, and you also use github.com.
+
+You can specify each provider as a series of api-url's in the gist section
+your git-config file.
+
+When you run gist with multiple providers specified, gist will ask you to
+select an API Provider when you attempt to gist a file. You can force the
+selection ahead of time by passing the --api-url command line option with
+the api-url you wish to use. This is handy when you are piping (or
+redirecting) content directly into gist.
+
 ## AUTHENTICATION
 
-There are two ways to set GitHub user and password info:
+There are three ways to set GitHub user and password info:
 
   * Using environment vars GITHUB_USER and GITHUB_PASSWORD
 
-    $ export GITHUB_USER=johndoe  
-    $ export GITHUB_PASSWORD=mysecretgithubpassword  
-    $ gist ~/example  
+    $ export GITHUB_USER=johndoe
+    $ export GITHUB_PASSWORD=mysecretgithubpassword
+    $ gist ~/example
 
   * Using git-config(1)
 
@@ -70,6 +98,10 @@ Or, set the GitHub username with:
 
     $ git config --global github.user <username>
 
+Lastly, via gist itself:
+
+    $ gist --setup-credentials
+
 See <http://github.com/guides/local-github-config> for more
 information.
 
@@ -78,6 +110,10 @@ information.
 You can set a few options in your git config (using git-config(1)) to
 control the default behavior of gist(1).
 
+* gist.api-url - string|multival - The base API URL for a provider with
+  multiple values being valid. Defaults to github, pre-added to your
+  git-config for you on first run.
+
 * gist.private - boolean (yes or no) - Determines whether to make a gist
   private by default
 
@@ -85,6 +121,12 @@ control the default behavior of gist(1).
 
 * gist.browse - boolean (yes or no) - Whether to open the gist in your
   browser after creation. Default: yes
+
+Additionally, gist looks for provider specific options under each provider
+section in your git-config. In particular:
+
+* <provider>.login-required - boolean (true or false) - Whether or not
+authentication is required for the given provider.
 
 ## ENVIRONMENT
 
@@ -98,6 +140,7 @@ The following environment variables affect the execution of `gist`:
     $ echo secret | gist --private
     $ echo "puts :hi" | gist -t rb
     $ gist script.py
+    $ echo secret | gist --api-url http://git.acme.com/api/v3 --private
     $ gist -
     the quick brown fox jumps over the lazy dog
     ^D

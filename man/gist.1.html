@@ -57,6 +57,7 @@
     <a href="#SYNOPSIS">SYNOPSIS</a>
     <a href="#DESCRIPTION">DESCRIPTION</a>
     <a href="#OPTIONS">OPTIONS</a>
+    <a href="#PROVIDERS">PROVIDERS</a>
     <a href="#AUTHENTICATION">AUTHENTICATION</a>
     <a href="#CONFIGURATION">CONFIGURATION</a>
     <a href="#ENVIRONMENT">ENVIRONMENT</a>
@@ -105,12 +106,19 @@ to your GitHub account if you user and passwordare provided (see
 <p>These options can be used to change this behavior:</p>
 
 <dl>
-<dt><code>-p</code>, <code>--private</code></dt><dd><p>Create a private gist instead of a public gist.</p></dd>
+<dt><code>-a</code>, <code>--api-url</code></dt><dd><p>Set the specific API Provider URL to use for requests. If you have
+multiple API Providers listed in your git-config, using this option
+is an effective way of pre-selecting the provider you wish to use.</p></dd>
+<dt><code>-p</code>, <code>--[no-]private</code></dt><dd><p>Create a private gist instead of a public gist.</p></dd>
+<dt><code>-s</code>, <code>--setup-credentials</code></dt><dd><p>Generates git-config sections for the API Provider and stores
+the user's credentials in it after verifying them with the
+Provider.</p></dd>
 <dt><code>-t</code>, <code>--type</code></dt><dd><p>Set the file extension explicitly. Passing a type of <code>rb</code> ensures
 the gist is created as a Ruby file.</p></dd>
 <dt><code>-d</code>, <code>--description</code></dt><dd><p>Set a description.</p></dd>
 <dt><code>-o</code>, <code>--[no-]open</code></dt><dd><p>Open the gist in your browser after creation. Or don't. Defaults
 to --open</p></dd>
+<dt><code>-e</code>, <code>--embed</code></dt><dd><p>Prints javascript embed code for the newly created gist.</p></dd>
 </dl>
 
 
@@ -122,15 +130,30 @@ to --open</p></dd>
 </dl>
 
 
+<h2 id="PROVIDERS">PROVIDERS</h2>
+
+<p>Gist supports multiple API Providers, or API Endpoints. An example where
+this might be necessary is where you have an internal Github Enterprise
+server for your company, and you also use github.com.</p>
+
+<p>You can specify each provider as a series of api-url's in the gist section
+your git-config file.</p>
+
+<p>When you run gist with multiple providers specified, gist will ask you to
+select an API Provider when you attempt to gist a file. You can force the
+selection ahead of time by passing the --api-url command line option with
+the api-url you wish to use. This is handy when you are piping (or
+redirecting) content directly into gist.</p>
+
 <h2 id="AUTHENTICATION">AUTHENTICATION</h2>
 
-<p>There are two ways to set GitHub user and password info:</p>
+<p>There are three ways to set GitHub user and password info:</p>
 
 <ul>
 <li><p>Using environment vars GITHUB_USER and GITHUB_PASSWORD</p>
 
-<p>$ export GITHUB_USER=johndoe<br />
-$ export GITHUB_PASSWORD=mysecretgithubpassword<br />
+<p>$ export GITHUB_USER=johndoe
+$ export GITHUB_PASSWORD=mysecretgithubpassword
 $ gist ~/example</p></li>
 <li><p>Using <span class="man-ref">git-config<span class="s">(1)</span></span></p></li>
 </ul>
@@ -146,6 +169,11 @@ $ gist ~/example</p></li>
 <pre><code>$ git config --global github.user &lt;username>
 </code></pre>
 
+<p>Lastly, via gist itself:</p>
+
+<pre><code>$ gist --setup-credentials
+</code></pre>
+
 <p>See <a href="http://github.com/guides/local-github-config" data-bare-link="true">http://github.com/guides/local-github-config</a> for more
 information.</p>
 
@@ -155,11 +183,23 @@ information.</p>
 control the default behavior of <a class="man-ref" href="gist.1.ron.html">gist<span class="s">(1)</span></a>.</p>
 
 <ul>
+<li><p>gist.api-url - string|multival - The base API URL for a provider with
+multiple values being valid. Defaults to github, pre-added to your
+git-config for you on first run.</p></li>
 <li><p>gist.private - boolean (yes or no) - Determines whether to make a gist
 private by default</p></li>
 <li><p>gist.extension - string - Default extension for gists you create.</p></li>
 <li><p>gist.browse - boolean (yes or no) - Whether to open the gist in your
 browser after creation. Default: yes</p></li>
+</ul>
+
+
+<p>Additionally, gist looks for provider specific options under each provider
+section in your git-config. In particular:</p>
+
+<ul>
+<li><var>provider</var>.login-required - boolean (true or false) - Whether or not
+authentication is required for the given provider.</li>
 </ul>
 
 
@@ -178,6 +218,7 @@ browser after creation. Default: yes</p></li>
 $ echo secret | gist --private
 $ echo "puts :hi" | gist -t rb
 $ gist script.py
+$ echo secret | gist --api-url http://git.acme.com/api/v3 --private
 $ gist -
 the quick brown fox jumps over the lazy dog
 ^D

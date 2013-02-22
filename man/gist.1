@@ -25,8 +25,16 @@ Once your gist is successfully created, the URL will be copied to your clipboard
 These options can be used to change this behavior:
 .
 .TP
-\fB\-p\fR, \fB\-\-private\fR
+\fB\-a\fR, \fB\-\-api\-url\fR
+Set the specific API Provider URL to use for requests\. If you have multiple API Providers listed in your git\-config, using this option is an effective way of pre\-selecting the provider you wish to use\.
+.
+.TP
+\fB\-p\fR, \fB\-\-[no\-]private\fR
 Create a private gist instead of a public gist\.
+.
+.TP
+\fB\-s\fR, \fB\-\-setup\-credentials\fR
+Generates git\-config sections for the API Provider and stores the user\'s credentials in it after verifying them with the Provider\.
 .
 .TP
 \fB\-t\fR, \fB\-\-type\fR
@@ -40,6 +48,10 @@ Set a description\.
 \fB\-o\fR, \fB\-\-[no\-]open\fR
 Open the gist in your browser after creation\. Or don\'t\. Defaults to \-\-open
 .
+.TP
+\fB\-e\fR, \fB\-\-embed\fR
+Prints javascript embed code for the newly created gist\.
+.
 .P
 You may additionally ask for help:
 .
@@ -51,20 +63,23 @@ Print help\.
 \fB\-m\fR, \fB\-\-man\fR
 Display this man page\.
 .
+.SH "PROVIDERS"
+Gist supports multiple API Providers, or API Endpoints\. An example where this might be necessary is where you have an internal Github Enterprise server for your company, and you also use github\.com\.
+.
+.P
+You can specify each provider as a series of api\-url\'s in the gist section your git\-config file\.
+.
+.P
+When you run gist with multiple providers specified, gist will ask you to select an API Provider when you attempt to gist a file\. You can force the selection ahead of time by passing the \-\-api\-url command line option with the api\-url you wish to use\. This is handy when you are piping (or redirecting) content directly into gist\.
+.
 .SH "AUTHENTICATION"
-There are two ways to set GitHub user and password info:
+There are three ways to set GitHub user and password info:
 .
 .IP "\(bu" 4
 Using environment vars GITHUB_USER and GITHUB_PASSWORD
 .
 .IP
-$ export GITHUB_USER=johndoe
-.
-.br
-$ export GITHUB_PASSWORD=mysecretgithubpassword
-.
-.br
-$ gist ~/example
+$ export GITHUB_USER=johndoe $ export GITHUB_PASSWORD=mysecretgithubpassword $ gist ~/example
 .
 .IP "\(bu" 4
 Using git\-config(1)
@@ -98,10 +113,26 @@ $ git config \-\-global github\.user <username>
 .IP "" 0
 .
 .P
+Lastly, via gist itself:
+.
+.IP "" 4
+.
+.nf
+
+$ gist \-\-setup\-credentials
+.
+.fi
+.
+.IP "" 0
+.
+.P
 See \fIhttp://github\.com/guides/local\-github\-config\fR for more information\.
 .
 .SH "CONFIGURATION"
 You can set a few options in your git config (using git\-config(1)) to control the default behavior of gist(1)\.
+.
+.IP "\(bu" 4
+gist\.api\-url \- string|multival \- The base API URL for a provider with multiple values being valid\. Defaults to github, pre\-added to your git\-config for you on first run\.
 .
 .IP "\(bu" 4
 gist\.private \- boolean (yes or no) \- Determines whether to make a gist private by default
@@ -111,6 +142,14 @@ gist\.extension \- string \- Default extension for gists you create\.
 .
 .IP "\(bu" 4
 gist\.browse \- boolean (yes or no) \- Whether to open the gist in your browser after creation\. Default: yes
+.
+.IP "" 0
+.
+.P
+Additionally, gist looks for provider specific options under each provider section in your git\-config\. In particular:
+.
+.IP "\(bu" 4
+\fIprovider\fR\.login\-required \- boolean (true or false) \- Whether or not authentication is required for the given provider\.
 .
 .IP "" 0
 .
@@ -130,6 +169,7 @@ $ gist < file\.txt
 $ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
 $ gist script\.py
+$ echo secret | gist \-\-api\-url http://git\.acme\.com/api/v3 \-\-private
 $ gist \-
 the quick brown fox jumps over the lazy dog
 ^D

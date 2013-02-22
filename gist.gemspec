@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.date              = Time.now.strftime('%Y-%m-%d')
   s.summary           = "Creates Gists from STDIN or files."
   s.homepage          = "http://github.com/defunkt/gist"
-  s.email             = "andre@arko.net"
-  s.authors           = [ "Chris Wanstrath", "André Arko" ]
+  s.email             = [ "chris@github.com", "andre@arko.net", "rabbitt@gmail.com" ]
+  s.authors           = [ "Chris Wanstrath", "André Arko", 'Carl P. Corliss' ]
   s.has_rdoc          = false
 
   s.files             = %w( README.markdown Rakefile LICENSE )
@@ -18,6 +18,8 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
   s.files            += Dir.glob("public/**/*")
+
+  s.add_dependency('highline', '~> 1.6.15')
 
   s.executables       = %w( gist )
   s.description       = <<desc

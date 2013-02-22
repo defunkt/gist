@@ -1106,13 +1106,16 @@ module Gist
   end
 end
 module Gist
-  VERSION = Version = '3.1.0'
+  VERSION = Version = '3.2.0'
 end
 require 'open-uri'
 require 'net/https'
 require 'optparse'
+require 'ostruct'
 
 require 'base64'
+
+require 'highline/import'
 
 require 'gist/json'    unless defined?(JSON)
 require 'gist/manpage' unless defined?(Gist::Manpage)
@@ -1121,8 +1124,8 @@ require 'gist/version' unless defined?(Gist::Version)
 module Gist
   extend self
 
-  GIST_URL   = 'https://api.github.com/gists/%s'
-  CREATE_URL = 'https://api.github.com/gists'
+  DEFAULT_GITHUB_API_BASE_URL   = 'https://api.github.com'
+  DEFAULT_CREDENTIAL_CONFIG_KEY = 'github'
 
   if ENV['HTTPS_PROXY']
     PROXY = URI(ENV['HTTPS_PROXY'])
@@ -1134,37 +1137,55 @@ module Gist
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
 
-  def execute(*args)
-    private_gist = defaults["private"]
-    gist_filename = nil
-    gist_extension = defaults["extension"]
-    browse_enabled = defaults["browse"]
-    description = nil
-    embed_enabled = nil
+  def options()
+    @options ||= OpenStruct.new({
+      :gist_api_url      => nil,
+      :gist_extension    => defaults["extension"],
+      :private_gist      => defaults["private"],
+      :browse_enabled    => defaults["browse"],
+      :embed_enabled     => nil,
+      :description       => nil,
+      :setup_credentials => false
+    })
+  end
 
-    opts = OptionParser.new do |opts|
+  def option_parser()
+    @option_parser ||= OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
         "Filename '-' forces gist to read from stdin."
 
+      opts.on('-a', '--api-url URL', 'API URL to connect to') do |url|
+        options.gist_api_url = url
+      end
+
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
-        private_gist = priv
+        options.private_gist = priv
       end
 
       t_desc = 'Set syntax highlighting of the Gist by file extension'
       opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
-        gist_extension = '.' + extension
+        options.gist_extension = '.' + extension
       end
 
       opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
-        description = d
+        options.description = d
+      end
+
+      opts.on('-s', '--setup-credentials', 'Setup API Provider credentials') do
+        if not $stdin.tty?
+          $stderr.puts "STDIN must be a TTY to generate an API Provider Token. Please run again without any pipes or redirections."
+          exit 1
+        end
+
+        options.setup_credentials = true
       end
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
-        browse_enabled = o
+        options.browse_enabled = o
       end
 
       opts.on('-e', '--embed', 'Print javascript embed code') do |o|
-        embed_enabled = o
+        options.embed_enabled = o
       end
 
       opts.on('-m', '--man', 'Print manual') do
@@ -1172,49 +1193,60 @@ module Gist
       end
 
       opts.on('-v', '--version', 'Print version') do
-        puts Gist::Version
+        $stderr.puts Gist::Version
         exit
       end
 
       opts.on('-h', '--help', 'Display this screen') do
-        puts opts
-        exit
+        $stderr.puts opts
+        exit 1
       end
     end
+  end
+
+  def usage()
+    $stderr.puts option_parser
+    exit 1
+  end
+
+  def execute(*args)
+    set_config('gist.api-url', DEFAULT_GITHUB_API_BASE_URL) if !config('gist.api-url')
 
     begin
+      option_parser.parse!(args)
 
-      opts.parse!(args)
-
-      if $stdin.tty? && args[0] != '-'
-
-        if args.empty?
-          puts opts
-          exit
-        end
-
-        files = args.inject([]) do |files, file|
-          abort "Can't find #{file}" unless File.exists?(file)
-
-          files.push({
-            :input     => File.read(file),
-            :filename  => file,
-            :extension => (File.extname(file) if file.include?('.'))
-          })
-        end
-
-      else
-        input = $stdin.read
-        files = [{:input => input, :extension => gist_extension}]
+      if $stdin.tty? && options.setup_credentials
+        api_url # make sure API URL selection happens, if need be
+        setup_credentials
+        exit 1
       end
 
-      url = write(files, private_gist, description)
-      browse(url) if browse_enabled
-      puts copy(to_embed(url)) if embed_enabled
-      puts copy(url) unless embed_enabled
-    rescue => e
+      if $stdin.tty? && args[0] != '-'
+        usage if args.empty?
+
+        files = args.inject([]) { |list, file|
+          abort "Can't find #{file}" unless File.exists?(file)
+
+          list.push({
+            :input     => File.read(file),
+            :filename  => file,
+            :extension => file.include?('.') ? File.extname(file) : options.gist_extension
+          })
+        }
+      else
+        input = $stdin.read
+        files = [{:input => input, :extension => options.gist_extension}]
+      end
+
+      url = write(files, options.private_gist, options.description)
+      browse(url) if options.browse_enabled
+      $stdout.puts copy(to_embed(url)) if options.embed_enabled
+      $stdout.puts copy(url) unless options.embed_enabled
+    rescue Interrupt
+      $stderr.puts "\nQuit."
+      exit 1
+    rescue StandardError => e
       warn e
-      puts opts
     end
   end
 
@@ -1222,8 +1254,10 @@ module Gist
     %Q[<script src="#{url}.js"></script>]
   end
 
-  def write(files, private_gist = false, description = nil)
-    url = URI.parse(CREATE_URL)
+  def request(url)
+    raise ArgumentError, "Missing required block" unless block_given?
+
+    url = URI.parse(url) unless url.kind_of? URI
 
     if PROXY_HOST
       proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
@@ -1234,29 +1268,45 @@ module Gist
 
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ca_file = ca_cert
 
-    req = Net::HTTP::Post.new(url.path)
-    req.body = JSON.generate(data(files, private_gist, description))
-
-    user, password = auth()
-    if user && password
-      req.basic_auth(user, password)
+    if url.host == URI.parse(DEFAULT_GITHUB_API_BASE_URL).host
+      http.ca_file = ca_cert
     end
 
-    response = http.start{|h| h.request(req) }
+    request = yield url
+    authenticate(request) if request['Authorization'].nil?
+
+    http.start{|h| h.request(request) }
+  end
+
+  def write(files, private_gist = false, description = nil)
+    response = request(create_url) do |url|
+      Net::HTTP::Post.new(url.path).tap {|req|
+        req.body = JSON.generate(data(files, private_gist, description))
+      }
+    end
+
     case response
-    when Net::HTTPCreated
-      JSON.parse(response.body)['html_url']
-    else
-      puts "Creating gist failed: #{response.code} #{response.message}"
-      exit(false)
+      when Net::HTTPUnauthorized
+        $stderr.puts "Invalid credentials connecting to #{api_url}"
+        false
+      when Net::HTTPCreated, Net::HTTPOK
+        JSON.parse(response.body)['html_url']
+      else
+        raise StandardError, "#{response.code} #{response.message}"
     end
   end
 
   def read(gist_id)
-    data = JSON.parse(open(GIST_URL % gist_id).read)
-    data["files"].map{|name, content| content['content'] }.join("\n\n")
+    response = request(gist_url % gist_id) { |url| Net::HTTP::Get.new(url.path) }
+    case response
+      when Net::HTTPOK
+        data = JSON.parse(response.body)
+        data['files'].map{|name, content| content['content'] }.join("\n\n")
+      else
+        warn "#{response.code}: #{response.message}"
+        nil
+    end
   end
 
   def browse(url)
@@ -1303,37 +1353,214 @@ private
     data
   end
 
-  def auth
-    user  = config("github.user")
-    password = config("github.password")
+  def _auth_loop_request(url)
+    begin
+      $stdout.puts "Enter your credentials (Control-C to quit)."
+      user = ask("Enter username for #{api_url}: ")
+      pass = ask("Enter password for #{api_url}: ") { |q| q.echo = '*' }
 
-    token = config("github.token")
-    if password.to_s.empty? && !token.to_s.empty?
-      abort "Please set GITHUB_PASSWORD or github.password instead of using a token."
-    end
+      response = request(url) do |u|
+        yield(u).tap {|request| request.basic_auth(user, pass) }
+      end
 
-    if user.to_s.empty? || password.to_s.empty?
-      nil
+      break if response.kind_of? Net::HTTPOK
+      $stderr.puts "Authentication failed: #{response.code} #{response.message}"
+    end while true
+
+    [user, pass, response ]
+  end
+
+  def yes?(prompt)
+    begin
+      answer = ask("#{prompt} [y/n]: ") { |q| q.limit = 1; q.case = :downcase }
+    end until %w(y n).include? answer
+    answer == 'y'
+  end
+
+  def authenticate(request)
+    return unless request['Authorization'].nil?
+
+    confkey = credential_config_key
+
+    token   = config("#{confkey}.token")
+    user    = config("#{confkey}.user")
+    pass    = config("#{confkey}.password")
+
+    if token
+      request['Authorization'] = "token #{token}"
+    elsif user
+      begin
+        if $stdin.tty?
+          pass = ask("Enter your password for #{api_url}: ") { |q| q.echo = '*' } if !pass
+        else
+          $stderr.puts "STDIN not a TTY - cannot query for missing password."
+          $stderr.puts "Please add #{confkey}.password or #{confkey}.token to your gitconfig"
+          exit 1
+        end
+      rescue Interrupt
+        warn "attempting connection without authorization.."
+        return
+      end
+      request.basic_auth(user, pass)
     else
-      [ user, password ]
+      $stderr.puts "No currently configured username/password or token set for this API Provider."
+      exit 1 unless $stdin.tty? && setup_credentials
+      authenticate(request)
     end
+  end
+
+  def setup_credentials
+    unless yes?('Would you like to configure and store your credentials?')
+      $stderr.puts "Unable to proceed without credentials"
+      exit 1
+    end
+
+    begin
+      choice = choose do |menu|
+        menu.prompt = 'Which type of credentials would you like to set up? '
+        menu.choices(:password, :token, :none)
+      end.to_sym
+    end until [:password, :token, :none].include? choice
+
+    if choice == :password
+      setup_password_credentials
+    elsif choice == :token
+      setup_token_credentials
+    else
+      return false
+    end
+  rescue StandardError => e
+    warn e
+    false
+  end
+
+  def setup_password_credentials
+    config_key = credential_config_key
+
+    if config("#{config_key}.user") && config("#{config_key}.password")
+      $stderr.puts "Password credentials already configured for API Provider #{api_url}"
+      unless yes?('Would you like to reconfigure the password for this provider?')
+        $stderr.puts 'Nothing to do.'
+        exit 1
+      end
+    end
+
+    username, password, response = _auth_loop_request("#{api_url}/user") { |url|
+      Net::HTTP::Head.new(url.path)
+    }
+
+    case response
+      when Net::HTTPOK
+        $stdout.puts "Storing username/password credentials for API Provider #{api_url} with key #{config_key}"
+        store_config_credentials(username, :password => password)
+      else
+        $stderr.puts "Failed to acquire credentials: #{response.code}: #{response.message}"
+    end
+    nil
+  end
+
+  def setup_token_credentials
+    config_key         = credential_config_key
+
+    if config("#{config_key}.token")
+      $stderr.puts "Token credentials already configured for API Provider #{api_url}"
+      unless yes?('Would you like to reconfigure the token for this provider?')
+        $stderr.puts 'Nothing to do.'
+        exit 1
+      end
+    end
+
+    token_request_body = {:scopes => %w(repo user gist), :note   => "General oauth"}
+
+    username, _, response = _auth_loop_request("#{api_url}/authorizations") do |url|
+      Net::HTTP::Get.new(url.path).tap {|request|
+        request.body = JSON.generate(token_request_body)
+      }
+    end
+
+    case response
+      when Net::HTTPOK
+        token = JSON.parse(response.body).first['token']
+        $stdout.puts "Storing token credentials for API Provider #{api_url} with key #{config_key}"
+        store_config_credentials(username, :token => token)
+      else
+        $stderr.puts "Failed to acquire token: #{response.code}: #{response.message}"
+    end
+    nil
+  end
+
+  def set_credential_config_key(url)
+    @credential_config_key = URI.parse(url).host.gsub('.', '-')
+  end
+
+  def select_api_url(urls)
+    unless $stdin.tty?
+      $stderr.puts "Multiple API Endpoints found but STDIN is not a TTY - cannot request endpoint selection."
+      $stderr.puts "Please rerun and specify the api provider you wish to use with --api-url"
+      exit 1
+    end
+
+    choose do |menu|
+      menu.prompt = "\nMultiple API Endpoints found in configuration. Which do you want to use? "
+      menu.choices(*urls)
+    end
+  end
+
+  def gist_url
+    "#{api_url}/gists/%s"
+  end
+
+  def create_url
+    "#{api_url}/gists"
+  end
+
+  def api_url
+    @api_url ||= options.gist_api_url
+    @api_url ||= case (url = config('gist.api-url'))
+      when String, URI then url
+      when Array then select_api_url(url)
+      else DEFAULT_GITHUB_API_BASE_URL
+    end
+    @api_url.tap { |api_url| set_credential_config_key(api_url) }
   end
 
   def defaults
     extension = config("gist.extension")
 
     return {
-      "private"   => config("gist.private"),
-      "browse"    => config("gist.browse"),
-      "extension" => extension
+      "api-url"    => config("gist.api-url"),
+      "private"    => config("gist.private"),
+      "browse"     => config("gist.browse"),
+      "extension"  => extension
     }
   end
 
+  def set_config(key, value)
+    system("git config --global #{key} '#{value}'")
+  end
+
   def config(key)
-    env_key = ENV[key.upcase.gsub(/\./, '_')]
+    env_key = ENV[key.upcase.gsub(/[\.-]/, '_')]
     return env_key if env_key and not env_key.strip.empty?
 
-    str_to_bool `git config --global #{key}`.strip
+    str_to_bool `git config --global --get-all #{key}`.strip
+  end
+
+  def credential_config_key
+    api_url == DEFAULT_GITHUB_API_BASE_URL ?
+      DEFAULT_CREDENTIAL_CONFIG_KEY : (@credential_config_key || DEFAULT_CREDENTIAL_CONFIG_KEY)
+  end
+
+  def store_config_credentials(user, options={})
+    set_config("#{credential_config_key}.user", user)
+    if (token = options.delete(:token))
+      set_config("#{credential_config_key}.token", token)
+    elsif (password = options.delete(:password))
+      set_config("#{credential_config_key}.password", password)
+    else
+      warn "no token or password set"
+      false
+    end
   end
 
   def str_to_bool(str)
@@ -1349,6 +1576,8 @@ private
       nil
     when "true", "1", "yes", "on"
       true
+    when /\n/
+      value.strip.split(/\n+/)
     else
       value
     end
@@ -1400,8 +1629,16 @@ Once your gist is successfully created, the URL will be copied to your clipboard
 These options can be used to change this behavior:
 .
 .TP
-\fB\-p\fR, \fB\-\-private\fR
+\fB\-a\fR, \fB\-\-api\-url\fR
+Set the specific API Provider URL to use for requests\. If you have multiple API Providers listed in your git\-config, using this option is an effective way of pre\-selecting the provider you wish to use\.
+.
+.TP
+\fB\-p\fR, \fB\-\-[no\-]private\fR
 Create a private gist instead of a public gist\.
+.
+.TP
+\fB\-s\fR, \fB\-\-setup\-credentials\fR
+Generates git\-config sections for the API Provider and stores the user\'s credentials in it after verifying them with the Provider\.
 .
 .TP
 \fB\-t\fR, \fB\-\-type\fR
@@ -1415,6 +1652,10 @@ Set a description\.
 \fB\-o\fR, \fB\-\-[no\-]open\fR
 Open the gist in your browser after creation\. Or don\'t\. Defaults to \-\-open
 .
+.TP
+\fB\-e\fR, \fB\-\-embed\fR
+Prints javascript embed code for the newly created gist\.
+.
 .P
 You may additionally ask for help:
 .
@@ -1426,20 +1667,23 @@ Print help\.
 \fB\-m\fR, \fB\-\-man\fR
 Display this man page\.
 .
+.SH "PROVIDERS"
+Gist supports multiple API Providers, or API Endpoints\. An example where this might be necessary is where you have an internal Github Enterprise server for your company, and you also use github\.com\.
+.
+.P
+You can specify each provider as a series of api\-url\'s in the gist section your git\-config file\.
+.
+.P
+When you run gist with multiple providers specified, gist will ask you to select an API Provider when you attempt to gist a file\. You can force the selection ahead of time by passing the \-\-api\-url command line option with the api\-url you wish to use\. This is handy when you are piping (or redirecting) content directly into gist\.
+.
 .SH "AUTHENTICATION"
-There are two ways to set GitHub user and password info:
+There are three ways to set GitHub user and password info:
 .
 .IP "\(bu" 4
 Using environment vars GITHUB_USER and GITHUB_PASSWORD
 .
 .IP
-$ export GITHUB_USER=johndoe
-.
-.br
-$ export GITHUB_PASSWORD=mysecretgithubpassword
-.
-.br
-$ gist ~/example
+$ export GITHUB_USER=johndoe $ export GITHUB_PASSWORD=mysecretgithubpassword $ gist ~/example
 .
 .IP "\(bu" 4
 Using git\-config(1)
@@ -1473,10 +1717,26 @@ $ git config \-\-global github\.user <username>
 .IP "" 0
 .
 .P
+Lastly, via gist itself:
+.
+.IP "" 4
+.
+.nf
+
+$ gist \-\-setup\-credentials
+.
+.fi
+.
+.IP "" 0
+.
+.P
 See \fIhttp://github\.com/guides/local\-github\-config\fR for more information\.
 .
 .SH "CONFIGURATION"
 You can set a few options in your git config (using git\-config(1)) to control the default behavior of gist(1)\.
+.
+.IP "\(bu" 4
+gist\.api\-url \- string|multival \- The base API URL for a provider with multiple values being valid\. Defaults to github, pre\-added to your git\-config for you on first run\.
 .
 .IP "\(bu" 4
 gist\.private \- boolean (yes or no) \- Determines whether to make a gist private by default
@@ -1486,6 +1746,14 @@ gist\.extension \- string \- Default extension for gists you create\.
 .
 .IP "\(bu" 4
 gist\.browse \- boolean (yes or no) \- Whether to open the gist in your browser after creation\. Default: yes
+.
+.IP "" 0
+.
+.P
+Additionally, gist looks for provider specific options under each provider section in your git\-config\. In particular:
+.
+.IP "\(bu" 4
+\fIprovider\fR\.login\-required \- boolean (true or false) \- Whether or not authentication is required for the given provider\.
 .
 .IP "" 0
 .
@@ -1505,6 +1773,7 @@ $ gist < file\.txt
 $ echo secret | gist \-\-private
 $ echo "puts :hi" | gist \-t rb
 $ gist script\.py
+$ echo secret | gist \-\-api\-url http://git\.acme\.com/api/v3 \-\-private
 $ gist \-
 the quick brown fox jumps over the lazy dog
 ^D
