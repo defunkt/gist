@@ -46,6 +46,7 @@ module Gist
   # returns OpenStruct object containing global options
   def options()
     @options ||= OpenStruct.new({
+      :debug             => false,
       :gist_api_url      => nil,
       :gist_extension    => defaults["extension"],
       :private_gist      => defaults["private"],
@@ -63,53 +64,42 @@ module Gist
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
         "Filename '-' forces gist to read from stdin."
 
-      opts.on('-a', '--api-url URL', 'API URL to connect to') do |url|
-        options.gist_api_url = url
-      end
+      opts.separator ''
+      opts.separator "Posting Options:"
 
-      opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
-        options.private_gist = priv
-      end
-
+      opts.on('-a', '--api-url URL', 'API URL to connect to') { |url| options.gist_api_url = url }
+      opts.on('-p', '--[no-]private', 'Make the gist private') { |priv| options.private_gist = priv }
       t_desc = 'Set syntax highlighting of the Gist by file extension'
-      opts.on('-t', '--type [EXTENSION]', t_desc) do |extension|
-        options.gist_extension = '.' + extension
-      end
+      opts.on('-t', '--type [EXTENSION]', t_desc) { |extension| options.gist_extension = '.' + extension }
+      opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') { |d| options.description = d }
+      opts.on('-o','--[no-]open', 'Open gist in browser') { |o| options.browse_enabled = o }
+      opts.on('-e', '--embed', 'Print javascript embed code') { |o| options.embed_enabled = o }
 
-      opts.on('-d','--description DESCRIPTION', 'Set description of the new gist') do |d|
-        options.description = d
-      end
+      opts.separator ''
+      opts.separator "Configuration Options:"
 
       opts.on('-s', '--setup-credentials', 'Setup API Provider credentials') do
-        if not $stdin.tty?
-          $stderr.puts "STDIN must be a TTY to generate an API Provider Token. Please run again without any pipes or redirections."
-          exit 1
-        end
-
+        raise OptionParser::InvalidOption, 'Cannot setup credentials without a TTY' unless $stdin.tty?
         options.setup_credentials = true
       end
-
-      opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
-        options.browse_enabled = o
+      opts.on('', '--add-provider URL', 'Adds an API Provider URL') do |url|
+        raise OptionParser::InvalidOption, 'Cannot add a provider without a TTY' unless $stdin.tty?
+        raise OptionParser::InvalidOption, "Bad Provider API URL" unless URI::DEFAULT_PARSER.regexp[:ABS_URI] =~ url
+        add_provider_url(url)
+        exit 0
+      end
+      opts.on('', '--set-default-provider [URL]', 'Sets the default API Provider URL') do |url|
+        raise OptionParser::InvalidOption, 'Cannot set default provider without a TTY' unless $stdin.tty?
+        set_default_provider(url)
+        exit 0
       end
 
-      opts.on('-e', '--embed', 'Print javascript embed code') do |o|
-        options.embed_enabled = o
-      end
-
-      opts.on('-m', '--man', 'Print manual') do
-        Gist::Manpage.display("gist")
-      end
-
-      opts.on('-v', '--version', 'Print version') do
-        $stderr.puts Gist::Version
-        exit
-      end
-
-      opts.on('-h', '--help', 'Display this screen') do
-        $stderr.puts opts
-        exit 1
-      end
+      opts.separator ''
+      opts.separator "General Options:"
+      opts.on('-D', '--debug', 'Debug enabled') { options.debug = true }
+      opts.on('-m', '--man', 'Print manual') { Gist::Manpage.display("gist") }
+      opts.on('-v', '--version', 'Print version') { $stderr.puts Gist::Version; exit 0; }
+      opts.on('-h', '--help', 'Display this screen')  { $stderr.puts opts; exit 0 }
     end
   end
 
@@ -122,6 +112,7 @@ module Gist
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
     set_config('gist.api-url', DEFAULT_GITHUB_API_BASE_URL) if !config('gist.api-url')
+    set_config('gist.default-url', DEFAULT_GITHUB_API_BASE_URL) if !config('gist.default-url')
 
     begin
       option_parser.parse!(args)
@@ -159,8 +150,12 @@ module Gist
     rescue Interrupt
       $stderr.puts "\nQuit."
       exit 1
+    rescue OptionParser::InvalidOption => e
+      warn e; puts
+      usage
+      exit 1
     rescue StandardError => e
-      warn e
+       options.debug ? warn(e) : raise(e)
     end
   end
 
@@ -275,6 +270,39 @@ private
     data
   end
 
+  def set_default_provider(url)
+    if (default = config('gist.default-url'))
+      unless yes?("Do you want to change the current default provider (#{default})?")
+        $stderr.puts "Nothing to do."
+        return
+      end
+    end
+
+    url ||= normalized_api_urls_from_config unless url || url =~ /\S/
+
+    unless defaults['api-url'].include?(url)
+      add_provider_url(url) if yes?("#{url} is not currently listed as a provider - should we add it?")
+    end
+
+    set_config('gist.default-url', url)
+  end
+
+  def add_provider_url(url)
+    if defaults['api-url'].include?(url)
+      $stderr.puts "API Provider [#{url}] already included in list of providers."
+      exit 1
+    end
+
+    add_config('gist.api-url', url)
+
+    if yes?("Should this be the default provider?")
+      set_config('gist.default-url', url)
+    end
+
+    options.gist_api_url = url
+    setup_credentials
+  end
+
   # Loops until the user has entered valid credentials as determiend by
   # a HTTP OK (200) response from the API Provider
   # returns array ([ username, password, response])
@@ -352,7 +380,7 @@ private
 
     begin
       choice = choose do |menu|
-        menu.prompt = 'Which type of credentials would you like to set up? '
+        menu.prompt = 'Which type of credentials would you like to set up? (token is highly recommended) '
         menu.choices(:password, :token, :none)
       end.to_sym
     end until [:password, :token, :none].include? choice
@@ -365,7 +393,7 @@ private
       return false
     end
   rescue StandardError => e
-    warn e
+    options.debug ? warn(e) : raise(e)
     false
   end
 
@@ -477,13 +505,20 @@ private
   #
   # returns a string
   def api_url
+    default = config('gist.default-url')
+
     @api_url ||= options.gist_api_url
-    @api_url ||= case (url = config('gist.api-url'))
-      when String, URI then url
-      when Array then select_api_url(url)
+    @api_url ||= default if default && defaults['api-url'].include?(default)
+    @api_url ||= normalized_api_urls_from_config
+    @api_url.tap { |api_url| set_credential_config_key(api_url) }
+  end
+
+  def normalized_api_urls_from_config
+    case (url = [config('gist.api-url')].flatten.compact)
+      when String, URI then url.to_s
+      when Array then url.size == 1 ? url.first : select_api_url(url)
       else DEFAULT_GITHUB_API_BASE_URL
     end
-    @api_url.tap { |api_url| set_credential_config_key(api_url) }
   end
 
   # Returns default values based on settings in your gitconfig. See
@@ -491,17 +526,20 @@ private
   #
   # Settings applicable to gist.rb are:
   #
-  # gist.api-url    - string | array
-  # gist.private    - boolean
-  # gist.extension  - string
+  # gist.default-url - string
+  # gist.api-url     - string | array
+  # gist.private     - boolean
+  # gist.browse      - boolean
+  # gist.extension   - string
   def defaults
     extension = config("gist.extension")
 
     return {
-      "api-url"    => config("gist.api-url"),
-      "private"    => config("gist.private"),
-      "browse"     => config("gist.browse"),
-      "extension"  => extension
+      'default-url' => config('gist.default-url'),
+      "api-url"     => [config("gist.api-url")].flatten.compact,
+      "private"     => config("gist.private"),
+      "browse"      => config("gist.browse"),
+      "extension"   => extension
     }
   end
 
@@ -512,6 +550,15 @@ private
   # returns true if the key was set successfully, false otherwise
   def set_config(key, value)
     system("git config --global #{key} '#{value}'")
+  end
+
+  # Adds, without replacing, a new key/value pair
+  #
+  # => git-config(1)
+  #
+  # returns true if the key was added successfully, false otherwise
+  def add_config(key, value)
+    system("git config --global --add #{key} '#{value}'")
   end
 
   # Reads a config value using:
