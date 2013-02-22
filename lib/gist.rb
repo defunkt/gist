@@ -42,18 +42,22 @@ module Gist
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
 
+  # access for options
+  # returns OpenStruct object containing global options
   def options()
     @options ||= OpenStruct.new({
-      :gist_api_url   => nil,
-      :gist_extension => defaults["extension"],
-      :private_gist   => defaults["private"],
-      :browse_enabled => defaults["browse"],
-      :embed_enabled  => nil,
-      :description    => nil,
-      :acquire_token  => false
+      :gist_api_url      => nil,
+      :gist_extension    => defaults["extension"],
+      :private_gist      => defaults["private"],
+      :browse_enabled    => defaults["browse"],
+      :embed_enabled     => nil,
+      :description       => nil,
+      :setup_credentials => false
     })
   end
 
+  # creates the OptionParser object
+  # returns OptionParser
   def option_parser()
     @option_parser ||= OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
@@ -76,13 +80,13 @@ module Gist
         options.description = d
       end
 
-      opts.on('-k', '--get-token', 'Request Token from API Provider') do
+      opts.on('-s', '--setup-credentials', 'Setup API Provider credentials') do
         if not $stdin.tty?
           $stderr.puts "STDIN must be a TTY to generate an API Provider Token. Please run again without any pipes or redirections."
           exit 1
         end
 
-        options.acquire_token = true
+        options.setup_credentials = true
       end
 
       opts.on('-o','--[no-]open', 'Open gist in browser') do |o|
@@ -109,6 +113,7 @@ module Gist
     end
   end
 
+  # Prints the usage and exits
   def usage()
     $stderr.puts option_parser
     exit 1
@@ -121,7 +126,11 @@ module Gist
     begin
       option_parser.parse!(args)
 
-      lambda { setup_token_credentials(); exit 1 }.call if $stdin.tty? && options.acquire_token
+      if $stdin.tty? && options.setup_credentials
+        api_url # make sure API URL selection happens, if need be
+        setup_credentials
+        exit 1
+      end
 
       if $stdin.tty? && args[0] != '-'
         # Run without stdin.
@@ -183,59 +192,6 @@ module Gist
     authenticate(request) if request['Authorization'].nil?
 
     http.start{|h| h.request(request) }
-  end
-
-
-  def _auth_loop_request(url)
-    begin
-      $stdout.puts "Enter your credentials (Control-C to quit)."
-      user = ask("Enter username for #{api_url}: ")
-      pass = ask("Enter password for #{api_url}: ") { |q| q.echo = '*' }
-
-      response = request(url) do |u|
-        yield(u).tap {|request| request.basic_auth(user, pass) }
-      end
-
-      break if response.kind_of? Net::HTTPOK
-      $stderr.puts "Authentication failed: #{response.code} #{response.message}"
-    end while true
-
-    [user, pass, response ]
-  end
-
-  def setup_password_credentials
-    config_key = credential_config_key
-    username, password, response = _auth_loop_request("#{api_url}/user") { |url|
-      Net::HTTP::Head.new(url.path)
-    }
-
-    case response
-      when Net::HTTPOK
-        $stdout.puts "Storing username/password credentials for API Provider #{api_url} with key #{config_key}"
-        store_config_credentials(username, :password => password)
-      else
-        $stderr.puts "Failed to acquire credentials: #{response.code}: #{response.message}"
-    end
-  end
-
-  def setup_token_credentials
-    config_key         = credential_config_key
-    token_request_body = {:scopes => %w(repo user gist), :note   => "General oauth"}
-
-    username, _, response = _auth_loop_request("#{api_url}/authorizations") do |url|
-      Net::HTTP::Get.new(url.path).tap {|request|
-        request.body = JSON.generate(token_request_body)
-      }
-    end
-
-    case response
-      when Net::HTTPOK
-        token = JSON.parse(response.body).first['token']
-        $stdout.puts "Storing token credentials for API Provider #{api_url} with key #{config_key}"
-        store_config_credentials(username, :token => token)
-      else
-        $stderr.puts "Failed to acquire token: #{response.code}: #{response.message}"
-    end
   end
 
   # Create a gist on gist.github.com
@@ -319,9 +275,32 @@ private
     data
   end
 
+  # Loops until the user has entered valid credentials as determiend by
+  # a HTTP OK (200) response from the API Provider
+  # returns array ([ username, password, response])
+  def _auth_loop_request(url)
+    begin
+      $stdout.puts "Enter your credentials (Control-C to quit)."
+      user = ask("Enter username for #{api_url}: ")
+      pass = ask("Enter password for #{api_url}: ") { |q| q.echo = '*' }
+
+      response = request(url) do |u|
+        yield(u).tap {|request| request.basic_auth(user, pass) }
+      end
+
+      break if response.kind_of? Net::HTTPOK
+      $stderr.puts "Authentication failed: #{response.code} #{response.message}"
+    end while true
+
+    [user, pass, response ]
+  end
+
+  # Prompts the user using the given prompt and returns true if the user selects
+  # yes, or false others
+  # returns boolean
   def yes?(prompt)
     begin
-      answer = ask("#{prompt}: ") { |q| q.limit = 1; q.case = :downcase }
+      answer = ask("#{prompt} [y/n]: ") { |q| q.limit = 1; q.case = :downcase }
     end until %w(y n).include? answer
     answer == 'y'
   end
@@ -363,8 +342,10 @@ private
     end
   end
 
+  # Sets up user's credentials for the given API Provider.
+  # returns boolean; true on success, false on failure
   def setup_credentials
-    unless yes?('Would you like to configure and store credentials? [y/n]')
+    unless yes?('Would you like to configure and store your credentials?')
       $stderr.puts "Unable to proceed without credentials"
       exit 1
     end
@@ -388,10 +369,79 @@ private
     false
   end
 
+  # Sets up the user's USERNAME and PASSWORD for the given API Provider and stores it
+  # in the user's gitconfig
+  # return nil
+  def setup_password_credentials
+    config_key = credential_config_key
+
+    if config("#{config_key}.user") && config("#{config_key}.password")
+      $stderr.puts "Password credentials already configured for API Provider #{api_url}"
+      unless yes?('Would you like to reconfigure the password for this provider?')
+        $stderr.puts 'Nothing to do.'
+        exit 1
+      end
+    end
+
+    username, password, response = _auth_loop_request("#{api_url}/user") { |url|
+      Net::HTTP::Head.new(url.path)
+    }
+
+    case response
+      when Net::HTTPOK
+        $stdout.puts "Storing username/password credentials for API Provider #{api_url} with key #{config_key}"
+        store_config_credentials(username, :password => password)
+      else
+        $stderr.puts "Failed to acquire credentials: #{response.code}: #{response.message}"
+    end
+    nil
+  end
+
+  # Sets up the user's OAUTH token for the given API Provider and stores it
+  # in the user's gitconfig
+  # return nil
+  def setup_token_credentials
+    config_key         = credential_config_key
+
+    if config("#{config_key}.token")
+      $stderr.puts "Token credentials already configured for API Provider #{api_url}"
+      unless yes?('Would you like to reconfigure the token for this provider?')
+        $stderr.puts 'Nothing to do.'
+        exit 1
+      end
+    end
+
+    token_request_body = {:scopes => %w(repo user gist), :note   => "General oauth"}
+
+    username, _, response = _auth_loop_request("#{api_url}/authorizations") do |url|
+      Net::HTTP::Get.new(url.path).tap {|request|
+        request.body = JSON.generate(token_request_body)
+      }
+    end
+
+    case response
+      when Net::HTTPOK
+        token = JSON.parse(response.body).first['token']
+        $stdout.puts "Storing token credentials for API Provider #{api_url} with key #{config_key}"
+        store_config_credentials(username, :token => token)
+      else
+        $stderr.puts "Failed to acquire token: #{response.code}: #{response.message}"
+    end
+    nil
+  end
+
+  # sets the gitconfig section key to use for subsequent credential lookups
+  # normalizing on domain name with dots converted to dashes.
+  #
+  # returns the gitconfig section key (string)
   def set_credential_config_key(url)
     @credential_config_key = URI.parse(url).host.gsub('.', '-')
   end
 
+  # Given a set of API Provider URLs, this method queries the
+  # user for the particular URL to use for this session.
+  #
+  # returns the chosen url (string)
   def select_api_url(urls)
     unless $stdin.tty?
       $stderr.puts "Multiple API Endpoints found but STDIN is not a TTY - cannot request endpoint selection."
@@ -421,6 +471,11 @@ private
     "#{api_url}/gists"
   end
 
+  # Returns the API Provider url, looking at the gist.api-url config
+  # to acquire it. If there are multiple API URLs, the user is queried
+  # for the particular Provider they wish to use.
+  #
+  # returns a string
   def api_url
     @api_url ||= options.gist_api_url
     @api_url ||= case (url = config('gist.api-url'))
@@ -429,11 +484,6 @@ private
       else DEFAULT_GITHUB_API_BASE_URL
     end
     @api_url.tap { |api_url| set_credential_config_key(api_url) }
-  end
-
-  def credential_config_key
-    api_url == DEFAULT_GITHUB_API_BASE_URL ?
-      DEFAULT_CREDENTIAL_CONFIG_KEY : (@credential_config_key || DEFAULT_CREDENTIAL_CONFIG_KEY)
   end
 
   # Returns default values based on settings in your gitconfig. See
@@ -455,19 +505,13 @@ private
     }
   end
 
+  # Sets a config value
+  #
+  # => git-config(1)
+  #
+  # returns true if the key was set successfully, false otherwise
   def set_config(key, value)
     system("git config --global #{key} '#{value}'")
-  end
-
-  def store_config_credentials(user, options={})
-    set_config("#{credential_config_key}.user", user)
-    if (token = options.delete(:token))
-      set_config("#{credential_config_key}.token", token)
-    elsif (password = options.delete(:password))
-      set_config("#{credential_config_key}.password", password)
-    else
-      warn "no token or password set"
-    end
   end
 
   # Reads a config value using:
@@ -481,6 +525,30 @@ private
     return env_key if env_key and not env_key.strip.empty?
 
     str_to_bool `git config --global --get-all #{key}`.strip
+  end
+
+  # Returns the API Provider specific git-config section key
+  #
+  # return string
+  def credential_config_key
+    api_url == DEFAULT_GITHUB_API_BASE_URL ?
+      DEFAULT_CREDENTIAL_CONFIG_KEY : (@credential_config_key || DEFAULT_CREDENTIAL_CONFIG_KEY)
+  end
+
+  # Stores the given credentials under the API Provider specific section
+  # of the user's .gitconfig
+  #
+  # return true on succussful password save
+  def store_config_credentials(user, options={})
+    set_config("#{credential_config_key}.user", user)
+    if (token = options.delete(:token))
+      set_config("#{credential_config_key}.token", token)
+    elsif (password = options.delete(:password))
+      set_config("#{credential_config_key}.password", password)
+    else
+      warn "no token or password set"
+      false
+    end
   end
 
   # Parses a value that might appear in a .gitconfig file into
