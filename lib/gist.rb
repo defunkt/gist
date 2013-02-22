@@ -147,8 +147,11 @@ module Gist
       browse(url) if options.browse_enabled
       $stdout.puts copy(to_embed(url)) if options.embed_enabled
       $stdout.puts copy(url) unless options.embed_enabled
-    # rescue StandardError => e
-    #   warn e
+    rescue Interrupt
+      $stderr.puts "\nQuit."
+      exit 1
+    rescue StandardError => e
+      warn e
     end
   end
 
@@ -185,13 +188,9 @@ module Gist
 
   def _auth_loop_request(url)
     begin
-      begin
-        $stdout.puts "Enter your credentials (Control-C to quit)."
-        user = ask("Enter username for #{api_url}: ")
-        pass = ask("Enter password for #{api_url}: ") { |q| q.echo = '*' }
-      rescue Interrupt
-        exit 1
-      end
+      $stdout.puts "Enter your credentials (Control-C to quit)."
+      user = ask("Enter username for #{api_url}: ")
+      pass = ask("Enter password for #{api_url}: ") { |q| q.echo = '*' }
 
       response = request(url) do |u|
         yield(u).tap {|request| request.basic_auth(user, pass) }
@@ -384,11 +383,9 @@ private
     else
       return false
     end
-  # rescue Interrupt
-  #   exit 1
-  # rescue StandardError => e
-  #   warn e
-  #   false
+  rescue StandardError => e
+    warn e
+    false
   end
 
   def set_credential_config_key(url)
@@ -402,14 +399,9 @@ private
       exit 1
     end
 
-    begin
-      choose do |menu|
-        menu.prompt = "\nMultiple API Endpoints found in configuration. Which do you want to use? "
-        menu.choices(*urls)
-      end
-    rescue Interrupt
-      $stderr.puts "\nQuit."
-      exit 1
+    choose do |menu|
+      menu.prompt = "\nMultiple API Endpoints found in configuration. Which do you want to use? "
+      menu.choices(*urls)
     end
   end
 
