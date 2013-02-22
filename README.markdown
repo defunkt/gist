@@ -78,50 +78,50 @@ go about setting up your credentials for unattended usage:T
 
 1. Using env vars GITHUB_USER and GITHUB_PASSWORD:
 
-```bash
-$ export GITHUB_USER="your-github-username"
-$ export GITHUB_PASSWORD="your-github-password"
-$ gist ~/example
-```
+    ```bash
+    $ export GITHUB_USER="your-github-username"
+    $ export GITHUB_PASSWORD="your-github-password"
+    $ gist ~/example
+    ```
 
 2. Or by having your git config set up with your GitHub username and password.
 
-```bash
-git config --global github.user "your-github-username"
-git config --global github.password "your-github-password"
-```
+    ```bash
+    git config --global github.user "your-github-username"
+    git config --global github.password "your-github-password"
+    ```
 
-You can also define github.password to be a command which returns the
-actual password on stdout by setting the variable to a command string
-prefixed with `!`. For example, the following command fetches the
-password from the Mac OS Keychain entry for the GitHub website (if you
-allow your browser to save passwords):
+    You can also define github.password to be a command which returns the
+    actual password on stdout by setting the variable to a command string
+    prefixed with `!`. For example, the following command fetches the
+    password from the Mac OS Keychain entry for the GitHub website (if you
+    allow your browser to save passwords):
 
-```bash
-password = !security find-internet-password -a <your github username> -s github.com -w | tr -d '\n'
-```
+    ```bash
+    password = !security find-internet-password -a <your github username> -s github.com -w | tr -d '\n'
+    ```
 
-If you don't allow your browser to save passwords, you can use the following
-to fetch the password from a Keychain entry named "github.password" (you'll
-also need to create the Keychain entry):
+    If you don't allow your browser to save passwords, you can use the following
+    to fetch the password from a Keychain entry named "github.password" (you'll
+    also need to create the Keychain entry):
 
-```bash
-password = !security find-generic-password -gs github.password -w | tr -d '\n'
-```
+    ```bash
+    password = !security find-generic-password -gs github.password -w | tr -d '\n'
+    ```
 
 3. Use gist to setup your git config for you.
 
-```bash
-gist --setup-credentials
-```
+    ```bash
+    gist --setup-credentials
+    ```
 
-This will cause gist to ask you a series of questions in order to determine the type
-of setup required. After answering all the questions, you will find that your
-git configuration has all the relevant sections necessary to run without asking you
-for any credentials from here on out.
+    This will cause gist to ask you a series of questions in order to determine the type
+    of setup required. After answering all the questions, you will find that your
+    git configuration has all the relevant sections necessary to run without asking you
+    for any credentials from here on out.
 
-**NOTE: It is recommended that you choose _token_ as your preferred credential type due
-to the _password_ type storing your password in clear text in you git configuration file**
+    **NOTE: It is recommended that you choose _token_ as your preferred credential type due
+    to the _password_ type storing your password in clear text in you git configuration file**
 
 Defaults
 --------
