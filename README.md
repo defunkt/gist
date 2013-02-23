@@ -68,6 +68,12 @@ $ jist -c <a.rb
 https://gist.github.com/7db51bb5f4f35c480fc8
 ```
 
+If you'd like to copy the resulting embeddable URL to your clipboard, use `--copy-js`.
+
+```shell
+$ jist --copy-js <a.rb
+<script src="https://gist.github.com/7db51bb5f4f35c480fc8"></script>
+```
 And you can just ask jist to open a browser window directly with `-o`.
 
 ```shell
