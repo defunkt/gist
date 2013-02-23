@@ -215,7 +215,9 @@ module Jist
     json = JSON.parse(body)
 
     json['html_url'] = shorten(json['html_url']) if options[:shorten]
+    js_link = %Q{<script src="#{json['html_url']}.js"></script>}
     Jist.copy(json['html_url']) if options[:copy]
+    Jist.copy(js_link) if options[:copy_js]
     Jist.open(json['html_url']) if options[:open]
 
     json
