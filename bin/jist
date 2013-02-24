@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-
-require 'jist'
+require File.expand_path('../../lib/jist', __FILE__)
 
 # For the holdings of options.
 options = {}
