@@ -31,20 +31,8 @@ module Jist
   # Upload a gist to https://gist.github.com
   #
   # @param [String] content  the code you'd like to gist
-  # @param [Hash] options  more detailed options
-  #
-  # @option options [String] :description  the description
-  # @option options [String] :filename  ('a.rb') the filename
-  # @option options [Boolean] :public  (false) is this gist public
-  # @option options [Boolean] :anonymous  (false) is this gist anonymous
-  # @option options [Boolean] :shorten  (false) Shorten the resulting URL using git.io.
-  # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
-  # @option options [String] :update  the URL or id of a gist to update
-  # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
-  # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
-  #
-  # @return [Hash]  the decoded JSON response from the server
-  # @raise [Jist::Error]  if something went wrong
+  # @param [Hash] options  more detailed options, see
+  #   the documentation for {multi_gist}
   #
   # @see http://developer.github.com/v3/gists/
   def gist(content, options = {})
@@ -60,13 +48,17 @@ module Jist
   # @option options [String] :description  the description
   # @option options [Boolean] :public  (false) is this gist public
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
-  # @option options [Boolean] :shorten  (false) Shorten the resulting URL using git.io.
   # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
+  # @option options [Symbol] :output (:all) The type of return value you'd like:
+  #   :html_url gives a String containing the url to the gist in a browser
+  #   :short_url gives a String contianing a  git.io url that redirects to html_url
+  #   :javascript gives a String containing a script tag suitable for embedding the gist
+  #   :all gives a Hash containing the parsed json response from the server
   #
-  # @return [Hash]  the decoded JSON response from the server
+  # @return [String, Hash]  the return value as configured by options[:output]
   # @raise [Jist::Error]  if something went wrong
   #
   # @see http://developer.github.com/v3/gists/
@@ -211,20 +203,27 @@ module Jist
 
   # Called after an HTTP response to gist to perform post-processing.
   #
-  # @param [String] body  the HTTP-200 response
-  # @param [Hash] options  any options
-  # @option options [Boolean] :copy  copy the URL to the clipboard
-  # @return [Hash]  the parsed JSON response from the server
+  # @param [String] body  the text body from the github api
+  # @param [Hash] options  more detailed options, see
+  #   the documentation for {multi_gist}
   def on_success(body, options={})
     json = JSON.parse(body)
 
-    json['html_url'] = shorten(json['html_url']) if options[:shorten]
-    js_link = %Q{<script src="#{json['html_url']}.js"></script>}
-    Jist.copy(json['html_url']) if options[:copy]
-    Jist.copy(js_link) if options[:copy_js]
+    output = case options[:output]
+             when :javascript
+               %Q{<script src="#{json['html_url']}.js"></script>}
+             when :html_url
+               json['html_url']
+             when :short_url
+               shorten(json['html_url'])
+             else
+               json
+             end
+
+    Jist.copy(output.to_s) if options[:copy]
     Jist.open(json['html_url']) if options[:open]
 
-    json
+    output
   end
 
   # Copy a string to the clipboard.

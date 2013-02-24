@@ -9,10 +9,10 @@ describe '...' do
   end
 
   def ask_for_copy
-    Jist.on_success({'html_url' => @bobo_url}.to_json, :copy => true )
+    Jist.on_success({'html_url' => @bobo_url}.to_json, :copy => true, :output => :html_url)
   end
   def jist_but_dont_ask_for_copy
-    Jist.on_success({'html_url' => 'http://example.com/'}.to_json)
+    Jist.on_success({'html_url' => 'http://example.com/'}.to_json, :output => :html_url)
   end
 
   it 'should try to copy the url when the clipboard option is passed' do
@@ -23,7 +23,7 @@ describe '...' do
   it 'should try to copy the embed url when the clipboard-js option is passed' do
     js_link = %Q{<script src="#{@bobo_url}.js"></script>}
     Jist.should_receive(:copy).with(js_link)
-    Jist.on_success({'html_url' => @bobo_url}.to_json, :copy_js => true )
+    Jist.on_success({'html_url' => @bobo_url}.to_json, :copy => true, :output => :javascript)
   end
 
   it "should not copy when not asked to" do

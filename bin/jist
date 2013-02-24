@@ -82,8 +82,9 @@ Usage: #{executable_name} [-o|-c|-j] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] 
   opts.on("-c", "--copy", "Copy the resulting URL to the clipboard") do
     options[:copy] = true
   end
-  opts.on("-j", "--copy-js", "Copy the resulting embeddable URL to the clipboard") do
+  opts.on("-j", "--copy-js", "Copy the embed code for the gist to the clipboard") do
     options[:copy_js] = true
+    options[:copy] = true
   end
 
   opts.on("-o", "--open", "Open the resulting URL in a browser") do
@@ -108,11 +109,21 @@ end
 opts.parse!
 
 begin
+  options[:output] = if options[:copy_js] && options[:shorten]
+                       raise Jist::Error, "--copy-js does not make sense with --shorten"
+                     elsif options[:copy_js]
+                       :javascript
+                     elsif options[:shorten]
+                       :short_url
+                     else
+                       :html_url
+                     end
+
   if options[:paste]
-    puts Jist.gist(Jist.paste, options)['html_url']
+    puts Jist.gist(Jist.paste, options)
   elsif ARGV.size == 0
     $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
-    puts Jist.gist(ARGF.read, options)['html_url']
+    puts Jist.gist(ARGF.read, options)
   else
     files = {}
     ARGV.zip(filenames).each do |(file, name)|
@@ -123,7 +134,7 @@ begin
       end
     end
 
-    puts Jist.multi_gist(files, options)['html_url']
+    puts Jist.multi_gist(files, options)
   end
 rescue Jist::Error => e
   puts "Error: #{e.message}"

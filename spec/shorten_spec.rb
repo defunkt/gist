@@ -5,7 +5,7 @@ describe '...' do
   end
 
   it "should return a shortened version of the URL" do
-    Jist.gist("Test gist", :shorten => true).should == {"html_url" => "http://git.io/XXXXXX"}
+    Jist.gist("Test gist", :output => :short_url).should == "http://git.io/XXXXXX"
   end
 end
 
