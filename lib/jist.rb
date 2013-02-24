@@ -21,7 +21,11 @@ module Jist
   GIT_IO_URL     = URI("http://git.io")
 
   # Exception tag for errors raised while gisting.
-  module Error; end
+  module Error;
+    def self.exception(*args)
+      RuntimeError.new(*args).extend(self)
+    end
+  end
   class ClipboardError < RuntimeError; include Error end
 
   # Upload a gist to https://gist.github.com
