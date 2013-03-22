@@ -7,7 +7,7 @@ require 'uri'
 module Jist
   extend self
 
-  VERSION = '1.3.1'
+  VERSION = '1.4.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
