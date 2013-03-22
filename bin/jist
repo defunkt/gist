@@ -32,7 +32,7 @@ If you would like to shorten the resulting gist URL, use the -s flag. This will
 use GitHub's URL shortener, git.io.
 
 To copy the resulting URL to your clipboard you can use the -c option, or to just
-open it directly in your browser, use -o. Using the -j option will copy the embeddable
+open it directly in your browser, use -o. Using the -e option will copy the embeddable
 URL to the clipboard. You can add `alias jist='jist -c'` to your shell's rc file to configure this
 behaviour by default.
 
@@ -40,7 +40,7 @@ Instead of creating a new jist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c|-j] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f NAME]* FILE*
+Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] [-P] [-f NAME]* FILE*
        #{executable_name} --login
 
   EOS
@@ -82,8 +82,8 @@ Usage: #{executable_name} [-o|-c|-j] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] 
   opts.on("-c", "--copy", "Copy the resulting URL to the clipboard") do
     options[:copy] = true
   end
-  opts.on("-j", "--copy-js", "Copy the embed code for the gist to the clipboard") do
-    options[:copy_js] = true
+  opts.on("-e", "--embed", "Copy the embed code for the gist to the clipboard") do
+    options[:embed] = true
     options[:copy] = true
   end
 
@@ -109,9 +109,9 @@ end
 opts.parse!
 
 begin
-  options[:output] = if options[:copy_js] && options[:shorten]
-                       raise Jist::Error, "--copy-js does not make sense with --shorten"
-                     elsif options[:copy_js]
+  options[:output] = if options[:embed] && options[:shorten]
+                       raise Jist::Error, "--embed does not make sense with --shorten"
+                     elsif options[:embed]
                        :javascript
                      elsif options[:shorten]
                        :short_url
