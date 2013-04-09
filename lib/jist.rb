@@ -233,7 +233,16 @@ module Jist
   #
   def copy(content)
     IO.popen(clipboard_command(:copy), 'r+') { |clip| clip.print content }
-    raise Error, 'Copying to clipboard failed.' unless paste == content
+
+    unless paste == content
+      message = 'Copying to clipboard failed.'
+
+      if ENV["TMUX"] && clipboard_command(:copy) == 'pbcopy'
+        message << "\nIf you're running tmux on a mac, try http://robots.thoughtbot.com/post/19398560514/how-to-copy-and-paste-with-tmux-on-mac-os-x"
+      end
+
+      raise Error, message
+    end
   rescue Error => e
     raise ClipboardError, e.message + "\nAttempted to copy: #{content}"
   end
