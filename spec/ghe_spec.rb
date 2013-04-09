@@ -42,13 +42,13 @@ describe '...' do
     it "should access to api.github.com when $GHE_URL wasn't set" do
       ENV.delete 'GHE_URL'
       Jist.login!
-      assert_requested(:post, /api.github.com/)
+      assert_requested(:post, /api.github.com\/authorizations/)
     end
 
     it "should access to #{MOCK_GHE_HOST} when $GHE_URL was set" do
       ENV['GHE_URL'] = MOCK_GHE_URL
       Jist.login!
-      assert_requested(:post, /#{MOCK_GHE_HOST}/)
+      assert_requested(:post, /#{MOCK_GHE_HOST}\/api\/v3\/authorizations/)
     end
   end
 
@@ -56,13 +56,13 @@ describe '...' do
     it "should access to api.github.com when $GHE_URL wasn't set" do
       ENV.delete 'GHE_URL'
       Jist.gist "test gist"
-      assert_requested(:post, /api.github.com/)
+      assert_requested(:post, /api.github.com\/gists/)
     end
 
     it "should access to #{MOCK_GHE_HOST} when $GHE_URL was set" do
       ENV['GHE_URL'] = MOCK_GHE_URL
       Jist.gist "test gist"
-      assert_requested(:post, /#{MOCK_GHE_HOST}/)
+      assert_requested(:post, /#{MOCK_GHE_HOST}\/api\/v3\/gists/)
     end
   end
 end
