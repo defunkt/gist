@@ -83,7 +83,7 @@ module Jist
     if options[:anonymous]
       access_token = nil
     else
-      access_token = (options[:access_token] || File.read(File.expand_path("~/.jist")) rescue nil)
+      access_token = (options[:access_token] || File.read(auth_token_file) rescue nil)
     end
 
     url = "#{base_path}/gists"
@@ -161,7 +161,7 @@ module Jist
     response = http(api_url, request)
 
     if Net::HTTPCreated === response
-      File.open(File.expand_path("~/.jist"), 'w') do |f|
+      File.open(auth_token_file, 'w') do |f|
         f.write JSON.parse(response.body)['token']
       end
       puts "Success! #{ENV[GHE_ENV_NAME] || "https://github.com/"}settings/applications"
@@ -321,5 +321,13 @@ Could not find copy command, tried:
   # Get the API URL
   def api_url
     ENV.key?(GHE_ENV_NAME) ? URI(ENV[GHE_ENV_NAME]) : GITHUB_API_URL
+  end
+
+  def auth_token_file
+    if ENV.key?(GHE_ENV_NAME)
+      File.expand_path "~/.jist.#{ENV[GHE_ENV_NAME].gsub(/[^a-z.]/, '')}"
+    else
+      File.expand_path "~/.jist"
+    end
   end
 end
