@@ -17,8 +17,13 @@ module Jist
     'putclip' => 'getclip'
   }
 
-  GITHUB_API_URL = URI("https://api.github.com/")
-  GIT_IO_URL     = URI("http://git.io")
+  GITHUB_API_URL   = URI("https://api.github.com/")
+  GIT_IO_URL       = URI("http://git.io")
+
+  GITHUB_BASE_PATH = ""
+  GHE_BASE_PATH    = "/api/v3"
+
+  URL_ENV_NAME     = "GITHUB_URL"
 
   # Exception tag for errors raised while gisting.
   module Error;
@@ -78,10 +83,10 @@ module Jist
     if options[:anonymous]
       access_token = nil
     else
-      access_token = (options[:access_token] || File.read(File.expand_path("~/.jist")) rescue nil)
+      access_token = (options[:access_token] || File.read(auth_token_file) rescue nil)
     end
 
-    url = "/gists"
+    url = "#{base_path}/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
     url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
@@ -92,7 +97,7 @@ module Jist
     retried = false
 
     begin
-      response = http(GITHUB_API_URL, request)
+      response = http(api_url, request)
       if Net::HTTPSuccess === response
         on_success(response.body, options)
       else
@@ -144,7 +149,7 @@ module Jist
     end
     puts ""
 
-    request = Net::HTTP::Post.new("/authorizations")
+    request = Net::HTTP::Post.new("#{base_path}/authorizations")
     request.body = JSON.dump({
       :scopes => [:gist],
       :note => "The jist gem",
@@ -153,13 +158,13 @@ module Jist
     request.content_type = 'application/json'
     request.basic_auth(username, password)
 
-    response = http(GITHUB_API_URL, request)
+    response = http(api_url, request)
 
     if Net::HTTPCreated === response
-      File.open(File.expand_path("~/.jist"), 'w') do |f|
+      File.open(auth_token_file, 'w') do |f|
         f.write JSON.parse(response.body)['token']
       end
-      puts "Success! https://github.com/settings/applications"
+      puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
     else
       raise "Got #{response.class} from gist: #{response.body}"
     end
@@ -198,7 +203,7 @@ module Jist
       http.request request
     end
   rescue Timeout::Error
-    raise "Could not connect to https://api.github.com/"
+    raise "Could not connect to #{api_url}"
   end
 
   # Called after an HTTP response to gist to perform post-processing.
@@ -315,5 +320,23 @@ Could not find copy command, tried:
               end
 
     `#{command} #{url}`
+  end
+
+  # Get the API base path
+  def base_path
+    ENV.key?(URL_ENV_NAME) ? GHE_BASE_PATH : GITHUB_BASE_PATH
+  end
+
+  # Get the API URL
+  def api_url
+    ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_API_URL
+  end
+
+  def auth_token_file
+    if ENV.key?(URL_ENV_NAME)
+      File.expand_path "~/.jist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
+    else
+      File.expand_path "~/.jist"
+    end
   end
 end
