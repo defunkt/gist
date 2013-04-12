@@ -145,6 +145,19 @@ Jist.login!
 This will take them through the process of obtaining an OAuth2 token, and storing it
 in `~/.jist`, where it can later be read by `Jist.gist`
 
+GitHub enterprise
+==================
+
+If you'd like `jist` to use your locally installed [Github Enterprise](https://enterprise.github.com/),
+you need to export the `GITHUB_URL` environment variable in your `~/.bashrc`.
+
+```bash
+export GITHUB_URL=http://github.internal.example.com/
+```
+
+Once you've done this and restarted your terminal (or run `source ~/.bashrc`), jist will
+automatically use github enterprise instead of the public github.com
+
 Configuration
 =============
 
