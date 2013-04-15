@@ -1,6 +1,7 @@
 require 'open-uri'
 require 'net/https'
 require 'optparse'
+require 'cgi'
 
 require 'base64'
 
@@ -39,6 +40,12 @@ module Gist
   PROXY_HOST = PROXY ? PROXY.host : nil
   PROXY_PORT = PROXY ? PROXY.port : nil
 
+  module Error;
+    def self.exception(*args)
+      RuntimeError.new(*args).extend(self)
+    end
+  end
+
   # Parses command line arguments and does what needs to be done.
   def execute(*args)
     private_gist = defaults["private"]
@@ -51,6 +58,10 @@ module Gist
     opts = OptionParser.new do |opts|
       opts.banner = "Usage: gist [options] [filename or stdin] [filename] ...\n" +
         "Filename '-' forces gist to read from stdin."
+      opts.on("-l", "--login", "Authenticate gist on this computer.") do
+        login!
+        exit
+      end
 
       opts.on('-p', '--[no-]private', 'Make the gist private') do |priv|
         private_gist = priv
@@ -120,12 +131,72 @@ module Gist
 
       url = write(files, private_gist, description)
       browse(url) if browse_enabled
-      puts copy(to_embed(url)) if embed_enabled
-      puts copy(url) unless embed_enabled
+      puts "Gist URL: #{copy(to_embed(url))}" if embed_enabled
+      puts "Gist URL: #{copy(url)}" unless embed_enabled
     rescue => e
       warn e
       puts opts
     end
+  end
+  
+  def login!
+    print "Github username: "
+    username = $stdin.gets.strip
+    print "Github password: "
+    password = begin
+                 `stty -echo` rescue nil
+                 $stdin.gets.strip
+               ensure
+                 `stty echo` rescue nil
+               end
+    puts ""
+
+    request = Net::HTTP::Post.new("/authorizations")
+    request.body = JSON.dump({
+      :scopes => [:gist],
+      :note => "The gist gem",
+      :note_url => "https://github.com/brenttaylor/gist"
+    })
+    request.content_type = "application/json"
+    request.basic_auth(username, password)
+    
+    response = http(URI("https://api.github.com/"), request)
+
+    if Net::HTTPCreated === response
+      File.open(File.expand_path("~/.gist"), 'w') do |f|
+        f.write JSON.parse(response.body)['token']
+      end
+      puts "Success."
+    else
+      raise "Got #{response.class} from gist: #{response.body}"
+    end
+  rescue => e
+    raise e.extend Error
+  end
+
+  def http_connection(uri)
+    env = ENV['http_proxy'] || ENV['HTTP_PROXY']
+    connection = if env
+                   proxy = URI(env)
+                   NET::HTTP::Proxy(proxy.host, proxy.port).new(uri.host, uri.port)
+                 else
+                   Net::HTTP.new(uri.host, uri.port)
+                 end
+    if uri.scheme == "https"
+      connection.use_ssl = true
+      connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
+    connection.open_timeout = 10
+    connection.read_timeout = 10
+    connection
+  end
+
+  def http(url, request)
+    http_connection(url).start do |http|
+      http.request request
+    end
+  rescue Timeout::Error
+    raise "Could not connect to #{url}."
   end
 
   # Create a javascript embed code
@@ -135,34 +206,23 @@ module Gist
 
   # Create a gist on gist.github.com
   def write(files, private_gist = false, description = nil)
-    url = URI.parse(CREATE_URL)
+    access_token = File.read(File.expand_path("~/.gist")) rescue nil
+    url = "/gists"
+    url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
-    if PROXY_HOST
-      proxy = Net::HTTP::Proxy(PROXY_HOST, PROXY_PORT)
-      http  = proxy.new(url.host, url.port)
-    else
-      http = Net::HTTP.new(url.host, url.port)
-    end
 
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ca_file = ca_cert
-
-    req = Net::HTTP::Post.new(url.path)
+    req = Net::HTTP::Post.new(url)
     req.body = JSON.generate(data(files, private_gist, description))
+    req.content_type = 'application/json'
 
-    user, password = auth()
-    if user && password
-      req.basic_auth(user, password)
-    end
-
-    response = http.start{|h| h.request(req) }
-    case response
-    when Net::HTTPCreated
-      JSON.parse(response.body)['html_url']
-    else
-      puts "Creating gist failed: #{response.code} #{response.message}"
-      exit(false)
+    begin
+      response = http(URI("https://api.github.com/"), req)
+      if Net::HTTPSuccess === response
+        JSON.parse(response.body)['html_url']
+      else
+        puts "Creating gist failed: #{response.code} #{response.message}"
+        exit(false)
+      end
     end
   end
 
@@ -221,27 +281,6 @@ private
     data
   end
 
-  # Returns a basic auth string of the user's GitHub credentials if set.
-  # http://github.com/guides/local-github-config
-  #
-  # Returns an Array of Strings if auth is found: [user, password]
-  # Returns nil if no auth is found.
-  def auth
-    user  = config("github.user")
-    password = config("github.password")
-
-    token = config("github.token")
-    if password.to_s.empty? && !token.to_s.empty?
-      abort "Please set GITHUB_PASSWORD or github.password instead of using a token."
-    end
-
-    if user.to_s.empty? || password.to_s.empty?
-      nil
-    else
-      [ user, password ]
-    end
-  end
-
   # Returns default values based on settings in your gitconfig. See
   # git-config(1) for more information.
   #
@@ -266,9 +305,6 @@ private
   #
   # return something useful or nil
   def config(key)
-    env_key = ENV[key.upcase.gsub(/\./, '_')]
-    return env_key if env_key and not env_key.strip.empty?
-
     str_to_bool `git config --global #{key}`.strip
   end
 
