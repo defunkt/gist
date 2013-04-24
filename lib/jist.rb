@@ -7,7 +7,7 @@ require 'uri'
 module Jist
   extend self
 
-  VERSION = '1.5.0'
+  VERSION = '1.5.1'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -24,6 +24,8 @@ module Jist
   GHE_BASE_PATH    = "/api/v3"
 
   URL_ENV_NAME     = "GITHUB_URL"
+
+  USER_AGENT       = "jist/#{VERSION} (Net::HTTP, #{RUBY_DESCRIPTION})"
 
   # Exception tag for errors raised while gisting.
   module Error;
@@ -199,6 +201,8 @@ module Jist
   # @param [Net::HTTPRequest] The request to make
   # @return [Net::HTTPResponse]
   def http(url, request)
+    request['User-Agent'] = USER_AGENT
+
     http_connection(url).start do |http|
       http.request request
     end
