@@ -150,7 +150,8 @@ module Gist
 
     req = Net::HTTP::Post.new(url.path)
     req.body = JSON.generate(data(files, private_gist, description))
-
+    req["user-agent"] = "Ruby"
+  
     user, password = auth()
     if user && password
       req.basic_auth(user, password)
