@@ -21,8 +21,8 @@ If you'd like your gists to be associated with your GitHub account, so that you
 can edit them and find them in future, first use `gist --login` to obtain an
 Oauth2 access token. This is stored and used by gist in the future.
 
-Private gists do not have guessable URLs and can be created with "-p", you can also set
-the description at the top of the gist by passing "-d".
+Private gists do not have guessable URLs and can be created with "-p", you can
+also set the description at the top of the gist by passing "-d".
 
 Anonymous gists are not associated with your GitHub account, they can be created
 with "-a" even after you have used "gist --login".
@@ -30,10 +30,10 @@ with "-a" even after you have used "gist --login".
 If you would like to shorten the resulting gist URL, use the -s flag. This will
 use GitHub's URL shortener, git.io.
 
-To copy the resulting URL to your clipboard you can use the -c option, or to just
-open it directly in your browser, use -o. Using the -e option will copy the embeddable
-URL to the clipboard. You can add `alias gist='gist -c'` to your shell's rc file to configure this
-behaviour by default.
+To copy the resulting URL to your clipboard you can use the -c option, or to
+just open it directly in your browser, use -o. Using the -e option will copy the
+embeddable URL to the clipboard. You can add `alias gist='gist -c'` to your
+shell's rc file to configure this behaviour by default.
 
 Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
