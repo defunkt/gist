@@ -39,7 +39,7 @@ Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] -a] [-u URL] [-P] [-f NAME]* FILE*
+Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] -a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
 
   EOS
@@ -52,6 +52,11 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] -a] [-u URL] [-P] [-f N
   opts.on("-f", "--filename [NAME.EXTENSION]", "Sets the filename and syntax type.") do |filename|
     filenames << filename
     options[:filename] = filename
+  end
+
+  opts.on("-t", "--type [EXTENSION]", "Sets the file extension and syntax type.") do |extension|
+    filenames << "foo.#{extension}"
+    options[:filename] = "foo.#{extension}"
   end
 
   opts.on("-p", "--public", "Makes your gist public.") do |public|
