@@ -21,7 +21,7 @@ If you'd like your gists to be associated with your GitHub account, so that you
 can edit them and find them in future, first use `gist --login` to obtain an
 Oauth2 access token. This is stored and used by gist in the future.
 
-Public gists have guessable URLs and can be created with "-p", you can also set
+Private gists do not have guessable URLs and can be created with "-p", you can also set
 the description at the top of the gist by passing "-d".
 
 Anonymous gists are not associated with your GitHub account, they can be created
@@ -59,8 +59,8 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] -a] [-u URL] [-P] [-f N
     options[:filename] = "foo.#{extension}"
   end
 
-  opts.on("-p", "--public", "Makes your gist public.") do |public|
-    options[:public] = public
+  opts.on("-p", "--private", "Makes your gist private.") do |private|
+    options[:private] = private
   end
 
   opts.on("-d", "--description DESCRIPTION", "Adds a description to your gist.") do |description|
@@ -119,6 +119,8 @@ begin
                      else
                        :html_url
                      end
+
+  options[:public] = !options.delete(:private)
 
   if options[:paste]
     puts Gist.gist(Gist.paste, options)
