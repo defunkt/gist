@@ -59,8 +59,12 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] -a] [-u URL] [-P] [-f N
     options[:filename] = "foo.#{extension}"
   end
 
-  opts.on("-p", "--private", "Makes your gist private.") do |private|
-    options[:private] = private
+  opts.on("-p", "--private", "Makes your gist private.") do
+    options[:private] = true
+  end
+
+  opts.on("--no-private") do
+    options[:private] = false
   end
 
   opts.on("-d", "--description DESCRIPTION", "Adds a description to your gist.") do |description|
