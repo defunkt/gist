@@ -343,4 +343,13 @@ Could not find copy command, tried:
       File.expand_path "~/.gist"
     end
   end
+
+  def legacy_private_gister?
+    return unless which('git')
+    `git config --global gist.private` =~ /\Ayes|1|true|on\z/i
+  end
+
+  def should_be_public?(options={})
+    !(options[:private] || Gist.legacy_private_gister?)
+  end
 end

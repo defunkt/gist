@@ -120,7 +120,7 @@ begin
                        :html_url
                      end
 
-  options[:public] = !options.delete(:private)
+  options[:public] = Gist.should_be_public?(options)
 
   if options[:paste]
     puts Gist.gist(Gist.paste, options)
