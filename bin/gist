@@ -92,6 +92,8 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] -a] [-u URL] [-P] [-f N
     options[:open] = true
   end
 
+  opts.on("--no-open")
+
   opts.on("-P", "--paste", "Paste from the clipboard to gist") do
     options[:paste] = true
   end
