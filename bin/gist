@@ -124,17 +124,21 @@ begin
 
   if options[:paste]
     puts Gist.gist(Gist.paste, options)
-  elsif ARGV.size == 0
-    $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
-    puts Gist.gist(ARGF.read, options)
   else
+    to_read = ARGV.empty? ? ['-'] : ARGV
     files = {}
-    ARGV.zip(filenames).each do |(file, name)|
-      files[name || file] = begin
-        File.read(File.expand_path(file))
-      rescue => e
-        raise e.extend(Gist::Error)
-      end
+    to_read.zip(filenames).each do |(file, name)|
+      files[name || file] =
+        begin
+          if file == '-'
+            $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
+            STDIN.read
+          else
+            File.read(File.expand_path(file))
+          end
+        rescue => e
+          raise e.extend(Gist::Error)
+        end
     end
 
     puts Gist.multi_gist(files, options)
