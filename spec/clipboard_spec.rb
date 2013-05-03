@@ -9,26 +9,26 @@ describe '...' do
   end
 
   def ask_for_copy
-    Jist.on_success({'html_url' => @bobo_url}.to_json, :copy => true, :output => :html_url)
+    Gist.on_success({'html_url' => @bobo_url}.to_json, :copy => true, :output => :html_url)
   end
-  def jist_but_dont_ask_for_copy
-    Jist.on_success({'html_url' => 'http://example.com/'}.to_json, :output => :html_url)
+  def gist_but_dont_ask_for_copy
+    Gist.on_success({'html_url' => 'http://example.com/'}.to_json, :output => :html_url)
   end
 
   it 'should try to copy the url when the clipboard option is passed' do
-    Jist.should_receive(:copy).with(@bobo_url)
+    Gist.should_receive(:copy).with(@bobo_url)
     ask_for_copy
   end
 
   it 'should try to copy the embed url when the clipboard-js option is passed' do
     js_link = %Q{<script src="#{@bobo_url}.js"></script>}
-    Jist.should_receive(:copy).with(js_link)
-    Jist.on_success({'html_url' => @bobo_url}.to_json, :copy => true, :output => :javascript)
+    Gist.should_receive(:copy).with(js_link)
+    Gist.on_success({'html_url' => @bobo_url}.to_json, :copy => true, :output => :javascript)
   end
 
   it "should not copy when not asked to" do
-    Jist.should_not_receive(:copy).with(@bobo_url)
-    jist_but_dont_ask_for_copy
+    Gist.should_not_receive(:copy).with(@bobo_url)
+    gist_but_dont_ask_for_copy
   end
 
   it "should raise an error if no copying mechanisms are available" do

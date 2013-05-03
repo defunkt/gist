@@ -6,5 +6,5 @@ task :test do
 end
 
 task :clipfailtest do
-  sh 'PATH=/ /usr/bin/ruby -Ilib -S bin/jist -ac < lib/jist.rb'
+  sh 'PATH=/ /usr/bin/ruby -Ilib -S bin/gist -ac < lib/gist.rb'
 end

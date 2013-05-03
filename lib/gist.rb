@@ -4,7 +4,7 @@ require 'json'
 require 'uri'
 
 # It just gists.
-module Jist
+module Gist
   extend self
 
   VERSION = '1.5.1'
@@ -25,7 +25,7 @@ module Jist
 
   URL_ENV_NAME     = "GITHUB_URL"
 
-  USER_AGENT       = "jist/#{VERSION} (Net::HTTP, #{RUBY_DESCRIPTION})"
+  USER_AGENT       = "gist/#{VERSION} (Net::HTTP, #{RUBY_DESCRIPTION})"
 
   # Exception tag for errors raised while gisting.
   module Error;
@@ -55,7 +55,7 @@ module Jist
   # @option options [String] :description  the description
   # @option options [Boolean] :public  (false) is this gist public
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
-  # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
+  # @option options [String] :access_token  (`File.read("~/.gist")`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
@@ -66,7 +66,7 @@ module Jist
   #   :all gives a Hash containing the parsed json response from the server
   #
   # @return [String, Hash]  the return value as configured by options[:output]
-  # @raise [Jist::Error]  if something went wrong
+  # @raise [Gist::Error]  if something went wrong
   #
   # @see http://developer.github.com/v3/gists/
   def multi_gist(files, options={})
@@ -131,12 +131,12 @@ module Jist
     end
   end
 
-  # Log the user into jist.
+  # Log the user into gist.
   #
   # This method asks the user for a username and password, and tries to obtain
-  # and OAuth2 access token, which is then stored in ~/.jist
+  # and OAuth2 access token, which is then stored in ~/.gist
   #
-  # @raise [Jist::Error]  if something went wrong
+  # @raise [Gist::Error]  if something went wrong
   # @see http://developer.github.com/v3/oauth/
   def login!
     puts "Obtaining OAuth2 access_token from github."
@@ -154,8 +154,8 @@ module Jist
     request = Net::HTTP::Post.new("#{base_path}/authorizations")
     request.body = JSON.dump({
       :scopes => [:gist],
-      :note => "The jist gem",
-      :note_url => "https://github.com/ConradIrwin/jist"
+      :note => "The gist gem",
+      :note_url => "https://github.com/ConradIrwin/gist"
     })
     request.content_type = 'application/json'
     request.basic_auth(username, password)
@@ -229,8 +229,8 @@ module Jist
                json
              end
 
-    Jist.copy(output.to_s) if options[:copy]
-    Jist.open(json['html_url']) if options[:open]
+    Gist.copy(output.to_s) if options[:copy]
+    Gist.open(json['html_url']) if options[:open]
 
     output
   end
@@ -238,7 +238,7 @@ module Jist
   # Copy a string to the clipboard.
   #
   # @param [String] content
-  # @raise [Jist::Error] if no clipboard integration could be found
+  # @raise [Gist::Error] if no clipboard integration could be found
   #
   def copy(content)
     IO.popen(clipboard_command(:copy), 'r+') { |clip| clip.print content }
@@ -259,7 +259,7 @@ module Jist
   # Get a string from the clipboard.
   #
   # @param [String] content
-  # @raise [Jist::Error] if no clipboard integration could be found
+  # @raise [Gist::Error] if no clipboard integration could be found
   def paste
     `#{clipboard_command(:paste)}`
   end
@@ -285,7 +285,7 @@ module Jist
   #
   # @param [Symbol] action  either :copy or :paste
   # @return [String]  the command to run
-  # @raise [Jist::ClipboardError] if no clipboard integration could be found
+  # @raise [Gist::ClipboardError] if no clipboard integration could be found
   def clipboard_command(action)
     command = CLIPBOARD_COMMANDS.keys.detect do |cmd|
       which cmd
@@ -338,9 +338,9 @@ Could not find copy command, tried:
 
   def auth_token_file
     if ENV.key?(URL_ENV_NAME)
-      File.expand_path "~/.jist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
+      File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
     else
-      File.expand_path "~/.jist"
+      File.expand_path "~/.gist"
     end
   end
 end

@@ -11,7 +11,7 @@ describe '...' do
   MOCK_GITHUB_URL       = "https://api.github.com/"
 
   before do
-    @saved_env = ENV[Jist::URL_ENV_NAME]
+    @saved_env = ENV[Gist::URL_ENV_NAME]
 
     # stub requests for /gists
     stub_request(:post, /#{MOCK_GHE_URL}gists/).to_return(:body => %[{"html_url": "http://#{MOCK_GHE_HOST}"}])
@@ -25,7 +25,7 @@ describe '...' do
   end
 
   after do
-    ENV[Jist::URL_ENV_NAME] = @saved_env
+    ENV[Gist::URL_ENV_NAME] = @saved_env
   end
 
   describe :login! do
@@ -35,7 +35,7 @@ describe '...' do
       # stdin emulation
       $stdin = StringIO.new "#{MOCK_USER}\n#{MOCK_PASSWORD}\n"
 
-      # intercept for updating ~/.jist
+      # intercept for updating ~/.gist
       File.stub(:open)
     end
 
@@ -43,36 +43,36 @@ describe '...' do
       $stdin = @saved_stdin
     end
 
-    it "should access to api.github.com when $#{Jist::URL_ENV_NAME} wasn't set" do
-      ENV.delete Jist::URL_ENV_NAME
+    it "should access to api.github.com when $#{Gist::URL_ENV_NAME} wasn't set" do
+      ENV.delete Gist::URL_ENV_NAME
 
-      Jist.login!
+      Gist.login!
 
       assert_requested(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/)
     end
 
-    it "should access to #{MOCK_GHE_HOST} when $#{Jist::URL_ENV_NAME} was set" do
-      ENV[Jist::URL_ENV_NAME] = MOCK_GHE_URL
+    it "should access to #{MOCK_GHE_HOST} when $#{Gist::URL_ENV_NAME} was set" do
+      ENV[Gist::URL_ENV_NAME] = MOCK_GHE_URL
 
-      Jist.login!
+      Gist.login!
 
       assert_requested(:post, /#{MOCK_AUTHZ_GHE_URL}authorizations/)
     end
   end
 
   describe :gist do
-    it "should access to api.github.com when $#{Jist::URL_ENV_NAME} wasn't set" do
-      ENV.delete Jist::URL_ENV_NAME
+    it "should access to api.github.com when $#{Gist::URL_ENV_NAME} wasn't set" do
+      ENV.delete Gist::URL_ENV_NAME
 
-      Jist.gist "test gist"
+      Gist.gist "test gist"
 
       assert_requested(:post, /#{MOCK_GITHUB_URL}gists/)
     end
 
-    it "should access to #{MOCK_GHE_HOST} when $#{Jist::URL_ENV_NAME} was set" do
-      ENV[Jist::URL_ENV_NAME] = MOCK_GHE_URL
+    it "should access to #{MOCK_GHE_HOST} when $#{Gist::URL_ENV_NAME} was set" do
+      ENV[Gist::URL_ENV_NAME] = MOCK_GHE_URL
 
-      Jist.gist "test gist"
+      Gist.gist "test gist"
 
       assert_requested(:post, /#{MOCK_GHE_URL}gists/)
     end

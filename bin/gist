@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require File.expand_path('../../lib/jist', __FILE__)
+require File.expand_path('../../lib/gist', __FILE__)
 
 # For the holdings of options.
 options = {}
@@ -10,7 +10,7 @@ filenames = []
 opts = OptionParser.new do |opts|
   executable_name = File.split($0)[1]
   opts.banner = <<-EOS
-Jist (v#{Jist::VERSION}) lets you upload to https://gist.github.com/
+Gist (v#{Gist::VERSION}) lets you upload to https://gist.github.com/
 
 The content to be uploaded can be passed as a list of files, if none are
 specified STDIN will be read. The default filename for STDIN is "a.rb", and all
@@ -18,14 +18,14 @@ filenames can be overridden by repeating the "-f" flag. The most useful reason
 to do this is to change the syntax highlighting.
 
 If you'd like your gists to be associated with your GitHub account, so that you
-can edit them and find them in future, first use `jist --login` to obtain an
-Oauth2 access token. This is stored and used by jist in the future.
+can edit them and find them in future, first use `gist --login` to obtain an
+Oauth2 access token. This is stored and used by gist in the future.
 
 Public gists have guessable URLs and can be created with "-p", you can also set
 the description at the top of the gist by passing "-d".
 
 Anonymous gists are not associated with your GitHub account, they can be created
-with "-a" even after you have used "jist --login". If you already have an access
+with "-a" even after you have used "gist --login". If you already have an access
 token with the "gist" scope, you can pass that with "-t".
 
 If you would like to shorten the resulting gist URL, use the -s flag. This will
@@ -33,10 +33,10 @@ use GitHub's URL shortener, git.io.
 
 To copy the resulting URL to your clipboard you can use the -c option, or to just
 open it directly in your browser, use -o. Using the -e option will copy the embeddable
-URL to the clipboard. You can add `alias jist='jist -c'` to your shell's rc file to configure this
+URL to the clipboard. You can add `alias gist='gist -c'` to your shell's rc file to configure this
 behaviour by default.
 
-Instead of creating a new jist, you can update an existing one by passing its ID
+Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
@@ -45,8 +45,8 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] 
 
   EOS
 
-  opts.on("--login", "Authenticate jist on this computer.") do
-    Jist.login!
+  opts.on("--login", "Authenticate gist on this computer.") do
+    Gist.login!
     exit
   end
 
@@ -91,7 +91,7 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] 
     options[:open] = true
   end
 
-  opts.on("-P", "--paste", "Paste from the clipboard to jist") do
+  opts.on("-P", "--paste", "Paste from the clipboard to gist") do
     options[:paste] = true
   end
 
@@ -101,7 +101,7 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-t TOKEN|-a] [-u URL] 
   end
 
   opts.on_tail("-v", "--version", "Print the version.") do
-    puts "jist v#{Jist::VERSION}"
+    puts "gist v#{Gist::VERSION}"
     exit
   end
 
@@ -110,7 +110,7 @@ opts.parse!
 
 begin
   options[:output] = if options[:embed] && options[:shorten]
-                       raise Jist::Error, "--embed does not make sense with --shorten"
+                       raise Gist::Error, "--embed does not make sense with --shorten"
                      elsif options[:embed]
                        :javascript
                      elsif options[:shorten]
@@ -120,23 +120,23 @@ begin
                      end
 
   if options[:paste]
-    puts Jist.gist(Jist.paste, options)
+    puts Gist.gist(Gist.paste, options)
   elsif ARGV.size == 0
     $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
-    puts Jist.gist(ARGF.read, options)
+    puts Gist.gist(ARGF.read, options)
   else
     files = {}
     ARGV.zip(filenames).each do |(file, name)|
       files[name || file] = begin
         File.read(File.expand_path(file))
       rescue => e
-        raise e.extend(Jist::Error)
+        raise e.extend(Gist::Error)
       end
     end
 
-    puts Jist.multi_gist(files, options)
+    puts Gist.multi_gist(files, options)
   end
-rescue Jist::Error => e
+rescue Gist::Error => e
   puts "Error: #{e.message}"
   exit 1
 rescue Interrupt
