@@ -140,9 +140,9 @@ module Gist
   # @see http://developer.github.com/v3/oauth/
   def login!
     puts "Obtaining OAuth2 access_token from github."
-    print "Github username: "
+    print "GitHub username: "
     username = $stdin.gets.strip
-    print "Github password: "
+    print "GitHub password: "
     password = begin
       `stty -echo` rescue nil
       $stdin.gets.strip
