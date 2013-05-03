@@ -7,7 +7,7 @@ require 'uri'
 module Gist
   extend self
 
-  VERSION = '1.5.1'
+  VERSION = '4.0.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
