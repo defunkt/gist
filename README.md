@@ -144,5 +144,6 @@ If you need to use an HTTP proxy to access the internet, export the `HTTP_PROXY`
 ## Meta-fu
 
 Thanks to @defunkt and @indirect for writing and maintaining versions 1 through 3.
+Thanks to @rking and @ConradIrwin for maintaining version 4.
 
 Licensed under the MIT license. Bug-reports, and pull requests are welcome.
