@@ -39,7 +39,7 @@ task :install => :standalone do
   prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
   FileUtils.mkdir_p "#{prefix}/bin"
-  FileUtils.cp "builld/gist", "#{prefix}/bin"
+  FileUtils.cp "build/gist", "#{prefix}/bin"
 
   FileUtils.mkdir_p "#{prefix}/share/man/man1"
   FileUtils.cp "build/gist.1", "#{prefix}/share/man/man1"
