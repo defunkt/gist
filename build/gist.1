@@ -1,0 +1,215 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "GIST" "1" "May 2013" "" "Gist manual"
+.
+.SH "NAME"
+\fBgist\fR \- upload code to https://gist\.github\.com
+.
+.SH "Synopsis"
+The gist gem provides a \fBgist\fR command that you can use from your terminal to upload content to https://gist\.github\.com/\.
+.
+.SH "Installation"
+.
+.TP
+If you have ruby installed:
+.
+.IP
+gem install gist
+.
+.TP
+If you\'re using Bundler:
+.
+.IP
+source :rubygems gem \'gist\'
+.
+.SH "Command"
+.
+.IP "\(bu" 4
+To upload the contents of \fBa\.rb\fR just:
+.
+.IP
+gist a\.rb
+.
+.IP "\(bu" 4
+Upload multiple files:
+.
+.IP
+gist a b c gist *\.rb
+.
+.IP "\(bu" 4
+By default it reads from STDIN, and you can set a filename with \fB\-f\fR\.
+.
+.IP
+gist \-f test\.rb <a\.rb
+.
+.IP "\(bu" 4
+Alternatively, you can just paste from the clipboard:
+.
+.IP
+gist \-P
+.
+.IP "\(bu" 4
+Use \fB\-p\fR to make the gist private:
+.
+.IP
+gist \-p a\.rb
+.
+.IP "\(bu" 4
+Use \fB\-d\fR to add a description:
+.
+.IP
+gist \-d "Random rbx bug" a\.rb
+.
+.IP "\(bu" 4
+You can update existing gists with \fB\-u\fR:
+.
+.IP
+gist lib/gist\.rb bin/gist \-u 42f2c239d2eb57299408
+.
+.IP "\(bu" 4
+If you\'d like to copy the resulting URL to your clipboard, use \fB\-c\fR\.
+.
+.IP
+gist \-c <a\.rb
+.
+.IP "\(bu" 4
+If you\'d like to copy the resulting embeddable URL to your clipboard, use \fB\-\-copy\-js\fR\.
+.
+.IP
+gist \-\-copy\-js <a\.rb
+.
+.IP "\(bu" 4
+And you can just ask gist to open a browser window directly with \fB\-o\fR\.
+.
+.IP
+gist \-o <a\.rb
+.
+.IP "\(bu" 4
+See \fBgist \-\-help\fR for more detail\.
+.
+.IP "" 0
+.
+.SH "Login"
+If you want to associate your gists with your GitHub account, you need to login with gist\. It doesn\'t store your username and password, it just uses them to get an OAuth2 token (with the "gist" permission)\.
+.
+.IP "" 4
+.
+.nf
+
+gist \-\-login
+Obtaining OAuth2 access_token from github\.
+GitHub username: ConradIrwin
+GitHub password:
+Success! https://github\.com/settings/applications
+.
+.fi
+.
+.IP "" 0
+.
+.P
+This token is stored in \fB~/\.gist\fR and used for all future gisting\. If you need to you can revoke it from https://github\.com/settings/applications, or just delete the file\.
+.
+.IP "\(bu" 4
+After you\'ve done this, you can still upload gists anonymously with \fB\-a\fR\.
+.
+.IP
+gist \-a a\.rb
+.
+.IP "" 0
+.
+.TP
+You can also use Gist as a library from inside your ruby code:
+.
+.IP
+Gist\.gist("Look\.at(:my => \'awesome\')\.code")
+.
+.P
+If you need more advanced features you can also pass:
+.
+.IP "\(bu" 4
+\fB:access_token\fR to authenticate using OAuth2 (default is `File\.read("~/\.gist"))\.
+.
+.IP "\(bu" 4
+\fB:filename\fR to change the syntax highlighting (default is \fBa\.rb\fR)\.
+.
+.IP "\(bu" 4
+\fB:public\fR if you want your gist to have a guessable url\.
+.
+.IP "\(bu" 4
+\fB:description\fR to add a description to your gist\.
+.
+.IP "\(bu" 4
+\fB:update\fR to update an existing gist (can be a URL or an id)\.
+.
+.IP "\(bu" 4
+\fB:anonymous\fR to submit an anonymous gist (default is false)\.
+.
+.IP "\(bu" 4
+\fB:copy\fR to copy the resulting URL to the clipboard (default is false)\.
+.
+.IP "\(bu" 4
+\fB:open\fR to open the resulting URL in a browser (default is false)\.
+.
+.IP "" 0
+.
+.P
+NOTE: The access_token must have the "gist" scope\.
+.
+.IP "\(bu" 4
+If you want to upload multiple files in the same gist, you can:
+.
+.IP
+Gist\.multi_gist("a\.rb" => "Foo\.bar", "a\.py" => "Foo\.bar")
+.
+.IP "\(bu" 4
+If you\'d rather use gist\'s builtin access_token, then you can force the user to obtain one by calling:
+.
+.IP
+Gist\.login!
+.
+.IP "\(bu" 4
+This will take them through the process of obtaining an OAuth2 token, and storing it in \fB~/\.gist\fR, where it can later be read by \fBGist\.gist\fR
+.
+.IP "" 0
+.
+.SH "GitHub enterprise"
+.
+.IP "\(bu" 4
+If you\'d like \fBgist\fR to use your locally installed GitHub Enterprise \fIhttps://enterprise\.github\.com/\fR, you need to export the \fBGITHUB_URL\fR environment variable in your \fB~/\.bashrc\fR\.
+.
+.IP
+export GITHUB_URL=http://github\.internal\.example\.com/
+.
+.IP "\(bu" 4
+Once you\'ve done this and restarted your terminal (or run \fBsource ~/\.bashrc\fR), gist will automatically use github enterprise instead of the public github\.com
+.
+.IP "" 0
+.
+.SH "Configuration"
+.
+.IP "\(bu" 4
+If you\'d like \fB\-o\fR or \fB\-c\fR to be the default when you use the gist executable, add an alias to your \fB~/\.bashrc\fR (or equivalent)\. For example:
+.
+.IP
+alias gist=\'gist \-c\'
+.
+.IP "\(bu" 4
+If you\'d prefer gist to open a different browser, then you can export the BROWSER environment variable:
+.
+.IP
+export BROWSER=google\-chrome
+.
+.IP "" 0
+.
+.P
+If clipboard or browser integration don\'t work on your platform, please file a bug or (more ideally) a pull request\.
+.
+.P
+If you need to use an HTTP proxy to access the internet, export the \fBHTTP_PROXY\fR or \fBhttp_proxy\fR environment variable and gist will use it\.
+.
+.SH "Meta\-fu"
+Thanks to @defunkt and @indirect for writing and maintaining versions 1 through 3\. Thanks to @rking and @ConradIrwin for maintaining version 4\.
+.
+.P
+Licensed under the MIT license\. Bug\-reports, and pull requests are welcome\.
