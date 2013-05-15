@@ -1,5 +1,3 @@
-# encoding: utf-8
-#
 task :default => :test
 
 desc 'run the tests' # that's non-DRY
@@ -13,7 +11,7 @@ end
 
 task :man do
   mkdir_p "build"
-  File.write "README.md.ron", File.read("README.md").gsub(?‌, "* ")
+  File.write "README.md.ron", File.read("README.md").gsub("\u200c", "* ")
   sh 'ronn --roff --manual="Gist manual" README.md.ron'
   rm 'README.md.ron'
   mv 'README.1', 'build/gist.1'
