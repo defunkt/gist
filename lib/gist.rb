@@ -138,12 +138,12 @@ module Gist
   #
   # @raise [Gist::Error]  if something went wrong
   # @see http://developer.github.com/v3/oauth/
-  def login!
+  def login! credentials={}
     puts "Obtaining OAuth2 access_token from github."
     print "GitHub username: "
-    username = $stdin.gets.strip
+    username = credentials[:username] || $stdin.gets.strip
     print "GitHub password: "
-    password = begin
+    password = credentials[:password] || begin
       `stty -echo` rescue nil
       $stdin.gets.strip
     ensure
