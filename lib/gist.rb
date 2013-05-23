@@ -137,8 +137,11 @@ module Gist
   # and OAuth2 access token, which is then stored in ~/.gist
   #
   # @raise [Gist::Error]  if something went wrong
+  # @param [Hash] credentials  login details
+  # @option credentials [String] :username
+  # @option credentials [String] :password
   # @see http://developer.github.com/v3/oauth/
-  def login! credentials={}
+  def login!(credentials={})
     puts "Obtaining OAuth2 access_token from github."
     print "GitHub username: "
     username = credentials[:username] || $stdin.gets.strip
