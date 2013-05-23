@@ -58,6 +58,17 @@ describe '...' do
 
       assert_requested(:post, /#{MOCK_AUTHZ_GHE_URL}authorizations/)
     end
+
+    context "when credentials are passed in" do
+
+      it "uses them" do
+        $stdin = StringIO.new "#{MOCK_USER}_wrong\n#{MOCK_PASSWORD}_wrong\n"
+        Gist.login! username: MOCK_USER, password: MOCK_PASSWORD
+
+        assert_requested(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/)
+      end
+
+    end
   end
 
   describe :gist do
