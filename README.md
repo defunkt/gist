@@ -52,9 +52,9 @@ upload content to https://gist.github.com/.
 
     gist -c <a.rb
 
-‌If you'd like to copy the resulting embeddable URL to your clipboard, use `--copy-js`.
+‌If you'd like to copy the resulting embeddable URL to your clipboard, use `-e`.
 
-    gist --copy-js <a.rb
+    gist -e <a.rb
 
 ‌And you can just ask gist to open a browser window directly with `-o`.
 
