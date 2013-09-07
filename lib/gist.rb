@@ -175,7 +175,7 @@ module Gist
     end
 
     if Net::HTTPCreated === response
-      File.open(auth_token_file, 'w') do |f|
+      File.open(auth_token_file, 'w', 0600) do |f|
         f.write JSON.parse(response.body)['token']
       end
       puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
