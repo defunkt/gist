@@ -1313,7 +1313,7 @@ require 'uri'
 module Gist
   extend self
 
-  VERSION = '4.0.1'
+  VERSION = '4.1.1'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1443,13 +1443,16 @@ module Gist
   # and OAuth2 access token, which is then stored in ~/.gist
   #
   # @raise [Gist::Error]  if something went wrong
+  # @param [Hash] credentials  login details
+  # @option credentials [String] :username
+  # @option credentials [String] :password
   # @see http://developer.github.com/v3/oauth/
-  def login!
+  def login!(credentials={})
     puts "Obtaining OAuth2 access_token from github."
     print "GitHub username: "
-    username = $stdin.gets.strip
+    username = credentials[:username] || $stdin.gets.strip
     print "GitHub password: "
-    password = begin
+    password = credentials[:password] || begin
       `stty -echo` rescue nil
       $stdin.gets.strip
     ensure
@@ -1468,8 +1471,17 @@ module Gist
 
     response = http(api_url, request)
 
+    if Net::HTTPUnauthorized === response && response['X-GitHub-OTP']
+      print "2-factor auth code: "
+      twofa_code = $stdin.gets.strip
+      puts ""
+
+      request['X-GitHub-OTP'] = twofa_code
+      response = http(api_url, request)
+    end
+
     if Net::HTTPCreated === response
-      File.open(auth_token_file, 'w') do |f|
+      File.open(auth_token_file, 'w', 0600) do |f|
         f.write JSON.parse(response.body)['token']
       end
       puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
