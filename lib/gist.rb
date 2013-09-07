@@ -7,7 +7,7 @@ require 'uri'
 module Gist
   extend self
 
-  VERSION = '4.0.3'
+  VERSION = '4.1.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -164,6 +164,15 @@ module Gist
     request.basic_auth(username, password)
 
     response = http(api_url, request)
+
+    if Net::HTTPUnauthorized === response && response['X-GitHub-OTP']
+      print "2-factor auth code: "
+      twofa_code = $stdin.gets.strip
+      puts ""
+
+      request['X-GitHub-OTP'] = twofa_code
+      response = http(api_url, request)
+    end
 
     if Net::HTTPCreated === response
       File.open(auth_token_file, 'w') do |f|
