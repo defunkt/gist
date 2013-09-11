@@ -88,13 +88,13 @@ This token is stored in `~/.gist` and used for all future gisting. If you need t
 you can revoke it from https://github.com/settings/applications, or just delete the
 file.
 
-After you've done this, you can still upload gists anonymously with `-a`.
+‌After you've done this, you can still upload gists anonymously with `-a`.
 
     gist -a a.rb
 
 # Library
 
-You can also use Gist as a library from inside your ruby code:
+‌You can also use Gist as a library from inside your ruby code:
 
     Gist.gist("Look.at(:my => 'awesome').code")
 
