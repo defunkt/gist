@@ -72,19 +72,29 @@ an OAuth2 token (with the "gist" permission).
     Obtaining OAuth2 access_token from github.
     GitHub username: ConradIrwin
     GitHub password:
+    2-factor auth code:
     Success! https://github.com/settings/applications
+
+You can read the 2-factor auth code from an sms or the authentification app,
+depending on how you [set your account up](https://github.com/settings/admin).
+
+Note: 2-factor authentication
+[just appeared recently](https://github.com/blog/1614-two-factor-authentication),
+so if you run into errors, update the gist gem.
+
+    gem update gist
 
 This token is stored in `~/.gist` and used for all future gisting. If you need to
 you can revoke it from https://github.com/settings/applications, or just delete the
 file.
 
-‌After you've done this, you can still upload gists anonymously with `-a`.
+After you've done this, you can still upload gists anonymously with `-a`.
 
     gist -a a.rb
 
 # Library
 
-‌You can also use Gist as a library from inside your ruby code:
+You can also use Gist as a library from inside your ruby code:
 
     Gist.gist("Look.at(:my => 'awesome').code")
 
