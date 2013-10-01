@@ -86,7 +86,9 @@ so if you run into errors, update the gist gem.
 
 This token is stored in `~/.gist` and used for all future gisting. If you need to
 you can revoke it from https://github.com/settings/applications, or just delete the
-file.
+file.  If you need to store tokens for both github.com and a Github Enterprise instance 
+you can save your Github Enterprise token in `~/.gist.github.example.com` where 
+"github.example.com" is the URL for your Github Enterprise instance.
 
 ‌After you've done this, you can still upload gists anonymously with `-a`.
 
