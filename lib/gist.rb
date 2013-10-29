@@ -259,6 +259,8 @@ module Gist
                rawify(json['html_url'])
              when :short_url
                shorten(json['html_url'])
+             when :short_raw_url
+               shorten(rawify(json['html_url']))
              else
                json
              end
