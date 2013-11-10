@@ -12,6 +12,9 @@ upload content to https://gist.github.com/.
 
     gem install gist
 
+Note: Debian/Ubuntu users should install the ruby dev package (which includes mkmf.rb) before running the above command.
+ruby dev can be installed via `sudo apt-get install ruby1.9-dev`.
+
 ‌If you're using Bundler:
 
     source :rubygems
