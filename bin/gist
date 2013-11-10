@@ -102,7 +102,7 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-a] [-u URL] [-P] [-f 
     options[:paste] = true
   end
 
-  opts.on("-r", "--raw", "Raw url of the new gist") do
+  opts.on("-R", "--raw", "Raw url of the new gist") do
     options[:raw] = true
   end
 
