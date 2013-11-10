@@ -1,13 +1,18 @@
 require 'net/https'
 require 'cgi'
-require 'json'
 require 'uri'
+
+begin
+  require 'json'
+rescue LoadError
+  require File.join File.dirname(File.dirname(__FILE__)), 'vendor', 'json.rb'
+end
 
 # It just gists.
 module Gist
   extend self
 
-  VERSION = '4.1.2'
+  VERSION = '4.1.3'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {

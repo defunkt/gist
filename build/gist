@@ -3,7 +3,10 @@
 # any changes will be overwritten.
 require 'net/https'
 require 'cgi'
-require 'strscan'
+require 'uri'
+
+begin
+  require 'strscan'
 
 module JSON
   module Pure
@@ -1307,13 +1310,15 @@ end
 
 JSON.generator = JSON::Pure::Generator
 JSON.parser    = JSON::Pure::Parser
-require 'uri'
+rescue LoadError
+  require File.join File.dirname(File.dirname(__FILE__)), 'vendor', 'json.rb'
+end
 
 # It just gists.
 module Gist
   extend self
 
-  VERSION = '4.1.1'
+  VERSION = '4.1.2'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
