@@ -138,6 +138,10 @@ module Gist
 
   # Convert github url into raw file url
   #
+  # Unfortunately the url returns from github's api is legacy,
+  # we have to taking a HTTPRedirection before appending it
+  # with '/raw'. Let's looking forward for github's api fix :)
+  #
   # @param [String] url
   # @return [String] the raw file url
   def rawify(url)
