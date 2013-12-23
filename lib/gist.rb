@@ -1,6 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'uri'
+require 'fileutils'
 
 begin
   require 'json'
@@ -60,7 +61,7 @@ module Gist
   # @option options [String] :description  the description
   # @option options [Boolean] :public  (false) is this gist public
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
-  # @option options [String] :access_token  (`File.read("~/.gist")`) The OAuth2 access token.
+  # @option options [String] :access_token  (`File.read(auth_token_file)`) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
@@ -158,7 +159,7 @@ module Gist
   # Log the user into gist.
   #
   # This method asks the user for a username and password, and tries to obtain
-  # and OAuth2 access token, which is then stored in ~/.gist
+  # and OAuth2 access token, which is then stored in the auth_token_file
   #
   # @raise [Gist::Error]  if something went wrong
   # @param [Hash] credentials  login details
@@ -200,6 +201,7 @@ module Gist
       end
 
       if Net::HTTPCreated === response
+        FileUtils.mkdir_p(File.dirname(auth_token_file))
         File.open(auth_token_file, 'w', 0600) do |f|
           f.write JSON.parse(response.body)['token']
         end
@@ -383,12 +385,35 @@ Could not find copy command, tried:
     ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_API_URL
   end
 
+  # Retrieve the path to the token file
+  #
+  # * Linux: $XDG_CONFIG_HOME/gist/token
+  # * OSX:   $HOME/Library/gist/token
+  # * Other: $HOME/.gist
+  #
+  # If the legacy token file exists ($HOME/.gist) this file path will be used no
+  # matter the detected platform
+  #
+  # @return [string] The token filepath
   def auth_token_file
-    if ENV.key?(URL_ENV_NAME)
-      File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
+    token_name = ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" if ENV.key?(URL_ENV_NAME)
+    token_file = "token#{token_name}"
+    token_path = File.expand_path "~"
+
+    # Legacy token located in $HOME/.gist
+    legacy_path = File.join token_path, ".gist#{token_name}"
+    return legacy_path if File.exist? legacy_path
+
+    if RUBY_PLATFORM =~ /darwin/
+      token_path = File.join token_path, "Library/gist"
+    elsif RUBY_PLATFORM =~ /linux/
+      token_path = ENV.fetch "XDG_CONFIG_HOME", File.join(token_path, ".config")
+      token_path = File.join token_path, "gist"
     else
-      File.expand_path "~/.gist"
+      token_file.insert(0, ".")
     end
+
+    File.join token_path, token_file
   end
 
   def legacy_private_gister?
