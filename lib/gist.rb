@@ -329,6 +329,7 @@ Could not find copy command, tried:
               elsif RUBY_PLATFORM =~ /linux/
                 %w(
                   sensible-browser
+                  xdg-open
                   firefox
                   firefox-bin
                 ).detect do |cmd|
