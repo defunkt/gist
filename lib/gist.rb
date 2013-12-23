@@ -305,7 +305,7 @@ module Gist
   # @raise [Gist::ClipboardError] if no clipboard integration could be found
   def clipboard_command(action)
     command = CLIPBOARD_COMMANDS.keys.detect do |cmd|
-      which cmd
+      which cmd.split(" ")[0]
     end
     raise ClipboardError, <<-EOT unless command
 Could not find copy command, tried:
