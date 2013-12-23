@@ -16,10 +16,10 @@ module Gist
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
-    'xclip'   => 'xclip -o',
-    'xsel -i'    => 'xsel -o',
-    'pbcopy'  => 'pbpaste',
-    'putclip' => 'getclip'
+    'xclip -se c' => 'xclip -se c -o',
+    'xsel -bi'    => 'xsel -b',
+    'pbcopy'      => 'pbpaste',
+    'putclip'     => 'getclip'
   }
 
   GITHUB_API_URL   = URI("https://api.github.com/")
