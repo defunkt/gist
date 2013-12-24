@@ -136,6 +136,25 @@ module Gist
     end
   end
 
+  # Convert github url into raw file url
+  #
+  # Unfortunately the url returns from github's api is legacy,
+  # we have to taking a HTTPRedirection before appending it
+  # with '/raw'. Let's looking forward for github's api fix :)
+  #
+  # @param [String] url
+  # @return [String] the raw file url
+  def rawify(url)
+    uri = URI(url)
+    request = Net::HTTP::Get.new(uri.path)
+    response = http(uri, request)
+    if Net::HTTPSuccess === response
+      url + '/raw'
+    elsif Net::HTTPRedirection === response
+      rawify(response.header['location'])
+    end
+  end
+
   # Log the user into gist.
   #
   # This method asks the user for a username and password, and tries to obtain
@@ -246,8 +265,12 @@ module Gist
                %Q{<script src="#{json['html_url']}.js"></script>}
              when :html_url
                json['html_url']
+             when :raw_url
+               rawify(json['html_url'])
              when :short_url
                shorten(json['html_url'])
+             when :short_raw_url
+               shorten(rawify(json['html_url']))
              else
                json
              end

@@ -105,6 +105,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-a] [-u URL] [-P] [-f 
     options[:paste] = true
   end
 
+  opts.on("-R", "--raw", "Raw url of the new gist") do
+    options[:raw] = true
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -122,8 +126,12 @@ begin
                        raise Gist::Error, "--embed does not make sense with --shorten"
                      elsif options[:embed]
                        :javascript
+                     elsif options[:shorten] and options[:raw]
+                       :short_raw_url
                      elsif options[:shorten]
                        :short_url
+                     elsif options[:raw]
+                       :raw_url
                      else
                        :html_url
                      end
