@@ -10,7 +10,7 @@ require 'gist'
 options = {}
 filenames = []
 
-opts = OptionParser.new do |opts|
+OptionParser.new do |opts|
   executable_name = File.split($0)[1]
   opts.banner = <<-EOS
 Gist (v#{Gist::VERSION}) lets you upload to https://gist.github.com/
@@ -115,8 +115,7 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-a] [-u URL] [-P] [-f 
     exit
   end
 
-end
-opts.parse!
+end.parse!
 
 begin
   options[:output] = if options[:embed] && options[:shorten]
