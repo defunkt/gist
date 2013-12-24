@@ -148,44 +148,50 @@ module Gist
   # @see http://developer.github.com/v3/oauth/
   def login!(credentials={})
     puts "Obtaining OAuth2 access_token from github."
-    print "GitHub username: "
-    username = credentials[:username] || $stdin.gets.strip
-    print "GitHub password: "
-    password = credentials[:password] || begin
-      `stty -echo` rescue nil
-      $stdin.gets.strip
-    ensure
-      `stty echo` rescue nil
-    end
-    puts ""
-
-    request = Net::HTTP::Post.new("#{base_path}/authorizations")
-    request.body = JSON.dump({
-      :scopes => [:gist],
-      :note => "The gist gem",
-      :note_url => "https://github.com/ConradIrwin/gist"
-    })
-    request.content_type = 'application/json'
-    request.basic_auth(username, password)
-
-    response = http(api_url, request)
-
-    if Net::HTTPUnauthorized === response && response['X-GitHub-OTP']
-      print "2-factor auth code: "
-      twofa_code = $stdin.gets.strip
+    loop do
+      print "GitHub username: "
+      username = credentials[:username] || $stdin.gets.strip
+      print "GitHub password: "
+      password = credentials[:password] || begin
+        `stty -echo` rescue nil
+        $stdin.gets.strip
+      ensure
+        `stty echo` rescue nil
+      end
       puts ""
 
-      request['X-GitHub-OTP'] = twofa_code
-      response = http(api_url, request)
-    end
+      request = Net::HTTP::Post.new("#{base_path}/authorizations")
+      request.body = JSON.dump({
+        :scopes => [:gist],
+        :note => "The gist gem",
+        :note_url => "https://github.com/ConradIrwin/gist"
+      })
+      request.content_type = 'application/json'
+      request.basic_auth(username, password)
 
-    if Net::HTTPCreated === response
-      File.open(auth_token_file, 'w', 0600) do |f|
-        f.write JSON.parse(response.body)['token']
+      response = http(api_url, request)
+
+      if Net::HTTPUnauthorized === response && response['X-GitHub-OTP']
+        print "2-factor auth code: "
+        twofa_code = $stdin.gets.strip
+        puts ""
+
+        request['X-GitHub-OTP'] = twofa_code
+        response = http(api_url, request)
       end
-      puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
-    else
-      raise "Got #{response.class} from gist: #{response.body}"
+
+      if Net::HTTPCreated === response
+        File.open(auth_token_file, 'w', 0600) do |f|
+          f.write JSON.parse(response.body)['token']
+        end
+        puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
+        return
+      elsif Net::HTTPUnauthorized === response
+        puts "Error: #{JSON.parse(response.body)['message']}"
+        next
+      else
+        raise "Got #{response.class} from gist: #{response.body}"
+      end
     end
   rescue => e
     raise e.extend Error
