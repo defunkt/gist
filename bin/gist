@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require File.expand_path('../../lib/gist', __FILE__)
+require 'gist'
 
 # For the holdings of options.
 options = {}
