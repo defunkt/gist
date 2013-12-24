@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# Silence Ctrl-C's
+trap('INT'){ exit 1 }
+
 require 'optparse'
 require 'gist'
 
@@ -152,6 +155,4 @@ begin
 rescue Gist::Error => e
   puts "Error: #{e.message}"
   exit 1
-rescue Interrupt
-  # bye!
 end
