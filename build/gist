@@ -1318,7 +1318,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.1.3'
+  VERSION = '4.2.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1442,6 +1442,25 @@ module Gist
     end
   end
 
+  # Convert github url into raw file url
+  #
+  # Unfortunately the url returns from github's api is legacy,
+  # we have to taking a HTTPRedirection before appending it
+  # with '/raw'. Let's looking forward for github's api fix :)
+  #
+  # @param [String] url
+  # @return [String] the raw file url
+  def rawify(url)
+    uri = URI(url)
+    request = Net::HTTP::Get.new(uri.path)
+    response = http(uri, request)
+    if Net::HTTPSuccess === response
+      url + '/raw'
+    elsif Net::HTTPRedirection === response
+      rawify(response.header['location'])
+    end
+  end
+
   # Log the user into gist.
   #
   # This method asks the user for a username and password, and tries to obtain
@@ -1454,44 +1473,50 @@ module Gist
   # @see http://developer.github.com/v3/oauth/
   def login!(credentials={})
     puts "Obtaining OAuth2 access_token from github."
-    print "GitHub username: "
-    username = credentials[:username] || $stdin.gets.strip
-    print "GitHub password: "
-    password = credentials[:password] || begin
-      `stty -echo` rescue nil
-      $stdin.gets.strip
-    ensure
-      `stty echo` rescue nil
-    end
-    puts ""
-
-    request = Net::HTTP::Post.new("#{base_path}/authorizations")
-    request.body = JSON.dump({
-      :scopes => [:gist],
-      :note => "The gist gem",
-      :note_url => "https://github.com/ConradIrwin/gist"
-    })
-    request.content_type = 'application/json'
-    request.basic_auth(username, password)
-
-    response = http(api_url, request)
-
-    if Net::HTTPUnauthorized === response && response['X-GitHub-OTP']
-      print "2-factor auth code: "
-      twofa_code = $stdin.gets.strip
+    loop do
+      print "GitHub username: "
+      username = credentials[:username] || $stdin.gets.strip
+      print "GitHub password: "
+      password = credentials[:password] || begin
+        `stty -echo` rescue nil
+        $stdin.gets.strip
+      ensure
+        `stty echo` rescue nil
+      end
       puts ""
 
-      request['X-GitHub-OTP'] = twofa_code
-      response = http(api_url, request)
-    end
+      request = Net::HTTP::Post.new("#{base_path}/authorizations")
+      request.body = JSON.dump({
+        :scopes => [:gist],
+        :note => "The gist gem",
+        :note_url => "https://github.com/ConradIrwin/gist"
+      })
+      request.content_type = 'application/json'
+      request.basic_auth(username, password)
 
-    if Net::HTTPCreated === response
-      File.open(auth_token_file, 'w', 0600) do |f|
-        f.write JSON.parse(response.body)['token']
+      response = http(api_url, request)
+
+      if Net::HTTPUnauthorized === response && response['X-GitHub-OTP']
+        print "2-factor auth code: "
+        twofa_code = $stdin.gets.strip
+        puts ""
+
+        request['X-GitHub-OTP'] = twofa_code
+        response = http(api_url, request)
       end
-      puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
-    else
-      raise "Got #{response.class} from gist: #{response.body}"
+
+      if Net::HTTPCreated === response
+        File.open(auth_token_file, 'w', 0600) do |f|
+          f.write JSON.parse(response.body)['token']
+        end
+        puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
+        return
+      elsif Net::HTTPUnauthorized === response
+        puts "Error: #{JSON.parse(response.body)['message']}"
+        next
+      else
+        raise "Got #{response.class} from gist: #{response.body}"
+      end
     end
   rescue => e
     raise e.extend Error
@@ -1546,8 +1571,12 @@ module Gist
                %Q{<script src="#{json['html_url']}.js"></script>}
              when :html_url
                json['html_url']
+             when :raw_url
+               rawify(json['html_url'])
              when :short_url
                shorten(json['html_url'])
+             when :short_raw_url
+               shorten(rawify(json['html_url']))
              else
                json
              end
@@ -1683,13 +1712,16 @@ Could not find copy command, tried:
 end
 #!/usr/bin/env ruby
 
+# Silence Ctrl-C's
+trap('INT'){ exit 1 }
+
 require 'optparse'
 
 # For the holdings of options.
 options = {}
 filenames = []
 
-opts = OptionParser.new do |opts|
+OptionParser.new do |opts|
   executable_name = File.split($0)[1]
   opts.banner = <<-EOS
 Gist (v#{Gist::VERSION}) lets you upload to https://gist.github.com/
@@ -1710,7 +1742,8 @@ Anonymous gists are not associated with your GitHub account, they can be created
 with "-a" even after you have used "gist --login".
 
 If you would like to shorten the resulting gist URL, use the -s flag. This will
-use GitHub's URL shortener, git.io.
+use GitHub's URL shortener, git.io. You can also use -R to get the link to the
+raw gist.
 
 To copy the resulting URL to your clipboard you can use the -c option, or to
 just open it directly in your browser, use -o. Using the -e option will copy the
@@ -1721,7 +1754,7 @@ Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
+Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
 
   EOS
@@ -1784,6 +1817,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-a] [-u URL] [-P] [-f 
     options[:paste] = true
   end
 
+  opts.on("-R", "--raw", "Raw url of the new gist") do
+    options[:raw] = true
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -1794,16 +1831,19 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-d DESC] [-a] [-u URL] [-P] [-f 
     exit
   end
 
-end
-opts.parse!
+end.parse!
 
 begin
   options[:output] = if options[:embed] && options[:shorten]
                        raise Gist::Error, "--embed does not make sense with --shorten"
                      elsif options[:embed]
                        :javascript
+                     elsif options[:shorten] and options[:raw]
+                       :short_raw_url
                      elsif options[:shorten]
                        :short_url
+                     elsif options[:raw]
+                       :raw_url
                      else
                        :html_url
                      end
@@ -1834,6 +1874,4 @@ begin
 rescue Gist::Error => e
   puts "Error: #{e.message}"
   exit 1
-rescue Interrupt
-  # bye!
 end
