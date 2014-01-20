@@ -17,6 +17,10 @@ upload content to https://gist.github.com/.
     source :rubygems
     gem 'gist'
 
+‌For OS X, gist lives in Homebrew
+
+    brew install gist
+
 ## Command
 
 ‌To upload the contents of `a.rb` just:
