@@ -1318,7 +1318,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.2.0'
+  VERSION = '4.2.1'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1488,7 +1488,7 @@ module Gist
       request = Net::HTTP::Post.new("#{base_path}/authorizations")
       request.body = JSON.dump({
         :scopes => [:gist],
-        :note => "The gist gem",
+        :note => "The gist gem (#{Time.now})",
         :note_url => "https://github.com/ConradIrwin/gist"
       })
       request.content_type = 'application/json'
