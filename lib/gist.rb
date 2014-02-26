@@ -182,7 +182,7 @@ module Gist
       request = Net::HTTP::Post.new("#{base_path}/authorizations")
       request.body = JSON.dump({
         :scopes => [:gist],
-        :note => "The gist gem",
+        :note => "The gist gem (#{Time.now})",
         :note_url => "https://github.com/ConradIrwin/gist"
       })
       request.content_type = 'application/json'
