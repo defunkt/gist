@@ -90,16 +90,16 @@ module Gist
     if options[:anonymous]
       access_token = nil
     else
-      access_token = (options[:access_token] || File.read(auth_token_file) rescue nil)
+      access_token = (options[:access_token] || File.read(auth_token_file).chomp rescue nil)
     end
 
     url = "#{base_path}/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
-    url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
     request = Net::HTTP::Post.new(url)
     request.body = JSON.dump(json)
     request.content_type = 'application/json'
+    request['Authorization'] = "token #{access_token}"
 
     retried = false
 
