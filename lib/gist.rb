@@ -106,6 +106,11 @@ module Gist
     begin
       response = http(api_url, request)
       if Net::HTTPSuccess === response
+        if options[:delete]
+          files.each_pair do |(name, content)|
+            File.delete(File.expand_path(name))
+          end
+        end
         on_success(response.body, options)
       else
         raise "Got #{response.class} from gist: #{response.body}"

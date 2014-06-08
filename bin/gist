@@ -43,7 +43,7 @@ Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
+Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* [--vim] [-rf] FILE*
        #{executable_name} --login
 
   EOS
@@ -110,6 +110,15 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:raw] = true
   end
 
+  opts.on("--vim", "Use vim to edit/create file for new gist") do
+    options[:vim] = true
+  end
+
+  opts.on("-rf", "--remove-file", "Delete file after completion") do
+    options[:delete] = true
+  end
+
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -147,7 +156,11 @@ begin
     to_read.zip(filenames).each do |(file, name)|
       files[name || file] =
         begin
-          if file == '-'
+          if options[:vim]
+            process = fork { exec ("vim -c 'startinsert' #{file}") }
+            Process.waitpid(process)
+            File.read(File.expand_path(file))
+          elsif file == '-'
             $stderr.puts "(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)" if $stdin.tty?
             STDIN.read
           else
