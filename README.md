@@ -64,6 +64,11 @@ upload content to https://gist.github.com/.
 
     gist -o <a.rb
 
+
+‌If you are a VIM user, invoke the VIM command to create your Gist in VIM (-rf flag will remove file once you are finished)
+
+    gist --vim -rf my_new_gist.rb
+
 ‌See `gist --help` for more detail.
 
 ## Login
@@ -90,8 +95,8 @@ so if you run into errors, update the gist gem.
 
 This token is stored in `~/.gist` and used for all future gisting. If you need to
 you can revoke it from https://github.com/settings/applications, or just delete the
-file.  If you need to store tokens for both github.com and a Github Enterprise instance 
-you can save your Github Enterprise token in `~/.gist.github.example.com` where 
+file.  If you need to store tokens for both github.com and a Github Enterprise instance
+you can save your Github Enterprise token in `~/.gist.github.example.com` where
 "github.example.com" is the URL for your Github Enterprise instance.
 
 ‌After you've done this, you can still upload gists anonymously with `-a`.
@@ -156,6 +161,7 @@ If clipboard or browser integration don't work on your platform, please file a b
 
 If you need to use an HTTP proxy to access the internet, export the `HTTP_PROXY` or
 `http_proxy` environment variable and gist will use it.
+
 
 ## Meta-fu
 
