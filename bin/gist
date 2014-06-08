@@ -114,7 +114,7 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:vim] = true
   end
 
-  opts.on("-rf", "--delete" "Delete file after completion") do
+  opts.on("-rf", "--remove-file", "Delete file after completion") do
     options[:delete] = true
   end
 
