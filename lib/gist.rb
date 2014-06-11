@@ -120,6 +120,73 @@ module Gist
     raise e.extend Error
   end
 
+  # List all gists(private also) for authenticated user
+  # otherwise list public gists for given username (optional argument)
+  #
+  # @param [String] user
+  # @return 
+  #
+  # see https://developer.github.com/v3/gists/#list-gists
+  def list_gist(user = "")
+    url = "#{base_path}"
+
+    if user == ""
+      access_token = (File.read(auth_token_file))
+      if access_token.to_s != ''
+        url << "/gists?access_token=" << CGI.escape(access_token)
+
+        request = Net::HTTP::Get.new(url)
+        response = http(api_url, request)
+
+        pretty_gist(response)
+
+      else
+        puts "looks like you are not yet authenticated\n"\
+        "use 'gist --login' to login yourself"
+      end
+
+    else
+      url << "/users/#{user}/gists"
+
+      request = Net::HTTP::Get.new(url)      
+      response = http(api_url, request)
+
+      pretty_gist(response)
+    end
+  end
+
+  # return prettified string result of response body for all gists
+  # it Helps Gist.list_gist() function
+  #
+  # @params [Net::HTTPResponse] response
+  # @return [String] prettified result of listing all gists
+  #
+  # see https://developer.github.com/v3/gists/#response
+  def pretty_gist(response)
+    private_gists = ""
+    public_gists = ""
+
+    body = JSON.parse(response.body)
+    if response.code == '200'
+      body.each do |gist|
+        content = "#{gist['html_url']} : #{gist['description']}\n"
+        if gist['public']
+          public_gists << content
+        else
+          private_gists << content
+        end
+      end
+
+      result = "No gists found for user"
+      result = ("[public gists]\n" << public_gists) if public_gists.to_s != ""
+      result << ("\n[private gists]\n" << private_gists) if private_gists.to_s != ""
+
+      puts result
+    else
+      puts body['message']
+    end
+  end
+
   # Convert long github urls into short git.io ones
   #
   # @param [String] url

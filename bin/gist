@@ -120,6 +120,11 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     exit
   end
 
+  opts.on_tail("-l", "--list [USER]", "List all gists for user") do |user|
+    (user)? Gist.list_gist(user) : Gist.list_gist()
+    exit
+  end
+
 end.parse!
 
 begin
