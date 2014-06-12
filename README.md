@@ -64,6 +64,11 @@ upload content to https://gist.github.com/.
 
     gist -o <a.rb
 
+‌To list (public gists or all gists for authed user) gists for user
+
+    gist -l : all gists for authed user
+    gist -l USER : public gists for username USER
+
 ‌See `gist --help` for more detail.
 
 ## Login
