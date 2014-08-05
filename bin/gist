@@ -110,6 +110,11 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:raw] = true
   end
 
+  opts.on_tail("-l", "--list [USER]", "List all gists for user") do |user|
+    (user)? Gist.list_gist(user) : Gist.list_gist()
+    exit
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -117,11 +122,6 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
 
   opts.on_tail("-v", "--version", "Print the version.") do
     puts "gist v#{Gist::VERSION}"
-    exit
-  end
-
-  opts.on_tail("-l", "--list [USER]", "List all gists for user") do |user|
-    (user)? Gist.list_gist(user) : Gist.list_gist()
     exit
   end
 

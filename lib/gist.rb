@@ -169,7 +169,12 @@ module Gist
     body = JSON.parse(response.body)
     if response.code == '200'
       body.each do |gist|
-        content = "#{gist['html_url']} : #{gist['description']}\n"
+        files = []
+        gist['files'].each do |file|
+	  files.push(file[0])
+        end
+
+        content = "#{gist['html_url']} : #{files}\n"
         if gist['public']
           public_gists << content
         else
