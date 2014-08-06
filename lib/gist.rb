@@ -40,6 +40,14 @@ module Gist
   end
   class ClipboardError < RuntimeError; include Error end
 
+  # access token for authentication
+  # it helps 'multi_gist()' and 'list_gist()' functions
+  #
+  # @return [String] string value of access token or `nil`, if not found
+  def auth_token
+    @token ||= File.read(auth_token_file) rescue nil
+  end
+
   # Upload a gist to https://gist.github.com
   #
   # @param [String] content  the code you'd like to gist
@@ -90,7 +98,7 @@ module Gist
     if options[:anonymous]
       access_token = nil
     else
-      access_token = (options[:access_token] || File.read(auth_token_file) rescue nil)
+      access_token = (options[:access_token] || auth_token())
     end
 
     url = "#{base_path}/gists"
@@ -118,6 +126,77 @@ module Gist
 
   rescue => e
     raise e.extend Error
+  end
+
+  # List all gists(private also) for authenticated user
+  # otherwise list public gists for given username (optional argument)
+  #
+  # @param [String] user
+  #
+  # see https://developer.github.com/v3/gists/#list-gists
+  def list_gist(user = "")
+    url = "#{base_path}"
+
+    if user == ""
+      access_token = auth_token()
+      if access_token.to_s != ''
+        url << "/gists?access_token=" << CGI.escape(access_token)
+
+        request = Net::HTTP::Get.new(url)
+        response = http(api_url, request)
+
+        pretty_gist(response)
+
+      else
+        raise Error, "you are't authenticated, use 'gist --login to login.'"
+      end
+
+    else
+      url << "/users/#{user}/gists"
+
+      request = Net::HTTP::Get.new(url)      
+      response = http(api_url, request)
+
+      pretty_gist(response)
+    end
+  end
+
+  # return prettified string result of response body for all gists
+  # it Helps Gist.list_gist() function
+  #
+  # @params [Net::HTTPResponse] response
+  # @return [String] prettified result of listing all gists
+  #
+  # see https://developer.github.com/v3/gists/#response
+  def pretty_gist(response)
+    private_gists = ""
+    public_gists = ""
+
+    body = JSON.parse(response.body)
+    if response.code == '200'
+      body.each do |gist|
+
+        files = []
+        gist['files'].each do |file|
+	  files.push(file[0])
+        end
+
+        content = "#{gist['html_url']} #{files}\n"
+        if gist['public']
+          public_gists << content
+        else
+          private_gists << content
+        end
+      end
+
+      result = "No Gist found for user"
+      result = public_gists if public_gists.to_s != ""
+      result << private_gists if private_gists.to_s != ""
+
+      puts result
+    else
+      raise Error, body['message']
+    end
   end
 
   # Convert long github urls into short git.io ones

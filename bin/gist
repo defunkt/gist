@@ -110,6 +110,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:raw] = true
   end
 
+  opts.on("-l", "--list [USER]", "List all gists for user") do |user|
+    options[:list] = user
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -139,6 +143,15 @@ begin
 
   options[:public] = Gist.should_be_public?(options)
 
+  if options.key? :list
+    if options[:list]
+      Gist.list_gist(options[:list])
+    else
+      Gist.list_gist
+    end
+    exit
+  end
+
   if options[:paste]
     puts Gist.gist(Gist.paste, options)
   else
@@ -160,6 +173,7 @@ begin
 
     puts Gist.multi_gist(files, options)
   end
+  
 rescue Gist::Error => e
   puts "Error: #{e.message}"
   exit 1
