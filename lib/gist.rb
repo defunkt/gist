@@ -40,8 +40,7 @@ module Gist
   end
   class ClipboardError < RuntimeError; include Error end
 
-  # access token for authentication
-  # it helps 'multi_gist()' and 'list_gists()' functions
+  # auth token for authentication
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
@@ -148,7 +147,7 @@ module Gist
         pretty_gist(response)
 
       else
-        raise Error, "you are't authenticated, use 'gist --login to login.'"
+        raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
       end
 
     else
@@ -162,38 +161,18 @@ module Gist
   end
 
   # return prettified string result of response body for all gists
-  # it Helps Gist.list_gists() function
   #
   # @params [Net::HTTPResponse] response
   # @return [String] prettified result of listing all gists
   #
   # see https://developer.github.com/v3/gists/#response
   def pretty_gist(response)
-    private_gists = ""
-    public_gists = ""
-
     body = JSON.parse(response.body)
     if response.code == '200'
       body.each do |gist|
-
-        files = []
-        gist['files'].each do |file|
-          files.push(file[0])
-        end
-
-        content = "#{gist['html_url']} #{files}\n"
-        if gist['public']
-          public_gists << content
-        else
-          private_gists << content
-        end
+        puts "#{gist['html_url']} #{gist['description'] || gist['files'].keys.join(" ")} #{gist['public'] ? '' : '(secret)'}\n"
       end
 
-      result = "No Gist found for user"
-      result = public_gists if public_gists.to_s != ""
-      result << private_gists if private_gists.to_s != ""
-
-      puts result
     else
       raise Error, body['message']
     end
