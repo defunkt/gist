@@ -41,7 +41,7 @@ module Gist
   class ClipboardError < RuntimeError; include Error end
 
   # access token for authentication
-  # it helps 'multi_gist()' and 'list_gist()' functions
+  # it helps 'multi_gist()' and 'list_gists()' functions
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
@@ -134,7 +134,7 @@ module Gist
   # @param [String] user
   #
   # see https://developer.github.com/v3/gists/#list-gists
-  def list_gist(user = "")
+  def list_gists(user = "")
     url = "#{base_path}"
 
     if user == ""
@@ -154,7 +154,7 @@ module Gist
     else
       url << "/users/#{user}/gists"
 
-      request = Net::HTTP::Get.new(url)      
+      request = Net::HTTP::Get.new(url)
       response = http(api_url, request)
 
       pretty_gist(response)
@@ -162,7 +162,7 @@ module Gist
   end
 
   # return prettified string result of response body for all gists
-  # it Helps Gist.list_gist() function
+  # it Helps Gist.list_gists() function
   #
   # @params [Net::HTTPResponse] response
   # @return [String] prettified result of listing all gists
@@ -178,7 +178,7 @@ module Gist
 
         files = []
         gist['files'].each do |file|
-	  files.push(file[0])
+          files.push(file[0])
         end
 
         content = "#{gist['html_url']} #{files}\n"

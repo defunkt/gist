@@ -145,9 +145,9 @@ begin
 
   if options.key? :list
     if options[:list]
-      Gist.list_gist(options[:list])
+      Gist.list_gists(options[:list])
     else
-      Gist.list_gist
+      Gist.list_gists
     end
     exit
   end
@@ -173,7 +173,7 @@ begin
 
     puts Gist.multi_gist(files, options)
   end
-  
+
 rescue Gist::Error => e
   puts "Error: #{e.message}"
   exit 1
