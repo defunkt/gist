@@ -40,6 +40,14 @@ module Gist
   end
   class ClipboardError < RuntimeError; include Error end
 
+  # access token for authentication
+  # it helps 'multi_gist()' and 'list_gist()' functions
+  #
+  # @return [String] string value of access token or `nil`, if not found
+  def auth_token
+    @token ||= File.read(auth_token_file) rescue nil
+  end
+
   # Upload a gist to https://gist.github.com
   #
   # @param [String] content  the code you'd like to gist
@@ -90,7 +98,7 @@ module Gist
     if options[:anonymous]
       access_token = nil
     else
-      access_token = (options[:access_token] || File.read(auth_token_file) rescue nil)
+      access_token = (options[:access_token] || auth_token())
     end
 
     url = "#{base_path}/gists"
@@ -124,14 +132,13 @@ module Gist
   # otherwise list public gists for given username (optional argument)
   #
   # @param [String] user
-  # @return 
   #
   # see https://developer.github.com/v3/gists/#list-gists
   def list_gist(user = "")
     url = "#{base_path}"
 
     if user == ""
-      access_token = (File.read(auth_token_file))
+      access_token = auth_token()
       if access_token.to_s != ''
         url << "/gists?access_token=" << CGI.escape(access_token)
 
