@@ -67,7 +67,7 @@ upload content to https://gist.github.com/.
 ‌To list (public gists or all gists for authed user) gists for user
 
     gist -l : all gists for authed user
-    gist -l USER : public gists for username USER
+    gist -l defunkt : list defunkt's public gists
 
 ‌See `gist --help` for more detail.
 
