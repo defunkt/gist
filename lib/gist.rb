@@ -182,7 +182,7 @@ module Gist
         end
       end
 
-      result = "No gists found for user"
+      result = "No Gist found for user"
       result = public_gists if public_gists.to_s != ""
       result << private_gists if private_gists.to_s != ""
 
