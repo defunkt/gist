@@ -1318,7 +1318,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.2.1'
+  VERSION = '4.3.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1345,6 +1345,13 @@ module Gist
     end
   end
   class ClipboardError < RuntimeError; include Error end
+
+  # auth token for authentication
+  #
+  # @return [String] string value of access token or `nil`, if not found
+  def auth_token
+    @token ||= File.read(auth_token_file) rescue nil
+  end
 
   # Upload a gist to https://gist.github.com
   #
@@ -1396,7 +1403,7 @@ module Gist
     if options[:anonymous]
       access_token = nil
     else
-      access_token = (options[:access_token] || File.read(auth_token_file) rescue nil)
+      access_token = (options[:access_token] || auth_token())
     end
 
     url = "#{base_path}/gists"
@@ -1424,6 +1431,57 @@ module Gist
 
   rescue => e
     raise e.extend Error
+  end
+
+  # List all gists(private also) for authenticated user
+  # otherwise list public gists for given username (optional argument)
+  #
+  # @param [String] user
+  #
+  # see https://developer.github.com/v3/gists/#list-gists
+  def list_gists(user = "")
+    url = "#{base_path}"
+
+    if user == ""
+      access_token = auth_token()
+      if access_token.to_s != ''
+        url << "/gists?access_token=" << CGI.escape(access_token)
+
+        request = Net::HTTP::Get.new(url)
+        response = http(api_url, request)
+
+        pretty_gist(response)
+
+      else
+        raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
+      end
+
+    else
+      url << "/users/#{user}/gists"
+
+      request = Net::HTTP::Get.new(url)
+      response = http(api_url, request)
+
+      pretty_gist(response)
+    end
+  end
+
+  # return prettified string result of response body for all gists
+  #
+  # @params [Net::HTTPResponse] response
+  # @return [String] prettified result of listing all gists
+  #
+  # see https://developer.github.com/v3/gists/#response
+  def pretty_gist(response)
+    body = JSON.parse(response.body)
+    if response.code == '200'
+      body.each do |gist|
+        puts "#{gist['html_url']} #{gist['description'] || gist['files'].keys.join(" ")} #{gist['public'] ? '' : '(secret)'}\n"
+      end
+
+    else
+      raise Error, body['message']
+    end
   end
 
   # Convert long github urls into short git.io ones
@@ -1821,6 +1879,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:raw] = true
   end
 
+  opts.on("-l", "--list [USER]", "List all gists for user") do |user|
+    options[:list] = user
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -1850,6 +1912,15 @@ begin
 
   options[:public] = Gist.should_be_public?(options)
 
+  if options.key? :list
+    if options[:list]
+      Gist.list_gists(options[:list])
+    else
+      Gist.list_gists
+    end
+    exit
+  end
+
   if options[:paste]
     puts Gist.gist(Gist.paste, options)
   else
@@ -1871,6 +1942,7 @@ begin
 
     puts Gist.multi_gist(files, options)
   end
+
 rescue Gist::Error => e
   puts "Error: #{e.message}"
   exit 1
