@@ -141,8 +141,7 @@ module Gist
         pretty_gist(response)
 
       else
-        puts "looks like you are not yet authenticated\n"\
-        "use 'gist --login' to login yourself"
+        raise Error, "you are't authenticated, use 'gist --login to login.'"
       end
 
     else
@@ -169,12 +168,13 @@ module Gist
     body = JSON.parse(response.body)
     if response.code == '200'
       body.each do |gist|
+
         files = []
         gist['files'].each do |file|
 	  files.push(file[0])
         end
 
-        content = "#{gist['html_url']} : #{files}\n"
+        content = "#{gist['html_url']} #{files}\n"
         if gist['public']
           public_gists << content
         else
@@ -183,12 +183,12 @@ module Gist
       end
 
       result = "No gists found for user"
-      result = ("[public gists]\n" << public_gists) if public_gists.to_s != ""
-      result << ("\n[private gists]\n" << private_gists) if private_gists.to_s != ""
+      result = public_gists if public_gists.to_s != ""
+      result << private_gists if private_gists.to_s != ""
 
       puts result
     else
-      puts body['message']
+      raise Error, body['message']
     end
   end
 
