@@ -84,7 +84,7 @@ an OAuth2 token (with the "gist" permission).
     2-factor auth code:
     Success! https://github.com/settings/applications
 
-You can read the 2-factor auth code from an sms or the authentification app,
+You can read the 2-factor auth code from an sms or the authentication app,
 depending on how you [set your account up](https://github.com/settings/admin).
 
 Note: 2-factor authentication
