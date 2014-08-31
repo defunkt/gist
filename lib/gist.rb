@@ -44,7 +44,7 @@ module Gist
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= File.read(auth_token_file) rescue nil
+    @token ||= File.read(auth_token_file).chomp rescue nil
   end
 
   # Upload a gist to https://gist.github.com
