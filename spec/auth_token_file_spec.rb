@@ -5,44 +5,41 @@ describe Gist::AuthTokenFile do
     stub_const("Gist::URL_ENV_NAME", "STUBBED_GITHUB_URL")
   end
 
-  context "without custom GITHUB_URL" do
-    let(:expected_filename) { File.expand_path "~/.gist" }
+  describe "#filename" do
+    let(:filename) { double() }
 
-    describe "#filename" do
-      it "is stored in $HOME" do
-        subject.filename.should eq expected_filename
+    context "with default GITHUB_URL" do
+      it "is ~/.gist" do
+        File.should_receive(:expand_path).with("~/.gist").and_return(filename)
+        subject.filename.should be filename
       end
     end
 
-    describe "#read" do
-      let(:token) { "auth_token" }
-
-      it "reads file contents" do
-        File.should_receive(:read).with(expected_filename).and_return(token)
-        subject.read.should eq token
+    context "with custom GITHUB_URL" do
+      before do
+        ENV[Gist::URL_ENV_NAME] = github_url
       end
+      let(:github_url) { "gh.custom.org" }
 
-      it "chomps file contents" do
-        File.should_receive(:read).with(expected_filename).and_return(token + "\n")
-        subject.read.should eq token
-      end
-    end
-  end
-
-  context "with custom GITHUB_URL" do
-    let(:github_url) { "gh.custom.org" }
-    let(:expected_filename) { File.expand_path "~/.gist.#{github_url}" }
-
-    before do
-      ENV[Gist::URL_ENV_NAME] = github_url
-    end
-
-    describe "#filename" do
-      it "is stored in $HOME" do
-        subject.filename.should eq expected_filename
+      it "is ~/.gist.{custom_github_url}" do
+        File.should_receive(:expand_path).with("~/.gist.#{github_url}").and_return(filename)
+        subject.filename.should be filename
       end
     end
 
   end
 
+  describe "#read" do
+    let(:token) { "auth_token" }
+
+    it "reads file contents" do
+      File.should_receive(:read).and_return(token)
+      subject.read.should eq token
+    end
+
+    it "chomps file contents" do
+      File.should_receive(:read).and_return(token + "\n")
+      subject.read.should eq token
+    end
+  end
 end
