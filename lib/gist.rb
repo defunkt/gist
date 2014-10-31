@@ -1,6 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'uri'
+require_relative 'auth_token_file'
 
 begin
   require 'json'
@@ -44,7 +45,7 @@ module Gist
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= File.read(auth_token_file).chomp rescue nil
+    @token ||= File.read(auth_token_file.filename).chomp rescue nil
   end
 
   # Upload a gist to https://gist.github.com
@@ -258,7 +259,7 @@ module Gist
       end
 
       if Net::HTTPCreated === response
-        File.open(auth_token_file, 'w', 0600) do |f|
+        File.open(auth_token_file.filename, 'w', 0600) do |f|
           f.write JSON.parse(response.body)['token']
         end
         puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
@@ -442,11 +443,7 @@ Could not find copy command, tried:
   end
 
   def auth_token_file
-    if ENV.key?(URL_ENV_NAME)
-      File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
-    else
-      File.expand_path "~/.gist"
-    end
+    @auth_token_file ||= AuthTokenFile.new
   end
 
   def legacy_private_gister?
