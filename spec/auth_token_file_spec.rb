@@ -1,11 +1,13 @@
 require_relative '../lib/auth_token_file'
 
 describe Gist::AuthTokenFile do
+  subject { Gist::AuthTokenFile }
+
   before(:each) do
     stub_const("Gist::URL_ENV_NAME", "STUBBED_GITHUB_URL")
   end
 
-  describe "#filename" do
+  describe "::filename" do
     let(:filename) { double() }
 
     context "with default GITHUB_URL" do
@@ -29,7 +31,7 @@ describe Gist::AuthTokenFile do
 
   end
 
-  describe "#read" do
+  describe "::read" do
     let(:token) { "auth_token" }
 
     it "reads file contents" do
@@ -43,7 +45,7 @@ describe Gist::AuthTokenFile do
     end
   end
 
-  describe "#write" do
+  describe "::write" do
     let(:token) { double() }
     let(:filename) { double() }
 

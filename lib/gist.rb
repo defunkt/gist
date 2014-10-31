@@ -45,7 +45,7 @@ module Gist
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= auth_token_file.read rescue nil
+    @token ||= AuthTokenFile.read rescue nil
   end
 
   # Upload a gist to https://gist.github.com
@@ -259,7 +259,7 @@ module Gist
       end
 
       if Net::HTTPCreated === response
-        auth_token_file.write JSON.parse(response.body)['token']
+        AuthTokenFile.write JSON.parse(response.body)['token']
         puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
         return
       elsif Net::HTTPUnauthorized === response
@@ -438,10 +438,6 @@ Could not find copy command, tried:
   # Get the API URL
   def api_url
     ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_API_URL
-  end
-
-  def auth_token_file
-    @auth_token_file ||= AuthTokenFile.new
   end
 
   def legacy_private_gister?

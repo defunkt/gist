@@ -1,7 +1,7 @@
 module Gist
-  class AuthTokenFile
+  module AuthTokenFile
 
-    def filename
+    def self.filename
       if ENV.key?(URL_ENV_NAME)
         File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
       else
@@ -9,14 +9,15 @@ module Gist
       end
     end
 
-    def read
+    def self.read
       File.read(filename).chomp
     end
 
-    def write(token)
+    def self.write(token)
       File.write filename, token,
         :mode => 'w',
         :perm => 0600
     end
+
   end
 end
