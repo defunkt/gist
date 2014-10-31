@@ -93,11 +93,13 @@ so if you run into errors, update the gist gem.
 
     gem update gist
 
-This token is stored in `~/.gist` and used for all future gisting. If you need to
-you can revoke it from https://github.com/settings/applications, or just delete the
-file.  If you need to store tokens for both github.com and a Github Enterprise instance 
-you can save your Github Enterprise token in `~/.gist.github.example.com` where 
-"github.example.com" is the URL for your Github Enterprise instance.
+On Linux this token is stored at `$XDG_CONFIG_HOME/gist/token`, on OSX at
+`~/Library/gist/token`, and on all other platforms at `~/.gist` and is used for all future
+gisting. If you need to you can revoke it from https://github.com/settings/applications,
+or just delete the file.  If you need to store tokens for both github.com and a Github
+Enterprise instance you can save your Github Enterprise token as
+`token.github.example.com` where "github.example.com" is the URL for your Github
+Enterprise instance.
 
 ‌After you've done this, you can still upload gists anonymously with `-a`.
 
@@ -111,7 +113,7 @@ you can save your Github Enterprise token in `~/.gist.github.example.com` where
 
 If you need more advanced features you can also pass:
 
-* `:access_token` to authenticate using OAuth2 (default is `File.read("~/.gist")).
+* `:access_token` to authenticate using OAuth2 (default is `File.read(auth_token_file)`).
 * `:filename` to change the syntax highlighting (default is `a.rb`).
 * `:public` if you want your gist to have a guessable url.
 * `:description` to add a description to your gist.
@@ -132,7 +134,7 @@ NOTE: The access_token must have the "gist" scope.
     Gist.login!
 
 ‌This will take them through the process of obtaining an OAuth2 token, and storing it
-in `~/.gist`, where it can later be read by `Gist.gist`
+in the `auth_token_file`, where it can later be read by `Gist.gist`
 
 ## GitHub enterprise
 
