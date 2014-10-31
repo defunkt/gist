@@ -14,6 +14,19 @@ describe Gist::AuthTokenFile do
       end
     end
 
+    describe "#read" do
+      let(:token) { "auth_token" }
+
+      it "reads file contents" do
+        File.should_receive(:read).with(expected_filename).and_return(token)
+        subject.read.should eq token
+      end
+
+      it "chomps file contents" do
+        File.should_receive(:read).with(expected_filename).and_return(token + "\n")
+        subject.read.should eq token
+      end
+    end
   end
 
   context "with custom GITHUB_URL" do

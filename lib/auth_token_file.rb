@@ -9,5 +9,9 @@ module Gist
       end
     end
 
+    def read
+      File.read(filename).chomp
+    end
+
   end
 end
