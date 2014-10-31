@@ -13,5 +13,10 @@ module Gist
       File.read(filename).chomp
     end
 
+    def write(token)
+      File.write filename, token,
+        :mode => 'w',
+        :perm => 0600
+    end
   end
 end

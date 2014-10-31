@@ -42,4 +42,18 @@ describe Gist::AuthTokenFile do
       subject.read.should eq token
     end
   end
+
+  describe "#write" do
+    let(:token) { double() }
+    let(:filename) { double() }
+
+    before do
+      subject.stub(:filename) { filename }
+    end
+
+    it "writes token to file" do
+      File.should_receive(:write).with(filename, token, :mode => 'w', :perm => 0600)
+      subject.write(token)
+    end
+  end
 end
