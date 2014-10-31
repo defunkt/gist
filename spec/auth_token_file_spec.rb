@@ -6,11 +6,11 @@ describe Gist::AuthTokenFile do
   end
 
   context "without custom GITHUB_URL" do
-    describe "#filename" do
-      let(:filename) { File.expand_path "~/.gist" }
+    let(:expected_filename) { File.expand_path "~/.gist" }
 
+    describe "#filename" do
       it "is stored in $HOME" do
-        subject.filename.should eq filename
+        subject.filename.should eq expected_filename
       end
     end
 
@@ -18,15 +18,15 @@ describe Gist::AuthTokenFile do
 
   context "with custom GITHUB_URL" do
     let(:github_url) { "gh.custom.org" }
+    let(:expected_filename) { File.expand_path "~/.gist.#{github_url}" }
+
     before do
       ENV[Gist::URL_ENV_NAME] = github_url
     end
 
     describe "#filename" do
-      let(:filename) { File.expand_path "~/.gist" }
-
       it "is stored in $HOME" do
-        subject.filename.should eq "#{filename}.#{github_url}"
+        subject.filename.should eq expected_filename
       end
     end
 
