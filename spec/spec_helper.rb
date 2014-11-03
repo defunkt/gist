@@ -16,4 +16,4 @@ RSpec.configure do |config|
 end
 
 require 'webmock/rspec'
-require_relative '../lib/gist'
+require 'gist'
