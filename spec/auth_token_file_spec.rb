@@ -48,13 +48,15 @@ describe Gist::AuthTokenFile do
   describe "::write" do
     let(:token) { double() }
     let(:filename) { double() }
+    let(:token_file) { double() }
 
     before do
       subject.stub(:filename) { filename }
     end
 
     it "writes token to file" do
-      File.should_receive(:write).with(filename, token, :mode => 'w', :perm => 0600)
+      File.should_receive(:open).with(filename, 'w', 0600).and_yield(token_file)
+      token_file.should_receive(:write).with(token)
       subject.write(token)
     end
   end

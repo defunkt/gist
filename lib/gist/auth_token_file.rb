@@ -14,9 +14,9 @@ module Gist
     end
 
     def self.write(token)
-      File.write filename, token,
-        :mode => 'w',
-        :perm => 0600
+      File.open(filename, 'w', 0600) do |f|
+        f.write token
+      end
     end
 
   end
