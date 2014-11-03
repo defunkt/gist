@@ -63,7 +63,7 @@ describe '...' do
 
       it "uses them" do
         $stdin = StringIO.new "#{MOCK_USER}_wrong\n#{MOCK_PASSWORD}_wrong\n"
-        Gist.login! username: MOCK_USER, password: MOCK_PASSWORD
+        Gist.login! :username => MOCK_USER, :password => MOCK_PASSWORD
 
         assert_requested(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/)
       end
