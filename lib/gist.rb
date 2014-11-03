@@ -40,11 +40,32 @@ module Gist
   end
   class ClipboardError < RuntimeError; include Error end
 
+  # helper module for authentication token actions
+  module AuthTokenFile
+    def self.filename
+      if ENV.key?(URL_ENV_NAME)
+        File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
+      else
+        File.expand_path "~/.gist"
+      end
+    end
+
+    def self.read
+      File.read(filename).chomp
+    end
+
+    def self.write(token)
+      File.open(filename, 'w', 0600) do |f|
+        f.write token
+      end
+    end
+  end
+
   # auth token for authentication
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= File.read(auth_token_file).chomp rescue nil
+    @token ||= AuthTokenFile.read rescue nil
   end
 
   # Upload a gist to https://gist.github.com
@@ -258,9 +279,7 @@ module Gist
       end
 
       if Net::HTTPCreated === response
-        File.open(auth_token_file, 'w', 0600) do |f|
-          f.write JSON.parse(response.body)['token']
-        end
+        AuthTokenFile.write JSON.parse(response.body)['token']
         puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
         return
       elsif Net::HTTPUnauthorized === response
@@ -439,14 +458,6 @@ Could not find copy command, tried:
   # Get the API URL
   def api_url
     ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_API_URL
-  end
-
-  def auth_token_file
-    if ENV.key?(URL_ENV_NAME)
-      File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
-    else
-      File.expand_path "~/.gist"
-    end
   end
 
   def legacy_private_gister?
