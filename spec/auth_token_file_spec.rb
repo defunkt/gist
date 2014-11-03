@@ -1,4 +1,4 @@
-require_relative '../lib/auth_token_file'
+require 'gist/auth_token_file'
 
 describe Gist::AuthTokenFile do
   subject { Gist::AuthTokenFile }

@@ -1,7 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'uri'
-require_relative 'auth_token_file'
+require 'gist/auth_token_file'
 
 begin
   require 'json'
