@@ -1,5 +1,3 @@
-require 'gist/auth_token_file'
-
 describe Gist::AuthTokenFile do
   subject { Gist::AuthTokenFile }
 
