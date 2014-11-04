@@ -43,11 +43,7 @@ module Gist
   # helper module for authentication token actions
   module AuthTokenFile
     def self.filename
-      if ENV.key?(URL_ENV_NAME)
-        File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
-      else
-        File.expand_path "~/.gist"
-      end
+      File.expand_path "~/.gist#{github_url_suffix}"
     end
 
     def self.read
