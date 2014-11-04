@@ -18,4 +18,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'ronn'
   s.add_development_dependency 'webmock'
   s.add_development_dependency 'rspec', '>3'
+  s.add_development_dependency 'rspec-its'
 end
