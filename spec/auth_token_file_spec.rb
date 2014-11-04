@@ -76,4 +76,32 @@ describe Gist::AuthTokenFile do
     its(:github_url_suffix) { should == ".#{github_url}" }
   end
 
+  describe "::xdg?" do
+    let(:cache_home) { "/cache/home" }
+
+    before do
+      ENV['XDG_CACHE_HOME'] = cache_home
+    end
+
+    it "checks for $XDG_CACHE_HOME/gist" do
+      File.should_receive(:exist?).with("#{cache_home}/gist")
+      subject.xdg?
+    end
+
+    context "when $XDG_CACHE_HOME/gist exists" do
+      before do
+        File.should_receive(:exist?).and_return(true)
+      end
+
+      it { should be_xdg }
+    end
+
+    context "when $XDG_CACHE_HOME/gist does not exist" do
+      before do
+        File.should_receive(:exist?).and_return(false)
+      end
+      it { should_not be_xdg }
+    end
+  end
+
 end

@@ -56,6 +56,10 @@ module Gist
       end
     end
 
+    def self.xdg?
+      File.exist? XDG.cache("gist")
+    end
+
     def self.github_url_suffix
       ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
     end
