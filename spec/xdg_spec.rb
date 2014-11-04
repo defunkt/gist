@@ -16,4 +16,14 @@ describe Gist::XDG do
 
     its(:cache_home) { should == "~/.cache" }
   end
+
+  describe "::cache" do
+    before do
+      ENV['XDG_CACHE_HOME'] = "/cache_home"
+    end
+
+    it "should expand given path relative to CACHE_HOME" do
+      subject.cache("mydir").should == "/cache_home/mydir"
+    end
+  end
 end

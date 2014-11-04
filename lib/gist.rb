@@ -68,6 +68,10 @@ module Gist
     def self.cache_home
       ENV.fetch(CACHE_HOME_ENV_NAME, "~/.cache")
     end
+
+    def self.cache(file)
+      File.expand_path File.join cache_home, file
+    end
   end
 
   # auth token for authentication
