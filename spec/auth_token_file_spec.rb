@@ -58,4 +58,22 @@ describe Gist::AuthTokenFile do
       subject.write(token)
     end
   end
+
+  context "with default GITHUB_URL" do
+    before do
+      ENV.delete Gist::URL_ENV_NAME
+    end
+
+    its(:github_url_suffix) { should == "" }
+  end
+
+  context "with custom GITHUB_URL" do
+    before do
+      ENV[Gist::URL_ENV_NAME] = github_url
+    end
+    let(:github_url) { "gh.custom.org" }
+
+    its(:github_url_suffix) { should == ".#{github_url}" }
+  end
+
 end

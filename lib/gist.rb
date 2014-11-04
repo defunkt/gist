@@ -59,6 +59,11 @@ module Gist
         f.write token
       end
     end
+
+    def self.github_url_suffix
+      ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
+    end
+
   end
 
   # auth token for authentication
