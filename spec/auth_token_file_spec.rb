@@ -26,7 +26,7 @@ describe Gist::AuthTokenFile do
     let(:token_file) { double() }
 
     before do
-      subject.stub(:filename) { filename }
+      subject.stub(:pathname) { filename }
     end
 
     it "writes token to file" do
@@ -65,7 +65,7 @@ describe Gist::AuthTokenFile do
     end
 
     it { should be_xdg }
-    its(:filename) { should == subject.xdg_path }
+    its(:pathname) { should == subject.xdg_path }
   end
 
   context "when XDG_CACHE_HOME/gist/auth_token doesn't exit" do
@@ -79,7 +79,7 @@ describe Gist::AuthTokenFile do
       end
 
       it { should_not be_xdg }
-      its(:filename) { should == subject.legacy_path }
+      its(:pathname) { should == subject.legacy_path }
     end
 
     context "when ~/.gist doesn't exist" do
@@ -88,7 +88,7 @@ describe Gist::AuthTokenFile do
       end
 
       it { should be_xdg }
-      its(:filename) { should == subject.xdg_path }
+      its(:pathname) { should == subject.xdg_path }
     end
   end
 

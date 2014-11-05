@@ -43,16 +43,16 @@ module Gist
   # helper module for authentication token actions
   class AuthTokenFile
     def self.read
-      File.read(filename).chomp
+      File.read(pathname).chomp
     end
 
     def self.write(token)
-      File.open(filename, 'w', 0600) do |f|
+      File.open(pathname, 'w', 0600) do |f|
         f.write token
       end
     end
 
-    def self.filename
+    def self.pathname
       xdg? ? xdg_path : legacy_path
     end
 
