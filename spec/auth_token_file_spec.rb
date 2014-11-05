@@ -6,30 +6,6 @@ describe Gist::AuthTokenFile do
     stub_const("Gist::XDG::CACHE_HOME_ENV_NAME", "STUBBED_XDG_CACHE_HOME")
   end
 
-  describe "::filename" do
-    let(:filename) { double() }
-
-    context "with default GITHUB_URL" do
-      it "is ~/.gist" do
-        File.should_receive(:expand_path).with("~/.gist").and_return(filename)
-        subject.filename.should be filename
-      end
-    end
-
-    context "with custom GITHUB_URL" do
-      before do
-        ENV[Gist::URL_ENV_NAME] = github_url
-      end
-      let(:github_url) { "gh.custom.org" }
-
-      it "is ~/.gist.{custom_github_url}" do
-        File.should_receive(:expand_path).with("~/.gist.#{github_url}").and_return(filename)
-        subject.filename.should be filename
-      end
-    end
-
-  end
-
   describe "::read" do
     let(:token) { "auth_token" }
 
@@ -89,6 +65,7 @@ describe Gist::AuthTokenFile do
     end
 
     it { should be_xdg }
+    its(:filename) { should == subject.xdg_path }
   end
 
   context "when XDG_CACHE_HOME/gist/auth_token doesn't exit" do
@@ -102,6 +79,7 @@ describe Gist::AuthTokenFile do
       end
 
       it { should_not be_xdg }
+      its(:filename) { should == subject.legacy_path }
     end
 
     context "when ~/.gist doesn't exist" do
@@ -110,6 +88,7 @@ describe Gist::AuthTokenFile do
       end
 
       it { should be_xdg }
+      its(:filename) { should == subject.xdg_path }
     end
   end
 

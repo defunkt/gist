@@ -42,10 +42,6 @@ module Gist
 
   # helper module for authentication token actions
   module AuthTokenFile
-    def self.filename
-      File.expand_path "~/.gist#{github_url_suffix}"
-    end
-
     def self.read
       File.read(filename).chomp
     end
@@ -54,6 +50,10 @@ module Gist
       File.open(filename, 'w', 0600) do |f|
         f.write token
       end
+    end
+
+    def self.filename
+      xdg? ? xdg_path : legacy_path
     end
 
     def self.xdg?
