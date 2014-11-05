@@ -3,6 +3,7 @@ describe Gist::AuthTokenFile do
 
   before(:each) do
     stub_const("Gist::URL_ENV_NAME", "STUBBED_GITHUB_URL")
+    stub_const("Gist::XDG::CACHE_HOME_ENV_NAME", "STUBBED_XDG_CACHE_HOME")
   end
 
   describe "::filename" do
@@ -62,45 +63,53 @@ describe Gist::AuthTokenFile do
   context "with default GITHUB_URL" do
     before do
       ENV.delete Gist::URL_ENV_NAME
+      File.stub(:expand_path) {|f| f }
     end
 
+    its(:xdg_filename) { should == "~/.cache/gist/auth_token" }
+    its(:legacy_filename) { should == "~/.gist" }
     its(:github_url_suffix) { should == "" }
   end
 
   context "with custom GITHUB_URL" do
     before do
       ENV[Gist::URL_ENV_NAME] = github_url
+      File.stub(:expand_path) {|f| f }
     end
     let(:github_url) { "gh.custom.org" }
 
+    its(:xdg_filename) { should == "~/.cache/gist/auth_token.#{github_url}" }
+    its(:legacy_filename) { should == "~/.gist.#{github_url}" }
     its(:github_url_suffix) { should == ".#{github_url}" }
   end
 
-  describe "::xdg?" do
-    let(:cache_home) { "/cache/home" }
-
+  context "when XDG_CACHE_HOME/gist/auth_token exists" do
     before do
-      ENV['XDG_CACHE_HOME'] = cache_home
+      File.should_receive(:exist?).with(subject.xdg_filename).and_return(true)
     end
 
-    it "checks for $XDG_CACHE_HOME/gist" do
-      File.should_receive(:exist?).with("#{cache_home}/gist")
-      subject.xdg?
+    it { should be_xdg }
+  end
+
+  context "when XDG_CACHE_HOME/gist/auth_token doesn't exit" do
+    before do
+      File.should_receive(:exist?).with(subject.xdg_filename).and_return(false)
     end
 
-    context "when $XDG_CACHE_HOME/gist exists" do
+    context "when ~/.gist exists" do
       before do
-        File.should_receive(:exist?).and_return(true)
+        File.should_receive(:exist?).with(subject.legacy_filename).and_return(true)
+      end
+
+      it { should_not be_xdg }
+    end
+
+    context "when ~/.gist doesn't exist" do
+      before do
+        File.should_receive(:exist?).with(subject.legacy_filename).and_return(false)
       end
 
       it { should be_xdg }
-    end
-
-    context "when $XDG_CACHE_HOME/gist does not exist" do
-      before do
-        File.should_receive(:exist?).and_return(false)
-      end
-      it { should_not be_xdg }
     end
   end
 

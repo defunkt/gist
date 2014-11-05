@@ -57,13 +57,20 @@ module Gist
     end
 
     def self.xdg?
-      File.exist? XDG.cache("gist")
+      File.exist?(xdg_filename) || !File.exist?(legacy_filename)
     end
 
     def self.github_url_suffix
       ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
     end
 
+    def self.legacy_filename
+      File.expand_path "~/.gist#{github_url_suffix}"
+    end
+
+    def self.xdg_filename
+      File.expand_path XDG.cache "gist/auth_token#{github_url_suffix}"
+    end
   end
 
   class XDG
@@ -74,7 +81,7 @@ module Gist
     end
 
     def self.cache(file)
-      File.expand_path File.join cache_home, file
+      File.join cache_home, file
     end
   end
 
