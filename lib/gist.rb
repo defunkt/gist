@@ -16,10 +16,10 @@ module Gist
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
-    'xclip'   => 'xclip -o',
-    'xsel -i'    => 'xsel -o',
-    'pbcopy'  => 'pbpaste',
-    'putclip' => 'getclip'
+    'xclip -se c' => 'xclip -se c -o',
+    'xsel -bi'    => 'xsel -b',
+    'pbcopy'      => 'pbpaste',
+    'putclip'     => 'getclip'
   }
 
   GITHUB_API_URL   = URI("https://api.github.com/")
@@ -411,7 +411,7 @@ module Gist
   # @raise [Gist::ClipboardError] if no clipboard integration could be found
   def clipboard_command(action)
     command = CLIPBOARD_COMMANDS.keys.detect do |cmd|
-      which cmd
+      which cmd.split(" ")[0]
     end
     raise ClipboardError, <<-EOT unless command
 Could not find copy command, tried:
