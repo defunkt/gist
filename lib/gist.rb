@@ -41,7 +41,7 @@ module Gist
   class ClipboardError < RuntimeError; include Error end
 
   # helper module for authentication token actions
-  module AuthTokenFile
+  class AuthTokenFile
     def self.read
       File.read(filename).chomp
     end
