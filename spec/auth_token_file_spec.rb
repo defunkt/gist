@@ -66,8 +66,8 @@ describe Gist::AuthTokenFile do
       File.stub(:expand_path) {|f| f }
     end
 
-    its(:xdg_filename) { should == "~/.cache/gist/auth_token" }
-    its(:legacy_filename) { should == "~/.gist" }
+    its(:xdg_path) { should == "~/.cache/gist/auth_token" }
+    its(:legacy_path) { should == "~/.gist" }
     its(:github_url_suffix) { should == "" }
   end
 
@@ -78,14 +78,14 @@ describe Gist::AuthTokenFile do
     end
     let(:github_url) { "gh.custom.org" }
 
-    its(:xdg_filename) { should == "~/.cache/gist/auth_token.#{github_url}" }
-    its(:legacy_filename) { should == "~/.gist.#{github_url}" }
+    its(:xdg_path) { should == "~/.cache/gist/auth_token.#{github_url}" }
+    its(:legacy_path) { should == "~/.gist.#{github_url}" }
     its(:github_url_suffix) { should == ".#{github_url}" }
   end
 
   context "when XDG_CACHE_HOME/gist/auth_token exists" do
     before do
-      File.should_receive(:exist?).with(subject.xdg_filename).and_return(true)
+      File.should_receive(:exist?).with(subject.xdg_path).and_return(true)
     end
 
     it { should be_xdg }
@@ -93,12 +93,12 @@ describe Gist::AuthTokenFile do
 
   context "when XDG_CACHE_HOME/gist/auth_token doesn't exit" do
     before do
-      File.should_receive(:exist?).with(subject.xdg_filename).and_return(false)
+      File.should_receive(:exist?).with(subject.xdg_path).and_return(false)
     end
 
     context "when ~/.gist exists" do
       before do
-        File.should_receive(:exist?).with(subject.legacy_filename).and_return(true)
+        File.should_receive(:exist?).with(subject.legacy_path).and_return(true)
       end
 
       it { should_not be_xdg }
@@ -106,7 +106,7 @@ describe Gist::AuthTokenFile do
 
     context "when ~/.gist doesn't exist" do
       before do
-        File.should_receive(:exist?).with(subject.legacy_filename).and_return(false)
+        File.should_receive(:exist?).with(subject.legacy_path).and_return(false)
       end
 
       it { should be_xdg }
