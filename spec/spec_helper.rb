@@ -20,3 +20,10 @@ end
 
 require 'webmock/rspec'
 require 'gist'
+
+RSpec::Matchers.define :be_a_pathname_for do |expected|
+  match do |actual|
+    actual.to_s == File.expand_path(expected)
+  end
+end
+
