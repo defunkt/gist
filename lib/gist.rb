@@ -1,6 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'uri'
+require 'pathname'
 
 begin
   require 'json'
@@ -43,11 +44,11 @@ module Gist
   # helper module for authentication token actions
   class AuthTokenFile
     def self.read
-      File.read(pathname).chomp
+      File.read(pathname.to_s).chomp
     end
 
     def self.write(token)
-      File.open(pathname, 'w', 0600) do |f|
+      File.open(pathname.to_s, 'w', 0600) do |f|
         f.write token
       end
     end
@@ -57,19 +58,25 @@ module Gist
     end
 
     def self.xdg?
-      File.exist?(xdg_path) || !File.exist?(legacy_path)
+      xdg_path.exist? || !legacy_path.exist?
+    end
+
+    def self.legacy_path
+      pathname_for "~/.gist"
+    end
+
+    def self.xdg_path
+      pathname_for XDG.cache "gist/auth_token"
     end
 
     def self.github_url_suffix
       ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
     end
 
-    def self.legacy_path
-      File.expand_path "~/.gist#{github_url_suffix}"
-    end
+    private
 
-    def self.xdg_path
-      File.expand_path XDG.cache "gist/auth_token#{github_url_suffix}"
+    def self.pathname_for(p)
+      Pathname.new(p.concat(github_url_suffix)).expand_path
     end
   end
 
