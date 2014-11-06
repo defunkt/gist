@@ -13,27 +13,30 @@ describe Gist::AuthTokenFile do
 
   describe "::read" do
     let(:token) { "auth_token" }
+    let(:pathname) { double }
+
+    before do subject.stub(:pathname).and_return(pathname) end
 
     it "reads file contents" do
-      File.should_receive(:read).and_return(token)
+      pathname.should_receive(:read).and_return(token)
       subject.read.should eq token
     end
 
     it "chomps file contents" do
-      File.should_receive(:read).and_return(token + "\n")
+      pathname.should_receive(:read).and_return(token + "\n")
       subject.read.should eq token
     end
   end
 
   describe "::write" do
     let(:token) { double }
-    let(:filename) { double }
+    let(:pathname) { double }
     let(:token_file) { double }
 
-    before do subject.stub(:pathname) { filename } end
+    before do subject.stub(:pathname).and_return(pathname) end
 
     it "writes token to file" do
-      File.should_receive(:open).with(filename.to_s, 'w', 0600).and_yield(token_file)
+      pathname.should_receive(:open).with('w', 0600).and_yield(token_file)
       token_file.should_receive(:write).with(token)
       subject.write(token)
     end
