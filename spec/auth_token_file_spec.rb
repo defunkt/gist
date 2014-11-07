@@ -18,14 +18,23 @@ describe Gist::AuthTokenFile do
 
   describe "#write" do
     let(:token) { double }
-    let(:pathname) { double }
+    let(:pathname) { spy }
     let(:token_file) { double }
 
-    before do subject.stub(:pathname).and_return(pathname) end
+    before do
+      subject.stub(:pathname).and_return(pathname)
+      FileUtils.stub(:mkpath)
+    end
 
     it "writes token to file" do
       pathname.should_receive(:open).with('w', 0600).and_yield(token_file)
       token_file.should_receive(:write).with(token)
+      subject.write(token)
+    end
+
+    it "creates directories as needed" do
+      pathname.stub(:dirname).and_return("pathdir")
+      FileUtils.should_receive(:mkpath).with("pathdir")
       subject.write(token)
     end
   end

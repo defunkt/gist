@@ -1,6 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'uri'
+require 'fileutils'
 require 'pathname'
 
 begin
@@ -55,6 +56,7 @@ module Gist
     end
 
     def write(token)
+      FileUtils.mkpath pathname.dirname
       pathname.open('w', 0600) do |f|
         f.write token
       end
