@@ -43,6 +43,8 @@ module Gist
 
   # helper module for authentication token actions
   class AuthTokenFile
+    attr_reader :xdg_path, :legacy_path
+
     def initialize
       @xdg_path = AuthTokenPathname.new XDG.cache "gist/auth_token"
       @legacy_path = AuthTokenPathname.new "~/.gist"
@@ -63,15 +65,7 @@ module Gist
     end
 
     def xdg?
-      @xdg_path.exist? || !@legacy_path.exist?
-    end
-
-    def legacy_path
-      @legacy_path
-    end
-
-    def xdg_path
-      @xdg_path
+      xdg_path.exist? || !legacy_path.exist?
     end
   end
 
