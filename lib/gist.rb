@@ -80,6 +80,16 @@ module Gist
     end
   end
 
+  class AuthTokenPathname
+    def initialize(path)
+      @path = Pathname.new(path).expand_path
+    end
+
+    def exist?
+      !Dir.glob("#{@path}*").empty?
+    end
+  end
+
   class XDG
     CACHE_HOME_ENV_NAME = "XDG_CACHE_HOME"
 

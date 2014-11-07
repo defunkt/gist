@@ -86,3 +86,25 @@ describe Gist::AuthTokenFile do
 
   end
 end
+
+describe Gist::AuthTokenPathname do
+  subject { Gist::AuthTokenPathname.new pathname }
+
+  describe "#exist?" do
+    let(:pathname) { "~/.gist" }
+
+    before do
+      Dir.should_receive(:glob).with(File.expand_path(pathname) + "*").and_return(globbed_files)
+    end
+
+    context "with any matching token files" do
+      let(:globbed_files) { [double] }
+      it { should exist }
+    end
+
+    context "without any matching token files" do
+      let(:globbed_files) { [] }
+      it { should_not exist }
+    end
+  end
+end
