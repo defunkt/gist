@@ -43,39 +43,39 @@ module Gist
 
   # helper module for authentication token actions
   class AuthTokenFile
-    def self.read
+    def read
       pathname.read.chomp
     end
 
-    def self.write(token)
+    def write(token)
       pathname.open('w', 0600) do |f|
         f.write token
       end
     end
 
-    def self.pathname
+    def pathname
       xdg? ? xdg_path : legacy_path
     end
 
-    def self.xdg?
+    def xdg?
       xdg_path.exist? || !legacy_path.exist?
     end
 
-    def self.legacy_path
+    def legacy_path
       pathname_for "~/.gist"
     end
 
-    def self.xdg_path
+    def xdg_path
       pathname_for XDG.cache "gist/auth_token"
     end
 
-    def self.github_url_suffix
+    def github_url_suffix
       ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
     end
 
     private
 
-    def self.pathname_for(p)
+    def pathname_for(p)
       Pathname.new(p.concat(github_url_suffix)).expand_path
     end
   end
@@ -96,7 +96,7 @@ module Gist
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= AuthTokenFile.read rescue nil
+    @token ||= AuthTokenFile.new.read rescue nil
   end
 
   # Upload a gist to https://gist.github.com
@@ -310,7 +310,7 @@ module Gist
       end
 
       if Net::HTTPCreated === response
-        AuthTokenFile.write JSON.parse(response.body)['token']
+        AuthTokenFile.new.write JSON.parse(response.body)['token']
         puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
         return
       elsif Net::HTTPUnauthorized === response

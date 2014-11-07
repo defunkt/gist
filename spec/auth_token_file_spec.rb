@@ -1,11 +1,9 @@
 describe Gist::AuthTokenFile do
-  subject { Gist::AuthTokenFile }
-
   before(:each) do
     stub_const("Gist::URL_ENV_NAME", "STUBBED_GITHUB_URL")
   end
 
-  describe "::read" do
+  describe "#read" do
     let(:token) { "auth_token" }
     let(:pathname) { double }
 
@@ -22,7 +20,7 @@ describe Gist::AuthTokenFile do
     end
   end
 
-  describe "::write" do
+  describe "#write" do
     let(:token) { double }
     let(:pathname) { double }
     let(:token_file) { double }
