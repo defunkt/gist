@@ -35,8 +35,8 @@ describe '...' do
       # stdin emulation
       $stdin = StringIO.new "#{MOCK_USER}\n#{MOCK_PASSWORD}\n"
 
-      # intercept for updating ~/.gist
-      File.stub(:open)
+      # intercept for updating auth_tokens
+      Gist::AuthTokenFile.any_instance.stub(:write)
     end
 
     after do
