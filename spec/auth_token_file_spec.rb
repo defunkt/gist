@@ -7,12 +7,12 @@ describe Gist::AuthTokenFile do
 
     it "reads file contents" do
       pathname.should_receive(:read).and_return(token)
-      subject.read.should eq token
+      subject.read.should == token
     end
 
     it "chomps file contents" do
       pathname.should_receive(:read).and_return(token + "\n")
-      subject.read.should eq token
+      subject.read.should == token
     end
   end
 
@@ -41,7 +41,7 @@ describe Gist::AuthTokenFile do
       let(:legacy_tokens_exist) { "doesn't matter" }
 
       it { should be_xdg }
-      its(:pathname) { should be_a_pathname_for subject.xdg_path }
+      its(:pathname) { should be_expanded_path_for subject.xdg_path }
     end
 
     context "when XDG_CACHE_HOME/gist/auth_token* don't exist" do
@@ -51,26 +51,22 @@ describe Gist::AuthTokenFile do
         let(:legacy_tokens_exist) { true }
 
         it { should_not be_xdg }
-        its(:pathname) { should be_a_pathname_for subject.legacy_path }
+        its(:pathname) { should be_expanded_path_for subject.legacy_path }
       end
 
       context "when ~/.gist* don't exist" do
         let(:legacy_tokens_exist) { false }
 
         it { should be_xdg }
-        its(:pathname) { should be_a_pathname_for subject.xdg_path }
+        its(:pathname) { should be_expanded_path_for subject.xdg_path }
       end
     end
-
   end
 end
 
 describe Gist::AuthTokenPathname do
-  before do
-    stub_const("Gist::URL_ENV_NAME", "STUBBED_GITHUB_URL")
-  end
-
   subject { Gist::AuthTokenPathname.new pathname }
+  before do stub_const("Gist::URL_ENV_NAME", "STUBBED_GITHUB_URL") end
   let(:pathname) { "/.gist" }
 
   its(:to_pathname) { should be_a Pathname }
@@ -92,8 +88,8 @@ describe Gist::AuthTokenPathname do
   context "with default GITHUB_URL" do
     before do ENV.delete Gist::URL_ENV_NAME end
 
-    its(:to_s) { should == File.expand_path(pathname) }
-    its(:to_pathname) { should be_a_pathname_for pathname }
+    its(:to_s) { should be_expanded_path_for pathname }
+    its(:to_pathname) { should be_expanded_path_for pathname }
     its(:github_url_suffix) { should == "" }
   end
 
@@ -102,9 +98,8 @@ describe Gist::AuthTokenPathname do
     let(:github_url) { "gh.custom.org" }
     let(:github_url_suffix) { "." + github_url }
 
-    its(:to_s) { should == File.expand_path(pathname+github_url_suffix) }
-    its(:to_pathname) { should be_a_pathname_for pathname+github_url_suffix }
+    its(:to_s) { should be_expanded_path_for pathname+github_url_suffix }
+    its(:to_pathname) { should be_expanded_path_for pathname+github_url_suffix }
     its(:github_url_suffix) { should == github_url_suffix }
   end
-
 end
