@@ -73,10 +73,6 @@ module Gist
     def xdg_path
       @xdg_path
     end
-
-    def github_url_suffix
-      ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
-    end
   end
 
   class AuthTokenPathname
