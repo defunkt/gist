@@ -116,6 +116,7 @@ describe Gist::AuthTokenPathname do
   context "with default GITHUB_URL" do
     before do ENV.delete Gist::URL_ENV_NAME end
 
+    its(:to_s) { should == File.expand_path(pathname) }
     its(:to_pathname) { should be_a_pathname_for pathname }
     its(:github_url_suffix) { should == "" }
   end
@@ -125,6 +126,7 @@ describe Gist::AuthTokenPathname do
     let(:github_url) { "gh.custom.org" }
     let(:github_url_suffix) { "." + github_url }
 
+    its(:to_s) { should == File.expand_path(pathname+github_url_suffix) }
     its(:to_pathname) { should be_a_pathname_for pathname+github_url_suffix }
     its(:github_url_suffix) { should == github_url_suffix }
   end
