@@ -90,14 +90,17 @@ describe Gist::AuthTokenFile do
 end
 
 describe Gist::AuthTokenPathname do
+  before do
+    stub_const("Gist::URL_ENV_NAME", "STUBBED_GITHUB_URL")
+  end
+
   subject { Gist::AuthTokenPathname.new pathname }
+  let(:pathname) { "/.gist" }
+
+  its(:to_pathname) { should be_a Pathname }
 
   describe "#exist?" do
-    let(:pathname) { "~/.gist" }
-
-    before do
-      Dir.should_receive(:glob).with(File.expand_path(pathname) + "*").and_return(globbed_files)
-    end
+    before do Dir.should_receive(:glob).with(pathname + "*").and_return(globbed_files) end
 
     context "with any matching token files" do
       let(:globbed_files) { [double] }
@@ -109,4 +112,21 @@ describe Gist::AuthTokenPathname do
       it { should_not exist }
     end
   end
+
+  context "with default GITHUB_URL" do
+    before do ENV.delete Gist::URL_ENV_NAME end
+
+    its(:to_pathname) { should be_a_pathname_for pathname }
+    its(:github_url_suffix) { should == "" }
+  end
+
+  context "with custom GITHUB_URL" do
+    before do ENV[Gist::URL_ENV_NAME] = github_url end
+    let(:github_url) { "gh.custom.org" }
+    let(:github_url_suffix) { "." + github_url }
+
+    its(:to_pathname) { should be_a_pathname_for pathname+github_url_suffix }
+    its(:github_url_suffix) { should == github_url_suffix }
+  end
+
 end

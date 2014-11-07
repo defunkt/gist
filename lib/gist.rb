@@ -93,6 +93,14 @@ module Gist
     def exist?
       !Dir.glob("#{@path}*").empty?
     end
+
+    def to_pathname
+      Pathname.new "#{@path}#{github_url_suffix}"
+    end
+
+    def github_url_suffix
+      ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
+    end
   end
 
   class XDG
