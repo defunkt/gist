@@ -55,6 +55,8 @@ describe Gist::AuthTokenFile do
     let(:xdg_path) { double }
     let(:legacy_path) { double }
     before do
+      subject.instance_variable_set(:@xdg_path, xdg_path)
+      subject.instance_variable_set(:@legacy_path, legacy_path)
       subject.stub(:xdg_path).and_return(xdg_path)
       subject.stub(:legacy_path).and_return(legacy_path)
     end
