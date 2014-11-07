@@ -59,7 +59,7 @@ module Gist
     end
 
     def pathname
-      xdg? ? xdg_path : legacy_path
+      (xdg? ? xdg_path : legacy_path).to_pathname
     end
 
     def xdg?
@@ -67,21 +67,15 @@ module Gist
     end
 
     def legacy_path
-      pathname_for "~/.gist"
+      @legacy_path
     end
 
     def xdg_path
-      pathname_for XDG.cache "gist/auth_token"
+      @xdg_path
     end
 
     def github_url_suffix
       ENV.key?(URL_ENV_NAME) ? ".#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}" : ""
-    end
-
-    private
-
-    def pathname_for(p)
-      Pathname.new(p.concat(github_url_suffix)).expand_path
     end
   end
 

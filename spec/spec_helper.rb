@@ -23,7 +23,7 @@ require 'gist'
 
 RSpec::Matchers.define :be_a_pathname_for do |expected|
   match do |actual|
-    actual.to_s == File.expand_path(expected)
+    actual.to_s == File.expand_path(expected.to_s)
   end
 end
 
