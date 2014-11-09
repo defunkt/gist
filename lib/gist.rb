@@ -94,10 +94,8 @@ module Gist
   end
 
   class XDG
-    CACHE_HOME_ENV_NAME = "XDG_CACHE_HOME"
-
     def self.cache_home
-      ENV.fetch(CACHE_HOME_ENV_NAME, "~/.cache")
+      ENV.fetch("XDG_CACHE_HOME", "~/.cache")
     end
 
     def self.cache(file)
