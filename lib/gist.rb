@@ -17,7 +17,7 @@ module Gist
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
     'xclip'   => 'xclip -o',
-    'xsel -i'    => 'xsel -o',
+    'xsel -i' => 'xsel -o',
     'pbcopy'  => 'pbpaste',
     'putclip' => 'getclip'
   }
