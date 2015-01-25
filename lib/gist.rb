@@ -1,6 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'uri'
+require 'open-uri'
 
 begin
   require 'json'
@@ -353,7 +354,7 @@ module Gist
              end
 
     Gist.copy(output.to_s) if options[:copy]
-    Gist.open(json['html_url']) if options[:open]
+    Gist.open_in_browser(json['html_url']) if options[:open]
 
     output
   end
@@ -420,6 +421,27 @@ Could not find copy command, tried:
     action == :copy ? command : CLIPBOARD_COMMANDS[command]
   end
 
+  # Download the gist to local folder in .txt.
+  #
+  # If there is more than one file in the gist, it will download only the last file.
+  # The downloaded gist will be named by its ID.
+  # @param [String] URL or the ID of the gist
+  # @raise [RuntimeError] if URL or ID of the gist is wrong
+  def download(gist_url)
+    unless gist_url =~ /\A#{URI::regexp(['https', 'http'])}\z/
+      gist_url = "https://gist.github.com/" << gist_url
+    end
+    name = gist_url.split('/')
+    name = name[name.length - 1]
+    url = Gist.rawify(gist_url)
+    raise "Wrong URL or ID" if url == nil
+    content = open(url).read
+    local_file = open("#{name}.txt","w")
+    local_file.write(content)
+    local_file.close
+    puts "Your gist has been downloaded to local folder under the name #{name}.txt."
+  end
+
   # Open a URL in a browser.
   #
   # @param [String] url
@@ -427,7 +449,7 @@ Could not find copy command, tried:
   #
   # This method was heavily inspired by defunkt's Gist#open,
   # @see https://github.com/defunkt/gist/blob/bca9b29/lib/gist.rb#L157
-  def open(url)
+  def open_in_browser(url)
     command = if ENV['BROWSER']
                 ENV['BROWSER']
               elsif RUBY_PLATFORM =~ /darwin/

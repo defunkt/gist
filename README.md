@@ -69,6 +69,11 @@ upload content to https://gist.github.com/.
     gist -l : all gists for authed user
     gist -l defunkt : list defunkt's public gists
 
+To download the gist use `-r` .It downloads only the last file if multifile gist is requested.
+
+    gist -r <url|id>
+
+
 ‌See `gist --help` for more detail.
 
 ## Login

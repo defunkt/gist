@@ -43,6 +43,11 @@ Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
+To download the gist use `-r <url|id>`. It downloads only the last file if
+multifile gists is requested.
+
+
+
 Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
 
@@ -119,6 +124,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     exit
   end
 
+  opts.on("-r", "--read", "Download the gist.") do
+    options[:read] = true
+  end
+
   opts.on_tail("-v", "--version", "Print the version.") do
     puts "gist v#{Gist::VERSION}"
     exit
@@ -149,6 +158,12 @@ begin
     else
       Gist.list_gists
     end
+    exit
+  end
+
+  if options[:read]
+    raise 'No URL or ID. Use as gist -r URL | ID' if ARGV.empty?
+    Gist.download(ARGV.first.to_str)
     exit
   end
 
