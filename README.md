@@ -50,7 +50,8 @@ upload content to https://gist.github.com/.
 
 ‌You can update existing gists with `-u`:
 
-    gist lib/gist.rb bin/gist -u 42f2c239d2eb57299408
+    gist -u GIST_ID FILE_NAME
+    gist -u 42f2c239d2eb57299408 test.txt
 
 ‌If you'd like to copy the resulting URL to your clipboard, use `-c`.
 
