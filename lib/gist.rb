@@ -2,6 +2,9 @@ require 'net/https'
 require 'cgi'
 require 'uri'
 
+require 'pry'
+
+
 begin
   require 'json'
 rescue LoadError
@@ -179,6 +182,55 @@ module Gist
 
       pretty_gist(response)
     end
+  end
+
+  def list_all_gists(user="")
+    url = "#{base_path}"
+
+    if user == ""
+      access_token = auth_token()
+      if access_token.to_s != ''
+        url << "/gists?access_token=" << CGI.escape(access_token)
+        get_gist_pages(url)
+      else
+        raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
+      end
+
+    else
+      url << "/users/#{user}/gists"
+      get_gist_pages(url)
+    end
+
+  end
+
+  def get_gist_pages(url)
+
+    request = Net::HTTP::Get.new(url)
+    response = http(api_url, request)
+
+    m = response.header['link'].match(/page=(\d+)>; rel="last/)
+
+    if m
+
+      pretty_gist(response)
+
+      last_page = m.captures[0].to_i
+      current_page = 2
+
+      until current_page > last_page do
+        url_paged = "#{url}&page=#{current_page}"
+        current_page += 1
+
+        request = Net::HTTP::Get.new(url_paged)
+        response = http(api_url, request)
+
+        pretty_gist(response) if response.code.to_i == 200
+      end
+
+    else
+      pretty_gist(response)
+    end
+
   end
 
   # return prettified string result of response body for all gists
