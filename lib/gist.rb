@@ -154,14 +154,14 @@ module Gist
   # @param [String] user
   #
   # see https://developer.github.com/v3/gists/#list-gists
-  def list_gists(user = "")
+  def list_gists(user="", page=1)
     url = "#{base_path}"
 
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
-        url << "/gists?access_token=" << CGI.escape(access_token)
 
+        url << "/gists?access_token=" << CGI.escape(access_token) << "&page=" << page.to_s
         request = Net::HTTP::Get.new(url)
         response = http(api_url, request)
 

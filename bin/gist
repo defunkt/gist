@@ -112,6 +112,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
 
   opts.on("-l", "--list [USER]", "List all gists for user") do |user|
     options[:list] = user
+
+    opts.on("--page [PAGE]", "Pagination number") do |page|
+      options[:page] = page
+    end
   end
 
   opts.on_tail("-h","--help", "Show this message.") do
@@ -145,9 +149,9 @@ begin
 
   if options.key? :list
     if options[:list]
-      Gist.list_gists(options[:list])
+      Gist.list_gists(options[:list], options[:page])
     else
-      Gist.list_gists
+      Gist.list_gists("", options[:page])
     end
     exit
   end
