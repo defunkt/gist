@@ -181,6 +181,40 @@ module Gist
     end
   end
 
+  def list_all_gists(user = "")
+    url = "#{base_path}"
+
+    if user == ""
+      access_token = auth_token()
+      if access_token.to_s != ''
+        url << "/gists?access_token=" << CGI.escape(access_token)
+        get_gist_pages(url)
+      else
+        raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
+      end
+
+    else
+      url << "/users/#{user}/gists"
+      get_gist_pages(url)
+    end
+
+  end
+
+  def get_gist_pages(url)
+
+    request = Net::HTTP::Get.new(url)
+    response = http(api_url, request)
+    pretty_gist(response)
+
+    link_header = response.header['link']
+
+    if link_header
+      links = Hash[ link_header.gsub(/(<|>|")/, "").split(',').map { |link| link.split('; rel=') } ].invert
+      get_gist_pages(links['next']) if links['next']
+    end
+
+  end
+
   # return prettified string result of response body for all gists
   #
   # @params [Net::HTTPResponse] response

@@ -145,9 +145,9 @@ begin
 
   if options.key? :list
     if options[:list]
-      Gist.list_gists(options[:list])
+      Gist.list_all_gists(options[:list])
     else
-      Gist.list_gists
+      Gist.list_all_gists
     end
     exit
   end
