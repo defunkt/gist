@@ -2,9 +2,6 @@ require 'net/https'
 require 'cgi'
 require 'uri'
 
-require 'pry'
-
-
 begin
   require 'json'
 rescue LoadError
@@ -157,14 +154,14 @@ module Gist
   # @param [String] user
   #
   # see https://developer.github.com/v3/gists/#list-gists
-  def list_gists(user="", page=1)
+  def list_gists(user = "")
     url = "#{base_path}"
 
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
+        url << "/gists?access_token=" << CGI.escape(access_token)
 
-        url << "/gists?access_token=" << CGI.escape(access_token) << "&page=" << page.to_s
         request = Net::HTTP::Get.new(url)
         response = http(api_url, request)
 
@@ -184,7 +181,7 @@ module Gist
     end
   end
 
-  def list_all_gists(user="")
+  def list_all_gists(user = "")
     url = "#{base_path}"
 
     if user == ""
@@ -207,28 +204,13 @@ module Gist
 
     request = Net::HTTP::Get.new(url)
     response = http(api_url, request)
+    pretty_gist(response)
 
-    m = response.header['link'].match(/page=(\d+)>; rel="last/)
+    link_header = response.header['link']
 
-    if m
-
-      pretty_gist(response)
-
-      last_page = m.captures[0].to_i
-      current_page = 2
-
-      until current_page > last_page do
-        url_paged = "#{url}&page=#{current_page}"
-        current_page += 1
-
-        request = Net::HTTP::Get.new(url_paged)
-        response = http(api_url, request)
-
-        pretty_gist(response) if response.code.to_i == 200
-      end
-
-    else
-      pretty_gist(response)
+    if link_header
+      links = Hash[ link_header.gsub(/(<|>|")/, "").split(',').map { |link| link.split('; rel=') } ].invert
+      get_gist_pages(links['next']) if links['next']
     end
 
   end
