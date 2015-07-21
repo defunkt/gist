@@ -2,6 +2,7 @@
 
 # Silence Ctrl-C's
 trap('INT'){ exit 1 }
+trap('PIPE', 'EXIT')
 
 require 'optparse'
 require 'gist'
