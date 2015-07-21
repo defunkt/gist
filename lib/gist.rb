@@ -225,7 +225,8 @@ module Gist
     body = JSON.parse(response.body)
     if response.code == '200'
       body.each do |gist|
-        puts "#{gist['html_url']} #{gist['description'] || gist['files'].keys.join(" ")} #{gist['public'] ? '' : '(secret)'}\n"
+        description = "#{gist['description'] || gist['files'].keys.join(" ")} #{gist['public'] ? '' : '(secret)'}"
+        puts "#{gist['html_url']} #{description.tr("\n", " ")}\n"
       end
 
     else
