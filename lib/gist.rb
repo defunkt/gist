@@ -188,7 +188,7 @@ module Gist
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
-        url << "/gists?per_page=100&taccess_token=" << CGI.escape(access_token)
+        url << "/gists?per_page=100&access_token=" << CGI.escape(access_token)
         get_gist_pages(url)
       else
         raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
