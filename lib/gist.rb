@@ -148,8 +148,10 @@ module Gist
     raise e.extend Error
   end
 
-  # List all gists(private also) for authenticated user
+  # List gists (private also) for authenticated user
   # otherwise list public gists for given username (optional argument)
+  #
+  # This method does not handle pagination.
   #
   # @param [String] user
   #
@@ -181,53 +183,83 @@ module Gist
     end
   end
 
-  def list_all_gists(user = "")
+  # List all gists (private also) for authenticated user
+  # otherwise list public gists for given username (optional argument)
+  #
+  # @param [String] user
+  # @param [Hash] options  more detailed options
+  #
+  # @option options [Integer] :max_number  max number of gists to list
+  # @option options [Integer] :max_pages  max number of pages to list
+  #
+  # see https://developer.github.com/v3/gists/#list-gists
+  def list_all_gists(user="", options={})
     url = "#{base_path}"
 
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
         url << "/gists?access_token=" << CGI.escape(access_token)
-        get_gist_pages(url)
       else
         raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
       end
 
     else
       url << "/users/#{user}/gists"
-      get_gist_pages(url)
     end
+
+    max_number = options[:max_number] ? options[:max_number] : 0
+    max_pages = options[:max_pages] ? options[:max_pages] : 0
+
+    get_gist_pages(url, max_number, max_pages)
 
   end
 
-  def get_gist_pages(url)
+  # List gists given an API endpoint
+  #
+  # Pagination is handled, and all gists are listed by default.
+  #
+  # @param [String] url  API endpoint
+  # @param [Integer] max_number  max number of gists to list (zero or negative for unlimited)
+  # @param [Integer] max_pages  max number of pages to list (zero or negative for unlimited)
+  #
+  # see https://developer.github.com/v3/gists/#list-gists
+  def get_gist_pages(url, max_number=0, max_pages=0)
 
     request = Net::HTTP::Get.new(url)
     response = http(api_url, request)
-    pretty_gist(response)
+    number_listed = pretty_gist(response, max_number)
+
+    if ((max_number > 0 && number_listed >= max_number) || max_pages == 1)
+      return
+    end
 
     link_header = response.header['link']
 
     if link_header
       links = Hash[ link_header.gsub(/(<|>|")/, "").split(',').map { |link| link.split('; rel=') } ].invert
-      get_gist_pages(links['next']) if links['next']
+      get_gist_pages(links['next'], max_number - number_listed, max_pages - 1) if links['next']
     end
 
   end
 
-  # return prettified string result of response body for all gists
+  # Print prettified string result of response body for all gists
   #
   # @params [Net::HTTPResponse] response
-  # @return [String] prettified result of listing all gists
+  # @params [Integer] max_number  max number of gists to print (zero or negative for unlimited)
+  # @return [Integer] number of gists printed
   #
   # see https://developer.github.com/v3/gists/#response
-  def pretty_gist(response)
+  def pretty_gist(response, max_number=0)
     body = JSON.parse(response.body)
     if response.code == '200'
-      body.each do |gist|
+      number_printed = 0
+      (max_number > 0 ? body.take(max_number) : body).each do |gist|
         description = "#{gist['description'] || gist['files'].keys.join(" ")} #{gist['public'] ? '' : '(secret)'}"
         puts "#{gist['html_url']} #{description.tr("\n", " ")}\n"
+        number_printed += 1
       end
+      return number_printed
 
     else
       raise Error, body['message']

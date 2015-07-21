@@ -111,8 +111,18 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:raw] = true
   end
 
-  opts.on("-l", "--list [USER]", "List all gists for user") do |user|
+  opts.on("-l", "--list [USER]", "List gists for user (all by default)") do |user|
     options[:list] = user
+  end
+
+  opts.on("--number [NUMBER]", OptionParser::DecimalInteger,
+          "Maximum number of gists (in conjuction with --list)") do |number|
+    options[:max_number] = number
+  end
+
+  opts.on("--pages [NUMBER]", OptionParser::DecimalInteger,
+          "Maximum number of pages (in conjuction with --list)") do |pages|
+    options[:max_pages] = pages
   end
 
   opts.on_tail("-h","--help", "Show this message.") do
@@ -145,11 +155,8 @@ begin
   options[:public] = Gist.should_be_public?(options)
 
   if options.key? :list
-    if options[:list]
-      Gist.list_all_gists(options[:list])
-    else
-      Gist.list_all_gists
-    end
+    user = options[:list] ? options[:list] : ""
+    Gist.list_all_gists(user, options)
     exit
   end
 
