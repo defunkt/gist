@@ -152,6 +152,7 @@ module Gist
   # otherwise list public gists for given username (optional argument)
   #
   # @param [String] user
+  # @deprecated
   #
   # see https://developer.github.com/v3/gists/#list-gists
   def list_gists(user = "")
@@ -187,14 +188,14 @@ module Gist
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
-        url << "/gists?access_token=" << CGI.escape(access_token)
+        url << "/gists?per_page=100&taccess_token=" << CGI.escape(access_token)
         get_gist_pages(url)
       else
         raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
       end
 
     else
-      url << "/users/#{user}/gists"
+      url << "/users/#{user}/gists?per_page=100"
       get_gist_pages(url)
     end
 
@@ -227,6 +228,7 @@ module Gist
       body.each do |gist|
         description = "#{gist['description'] || gist['files'].keys.join(" ")} #{gist['public'] ? '' : '(secret)'}"
         puts "#{gist['html_url']} #{description.tr("\n", " ")}\n"
+        $stdout.flush
       end
 
     else
