@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "August 2014" "" "Gist manual"
+.TH "GIST" "1" "July 2015" "" "Gist manual"
 .
 .SH "NAME"
 \fBgist\fR \- upload code to https://gist\.github\.com
@@ -73,7 +73,7 @@ gist \-d "Random rbx bug" a\.rb
 You can update existing gists with \fB\-u\fR:
 .
 .IP
-gist lib/gist\.rb bin/gist \-u 42f2c239d2eb57299408
+gist \-u GIST_ID FILE_NAME gist \-u 42f2c239d2eb57299408 test\.txt
 .
 .IP "\(bu" 4
 If you\'d like to copy the resulting URL to your clipboard, use \fB\-c\fR\.
@@ -123,7 +123,7 @@ Success! https://github\.com/settings/applications
 .IP "" 0
 .
 .P
-You can read the 2\-factor auth code from an sms or the authentification app, depending on how you set your account up \fIhttps://github\.com/settings/admin\fR\.
+You can read the 2\-factor auth code from an sms or the authentication app, depending on how you set your account up \fIhttps://github\.com/settings/admin\fR\.
 .
 .P
 Note: 2\-factor authentication just appeared recently \fIhttps://github\.com/blog/1614\-two\-factor\-authentication\fR, so if you run into errors, update the gist gem\.
