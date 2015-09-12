@@ -2,7 +2,10 @@
 
 # Silence Ctrl-C's
 trap('INT'){ exit 1 }
-trap('PIPE', 'EXIT')
+
+if Signal.list.include? 'PIPE'
+  trap('PIPE', 'EXIT')
+end
 
 require 'optparse'
 require 'gist'
