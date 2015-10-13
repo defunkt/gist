@@ -201,6 +201,28 @@ module Gist
 
   end
 
+  def read_gist(id, file_name=nil)
+    url = "#{base_path}/gists/#{id}"
+    request = Net::HTTP::Get.new(url)
+    response = http(api_url, request)
+
+    if response.code == '200'
+      body = JSON.parse(response.body)
+      files = body["files"]
+
+      if file_name
+        file = files[file_name]
+        raise Error, "Gist with id of #{id} and file #{file_name} does not exist." unless file
+      else
+        file = files.values.first
+      end
+
+      puts file["content"]
+    else
+      raise Error, "Gist with id of #{id} does not exist."
+    end
+  end
+
   def get_gist_pages(url)
 
     request = Net::HTTP::Get.new(url)

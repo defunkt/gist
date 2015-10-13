@@ -49,6 +49,7 @@ original gist with the same GitHub account.
 
 Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
+       #{executable_name} [-l|-r]
 
   EOS
 
@@ -118,6 +119,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:list] = user
   end
 
+  opts.on("-r", "--read ID [FILENAME]", "Read a gist and print out the contents") do |id|
+    options[:read] = id
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -153,6 +158,12 @@ begin
     else
       Gist.list_all_gists
     end
+    exit
+  end
+
+  if options.key? :read
+    file_name = ARGV.first
+    Gist.read_gist(options[:read], file_name)
     exit
   end
 
