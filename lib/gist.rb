@@ -59,13 +59,17 @@ module Gist
         f.write token
       end
     end
+
+    def self.read_token_or_fetch_from_env
+      ENV['GITHUB_AUTH_TOKEN'] || self.read rescue nil
+    end
   end
 
   # auth token for authentication
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= AuthTokenFile.read rescue nil
+    @token ||= read_token_or_fetch_from_env
   end
 
   # Upload a gist to https://gist.github.com
