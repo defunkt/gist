@@ -18,6 +18,10 @@ describe Gist do
     it "should return true by default" do
       Gist.should_be_public?.should be_truthy
     end
+
+    it 'should pickup auth_token if set in env' do
+
+    end
   end
 
 end

@@ -12,7 +12,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.4.2'
+  VERSION = '4.4.3'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -69,7 +69,7 @@ module Gist
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= read_token_or_fetch_from_env
+    @token ||= AuthTokenFile.read_token_or_fetch_from_env
   end
 
   # Upload a gist to https://gist.github.com
