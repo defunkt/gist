@@ -1897,7 +1897,7 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:shorten] = shorten
   end
 
-  opts.on("-u", "--update [ URL | ID ]", "Update an existing gist.") do |update|
+  opts.on("-u", "--update GIST_ID FILE_NAME", "Update an existing gist.") do |update|
     options[:update] = update
   end
 

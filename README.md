@@ -1,10 +1,16 @@
-gist(1) -- upload code to https://gist.github.com
+gist -- upload code to https://gist.github.com
 =================================================
 
 ## Synopsis
 
 The gist gem provides a `gist` command that you can use from your terminal to
 upload content to https://gist.github.com/.
+
+## Why the fork?
+
+This fork will use the environment variable GITHUB_AUTH_TOKEN in addition to the ~/.gist file.
+
+Also, usage documentation has been tweaked for clarity.
 
 ## Installation
 
