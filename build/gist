@@ -1318,7 +1318,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.4.2'
+  VERSION = '4.5.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1505,6 +1505,28 @@ module Gist
       get_gist_pages(url)
     end
 
+  end
+
+  def read_gist(id, file_name=nil)
+    url = "#{base_path}/gists/#{id}"
+    request = Net::HTTP::Get.new(url)
+    response = http(api_url, request)
+
+    if response.code == '200'
+      body = JSON.parse(response.body)
+      files = body["files"]
+
+      if file_name
+        file = files[file_name]
+        raise Error, "Gist with id of #{id} and file #{file_name} does not exist." unless file
+      else
+        file = files.values.first
+      end
+
+      puts file["content"]
+    else
+      raise Error, "Gist with id of #{id} does not exist."
+    end
   end
 
   def get_gist_pages(url)
@@ -1820,7 +1842,10 @@ end
 
 # Silence Ctrl-C's
 trap('INT'){ exit 1 }
-trap('PIPE', 'EXIT')
+
+if Signal.list.include? 'PIPE'
+  trap('PIPE', 'EXIT')
+end
 
 require 'optparse'
 
@@ -1863,6 +1888,7 @@ original gist with the same GitHub account.
 
 Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
+       #{executable_name} [-l|-r]
 
   EOS
 
@@ -1932,6 +1958,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:list] = user
   end
 
+  opts.on("-r", "--read ID [FILENAME]", "Read a gist and print out the contents") do |id|
+    options[:read] = id
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -1967,6 +1997,12 @@ begin
     else
       Gist.list_all_gists
     end
+    exit
+  end
+
+  if options.key? :read
+    file_name = ARGV.first
+    Gist.read_gist(options[:read], file_name)
     exit
   end
 
