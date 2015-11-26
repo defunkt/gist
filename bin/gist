@@ -123,6 +123,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:read] = id
   end
 
+  opts.on("--delete [ URL | ID ]", "Delete a gist") do |id|
+    options[:delete] = id
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -164,6 +168,11 @@ begin
   if options.key? :read
     file_name = ARGV.first
     Gist.read_gist(options[:read], file_name)
+    exit
+  end
+
+  if options.key? :delete
+    Gist.delete_gist(options[:delete])
     exit
   end
 
