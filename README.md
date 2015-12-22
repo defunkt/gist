@@ -83,10 +83,10 @@ an OAuth2 token (with the "gist" permission).
     GitHub username: ConradIrwin
     GitHub password:
     2-factor auth code:
-    Success! https://github.com/settings/applications
+    Success! https://github.com/settings/tokens
 
 This token is stored in `~/.gist` and used for all future gisting. If you need to
-you can revoke it from https://github.com/settings/applications, or just delete the
+you can revoke it from https://github.com/settings/tokens, or just delete the
 file.  If you need to store tokens for both github.com and a Github Enterprise instance 
 you can save your Github Enterprise token in `~/.gist.github.example.com` where 
 "github.example.com" is the URL for your Github Enterprise instance.

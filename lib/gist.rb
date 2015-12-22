@@ -339,7 +339,7 @@ module Gist
 
       if Net::HTTPCreated === response
         AuthTokenFile.write JSON.parse(response.body)['token']
-        puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
+        puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/tokens"
         return
       elsif Net::HTTPUnauthorized === response
         puts "Error: #{JSON.parse(response.body)['message']}"
