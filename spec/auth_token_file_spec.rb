@@ -31,6 +31,7 @@ describe Gist::AuthTokenFile do
 
   describe "::read" do
     let(:token) { "auth_token" }
+    let(:env_variable_name) { "GITHUB_AUTH_TOKEN" }
 
     it "reads file contents" do
       File.should_receive(:read).and_return(token)
@@ -40,6 +41,13 @@ describe Gist::AuthTokenFile do
     it "chomps file contents" do
       File.should_receive(:read).and_return(token + "\n")
       subject.read.should eq token
+    end
+
+    it 'should pickup auth_token if set in environment variable' do
+      cached_env_variable = ENV[env_variable_name]
+      ENV[env_variable_name] = "auth_token"
+      subject.read_token_or_fetch_from_env.should eq token
+      ENV[env_variable_name] = cached_env_variable
     end
   end
 
