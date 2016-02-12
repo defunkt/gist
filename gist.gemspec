@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
 
   s.executables << 'gist'
 
-  s.add_development_dependency 'rake'
-  s.add_development_dependency 'ronn'
-  s.add_development_dependency 'webmock'
+  s.add_development_dependency 'rake', '~> 0'
+  s.add_development_dependency 'ronn', '~> 0'
+  s.add_development_dependency 'webmock', '~> 0'
   s.add_development_dependency 'rspec', '>3'
 end
