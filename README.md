@@ -70,6 +70,11 @@ upload content to https://gist.github.com/.
     gist -l : all gists for authed user
     gist -l defunkt : list defunkt's public gists
 
+To read a gist and print it to STDOUT
+
+    gist -r GIST_ID
+    gist -r 374130
+
 ‌See `gist --help` for more detail.
 
 ## Login
