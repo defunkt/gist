@@ -1,6 +1,7 @@
 require 'net/https'
 require 'cgi'
 require 'uri'
+require 'socket'
 
 begin
   require 'json'
@@ -76,7 +77,7 @@ module Gist
   #
   # @see http://developer.github.com/v3/gists/
   def gist(content, options = {})
-    filename = options[:filename] || "a.rb"
+    filename = options[:filename] || "gist from " + Socket.gethostname + " at " + Time.new.inspect"
     multi_gist({filename => content}, options)
   end
 
