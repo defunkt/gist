@@ -23,7 +23,7 @@ module Gist
   }
 
   GITHUB_API_URL   = URI("https://api.github.com/")
-  GIT_IO_URL       = URI("http://git.io")
+  GIT_IO_URL       = URI("https://git.io")
 
   GITHUB_BASE_PATH = ""
   GHE_BASE_PATH    = "/api/v3"
@@ -263,10 +263,12 @@ module Gist
   # @param [String] url
   # @return [String] shortened url, or long url if shortening fails
   def shorten(url)
-    request = Net::HTTP::Post.new("/")
+    request = Net::HTTP::Post.new("/create")
     request.set_form_data(:url => url)
     response = http(GIT_IO_URL, request)
     case response.code
+    when "200"
+      URI.join(GIT_IO_URL, response.body)
     when "201"
       response['Location']
     else
