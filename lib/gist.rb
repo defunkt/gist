@@ -268,7 +268,7 @@ module Gist
     response = http(GIT_IO_URL, request)
     case response.code
     when "200"
-      URI.join(GIT_IO_URL, response.body)
+      URI.join(GIT_IO_URL, response.body).to_s
     when "201"
       response['Location']
     else
