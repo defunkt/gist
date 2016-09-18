@@ -5,7 +5,7 @@ describe '...' do
   MOCK_USER         = 'foo'
   MOCK_PASSWORD     = 'bar'
 
-  MOCK_AUTHZ_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_USER}:#{MOCK_PASSWORD}@#{MOCK_GHE_HOST}/api/v3/"
+  MOCK_AUTHZ_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
   MOCK_GHE_URL          = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
   MOCK_GITHUB_URL       = "https://api.github.com/"
 
@@ -18,6 +18,7 @@ describe '...' do
 
     # stub requests for /authorizations
     stub_request(:post, /#{MOCK_AUTHZ_GHE_URL}authorizations/).
+      with(basic_auth: [MOCK_USER, MOCK_PASSWORD]).
       to_return(:status => 201, :body => '{"token": "asdf"}')
     stub_request(:post, /#{MOCK_GITHUB_URL}authorizations/).
       with(basic_auth: [MOCK_USER, MOCK_PASSWORD]).
