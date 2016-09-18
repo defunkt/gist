@@ -7,7 +7,7 @@ describe '...' do
 
   MOCK_AUTHZ_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_USER}:#{MOCK_PASSWORD}@#{MOCK_GHE_HOST}/api/v3/"
   MOCK_GHE_URL          = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
-  MOCK_AUTHZ_GITHUB_URL = "https://#{MOCK_USER}:#{MOCK_PASSWORD}@api.github.com/"
+  MOCK_AUTHZ_GITHUB_URL = "https://api.github.com/"
   MOCK_GITHUB_URL       = "https://api.github.com/"
 
   before do
@@ -21,6 +21,7 @@ describe '...' do
     stub_request(:post, /#{MOCK_AUTHZ_GHE_URL}authorizations/).
       to_return(:status => 201, :body => '{"token": "asdf"}')
     stub_request(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/).
+      with(basic_auth: [MOCK_USER, MOCK_PASSWORD]).
       to_return(:status => 201, :body => '{"token": "asdf"}')
   end
 
