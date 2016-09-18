@@ -5,8 +5,8 @@ describe '...' do
   MOCK_USER         = 'foo'
   MOCK_PASSWORD     = 'bar'
 
-  MOCK_GHE_URL          = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
-  MOCK_GITHUB_URL       = "https://api.github.com/"
+  MOCK_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
+  MOCK_GITHUB_URL = "https://api.github.com/"
 
   before do
     @saved_env = ENV[Gist::URL_ENV_NAME]
