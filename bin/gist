@@ -14,44 +14,44 @@ require 'gist'
 options = {}
 filenames = []
 
-OptionParser.new do |opts|
+parser = OptionParser.new do |opts|
   executable_name = File.split($0)[1]
-  opts.banner = <<-EOS
-Gist (v#{Gist::VERSION}) lets you upload to https://gist.github.com/
+  opts.banner = <<~BANNER
+    Gist (v#{Gist::VERSION}) lets you upload to https://gist.github.com/
 
-The content to be uploaded can be passed as a list of files, if none are
-specified STDIN will be read. The default filename for STDIN is "a.rb", and all
-filenames can be overridden by repeating the "-f" flag. The most useful reason
-to do this is to change the syntax highlighting.
+    The content to be uploaded can be passed as a list of files, if none are
+    specified STDIN will be read. The default filename for STDIN is "a.rb", and all
+    filenames can be overridden by repeating the "-f" flag. The most useful reason
+    to do this is to change the syntax highlighting.
 
-If you'd like your gists to be associated with your GitHub account, so that you
-can edit them and find them in future, first use `gist --login` to obtain an
-Oauth2 access token. This is stored and used by gist in the future.
+    If you'd like your gists to be associated with your GitHub account, so that you
+    can edit them and find them in future, first use `gist --login` to obtain an
+    Oauth2 access token. This is stored and used by gist in the future.
 
-Private gists do not have guessable URLs and can be created with "-p", you can
-also set the description at the top of the gist by passing "-d".
+    Private gists do not have guessable URLs and can be created with "-p", you can
+    also set the description at the top of the gist by passing "-d".
 
-Anonymous gists are not associated with your GitHub account, they can be created
-with "-a" even after you have used "gist --login".
+    Anonymous gists are not associated with your GitHub account, they can be created
+    with "-a" even after you have used "gist --login".
 
-If you would like to shorten the resulting gist URL, use the -s flag. This will
-use GitHub's URL shortener, git.io. You can also use -R to get the link to the
-raw gist.
+    If you would like to shorten the resulting gist URL, use the -s flag. This will
+    use GitHub's URL shortener, git.io. You can also use -R to get the link to the
+    raw gist.
 
-To copy the resulting URL to your clipboard you can use the -c option, or to
-just open it directly in your browser, use -o. Using the -e option will copy the
-embeddable URL to the clipboard. You can add `alias gist='gist -c'` to your
-shell's rc file to configure this behaviour by default.
+    To copy the resulting URL to your clipboard you can use the -c option, or to
+    just open it directly in your browser, use -o. Using the -e option will copy the
+    embeddable URL to the clipboard. You can add `alias gist='gist -c'` to your
+    shell's rc file to configure this behaviour by default.
 
-Instead of creating a new gist, you can update an existing one by passing its ID
-or URL with "-u". For this to work, you must be logged in, and have created the
-original gist with the same GitHub account.
+    Instead of creating a new gist, you can update an existing one by passing its ID
+    or URL with "-u". For this to work, you must be logged in, and have created the
+    original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
-       #{executable_name} --login
-       #{executable_name} [-l|-r]
+    Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
+           #{executable_name} --login
+           #{executable_name} [-l|-r]
 
-  EOS
+  BANNER
 
   opts.on("--login", "Authenticate gist on this computer.") do
     Gist.login!
@@ -132,10 +132,11 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     puts "gist v#{Gist::VERSION}"
     exit
   end
-
-end.parse!
+end
 
 begin
+  parser.parse!
+
   options[:output] = if options[:embed] && options[:shorten]
                        raise Gist::Error, "--embed does not make sense with --shorten"
                      elsif options[:embed]
@@ -188,6 +189,20 @@ begin
 
     puts Gist.multi_gist(files, options)
   end
+
+rescue OptionParser::InvalidOption => e
+  invalid_flag = e.args.first
+
+  puts <<~MESSAGE
+    Bummer!
+
+    This flag looks unfamiliar: #{invalid_flag}
+    Check it for typos or see the full list of options:
+
+        gist --help
+
+  MESSAGE
+  exit 1
 
 rescue Gist::Error => e
   puts "Error: #{e.message}"
