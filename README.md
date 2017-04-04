@@ -108,8 +108,8 @@ you need to export the `GITHUB_URL` environment variable (usually done in your `
 Once you've done this and restarted your terminal (or run `source ~/.bashrc`), gist will
 automatically use github enterprise instead of the public github.com
 
-Your token for GitHub Enterprise will be stored in `.gist.<protocol><server.name>` (e.g.
-`~.gist.httpgithub.internal.example.com`  for the GITHUB_URL example above) instead of `~/.gist`.
+Your token for GitHub Enterprise will be stored in `.gist.<protocol>.<server.name>[.<port>]` (e.g.
+`~.gist.http.github.internal.example.com` for the GITHUB_URL example above) instead of `~/.gist`.
 
 If you have multiple servers or use Enterprise and public GitHub often, you can work around this by creating scripts
 that set the env var and then run `gist`. Keep in mind that to use the public GitHub you must unset the env var. Just
