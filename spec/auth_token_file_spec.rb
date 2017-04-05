@@ -19,10 +19,10 @@ describe Gist::AuthTokenFile do
       before do
         ENV[Gist::URL_ENV_NAME] = github_url
       end
-      let(:github_url) { "gh.custom.org" }
+      let(:github_url) { "http://gh.custom.org:442/" }
 
       it "is ~/.gist.{custom_github_url}" do
-        File.should_receive(:expand_path).with("~/.gist.#{github_url}").and_return(filename)
+        File.should_receive(:expand_path).with("~/.gist.http.gh.custom.org.442").and_return(filename)
         subject.filename.should be filename
       end
     end
