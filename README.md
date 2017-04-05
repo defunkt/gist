@@ -117,8 +117,8 @@ setting it to the public URL will not work. Use `unset GITHUB_URL`
 
 ### Token file format
 
-If you cannot use passwords, as most Enterprise instalations do, you can generate the token via the web interface
-and then simply save the string in the correct file. Avoid line breaks or you migth see:
+If you cannot use passwords, as most Enterprise installations do, you can generate the token via the web interface
+and then simply save the string in the correct file. Avoid line breaks or you might see:
 ```
 $ gist -l
 Error: Bad credentials
