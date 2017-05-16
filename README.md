@@ -77,24 +77,49 @@ To read a gist and print it to STDOUT
 
 ‌See `gist --help` for more detail.
 
-## Login
+## Authentication
 
-If you want to associate your gists with your GitHub account, you need to login
-with gist. It doesn't store your username and password, it just uses them to get
-an OAuth2 token (with the "gist" permission).
+To associate and manage uploaded gists with your GitHub account, `gist` needs an
+authentication token, with at least the "gist" permission. The token can be
+obtained using `gist --login`. Alternately, you may generate a personal access
+token through https://github.com/settings/tokens and save it in `~/.netrc`.
 
-    gist --login
+### Authenticating with `gist --login`
+
+Gist can login to your GitHub account. It doesn't store your Github username or
+password, it just uses them to get an OAuth2 token (with the "gist" permission).
+
+    $ gist --login
     Obtaining OAuth2 access_token from github.
     GitHub username: ConradIrwin
     GitHub password:
     2-factor auth code:
     Success! https://github.com/settings/tokens
 
-This token is stored in `~/.gist` and used for all future gisting. If you need to
-you can revoke it from https://github.com/settings/tokens, or just delete the
-file. 
+This token is stored in `~/.gist` and used for all future gisting. The generated
+token will be listed in https://github.com/settings/tokens, and can also be
+revoked from there.
 
-‌After you've done this, you can still upload gists anonymously with `-a`.
+### Credentials in `~/.netrc`
+
+Gist can make use of a personal token stored in `~/.netrc`. Github credentials
+stored in this file are matched by the hostname, and can be shared among
+different tools, like `git`, and `curl`.
+
+The `~/.netrc` file should be unreadable by anyone except the owner. To store
+your gist token in `~/.netrc`, use the format:
+
+    machine github.com
+      password PERSONAL_ACCESS_TOKEN
+
+You may also maintain a separate token exclusively for gisting by associating
+the token with the hostname `gist.github.com`, and setting the environment
+variable `GITHUB_URL=https://gist.github.com`.
+
+### Uploading anonymous gists
+
+Independently of the authentication mechanism used, you can always upload gists
+anonymously by using the `-a` option.
 
     gist -a a.rb
 
@@ -103,13 +128,19 @@ file.
 If you'd like `gist` to use your locally installed [GitHub Enterprise](https://enterprise.github.com/),
 you need to export the `GITHUB_URL` environment variable (usually done in your `~/.bashrc`).
 
-    export GITHUB_URL=http://github.internal.example.com/
+    export GITHUB_URL=https://github.internal.example.com/
 
 Once you've done this and restarted your terminal (or run `source ~/.bashrc`), gist will
 automatically use github enterprise instead of the public github.com
 
-Your token for GitHub Enterprise will be stored in `.gist.<protocol>.<server.name>[.<port>]` (e.g.
-`~.gist.http.github.internal.example.com` for the GITHUB_URL example above) instead of `~/.gist`.
+When using `gist --login` your token for GitHub Enterprise will be stored in
+`.gist.<protocol>.<server.name>[.<port>]` (e.g.
+`~.gist.https.github.internal.example.com` for the GITHUB_URL example above)
+instead of `~/.gist`. The token can also be stored in `~/.netrc` with an
+appropriate entry for the host. For instance, for the example above,
+
+    machine github.internal.example.com
+      password GITHUB_ENTERPRISE_TOKEN
 
 If you have multiple servers or use Enterprise and public GitHub often, you can work around this by creating scripts
 that set the env var and then run `gist`. Keep in mind that to use the public GitHub you must unset the env var. Just
