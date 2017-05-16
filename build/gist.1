@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "November 2015" "" "Gist manual"
+.TH "GIST" "1" "May 2017" "" "Gist manual"
 .
 .SH "NAME"
 \fBgist\fR \- upload code to https://gist\.github\.com
@@ -99,6 +99,22 @@ To list (public gists or all gists for authed user) gists for user
 .IP
 gist \-l : all gists for authed user gist \-l defunkt : list defunkt\'s public gists
 .
+.IP "" 0
+.
+.P
+To read a gist and print it to STDOUT
+.
+.IP "" 4
+.
+.nf
+
+gist \-r GIST_ID
+gist \-r 374130
+.
+.fi
+.
+.IP "" 0
+.
 .IP "\(bu" 4
 See \fBgist \-\-help\fR for more detail\.
 .
@@ -116,14 +132,14 @@ Obtaining OAuth2 access_token from github\.
 GitHub username: ConradIrwin
 GitHub password:
 2\-factor auth code:
-Success! https://github\.com/settings/applications
+Success! https://github\.com/settings/tokens
 .
 .fi
 .
 .IP "" 0
 .
 .P
-This token is stored in \fB~/\.gist\fR and used for all future gisting\. If you need to you can revoke it from https://github\.com/settings/applications, or just delete the file\. If you need to store tokens for both github\.com and a Github Enterprise instance you can save your Github Enterprise token in \fB~/\.gist\.github\.example\.com\fR where "github\.example\.com" is the URL for your Github Enterprise instance\.
+This token is stored in \fB~/\.gist\fR and used for all future gisting\. If you need to you can revoke it from https://github\.com/settings/tokens, or just delete the file\.
 .
 .IP "\(bu" 4
 After you\'ve done this, you can still upload gists anonymously with \fB\-a\fR\.
@@ -132,6 +148,31 @@ After you\'ve done this, you can still upload gists anonymously with \fB\-a\fR\.
 gist \-a a\.rb
 .
 .IP "" 0
+.
+.SS "GitHub Enterprise"
+If you\'d like \fBgist\fR to use your locally installed GitHub Enterprise \fIhttps://enterprise\.github\.com/\fR, you need to export the \fBGITHUB_URL\fR environment variable (usually done in your \fB~/\.bashrc\fR)\.
+.
+.IP "" 4
+.
+.nf
+
+export GITHUB_URL=http://github\.internal\.example\.com/
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Once you\'ve done this and restarted your terminal (or run \fBsource ~/\.bashrc\fR), gist will automatically use github enterprise instead of the public github\.com
+.
+.P
+Your token for GitHub Enterprise will be stored in \fB\.gist\.<protocol>\.<server\.name>[\.<port>]\fR (e\.g\. \fB~\.gist\.http\.github\.internal\.example\.com\fR for the GITHUB_URL example above) instead of \fB~/\.gist\fR\.
+.
+.P
+If you have multiple servers or use Enterprise and public GitHub often, you can work around this by creating scripts that set the env var and then run \fBgist\fR\. Keep in mind that to use the public GitHub you must unset the env var\. Just setting it to the public URL will not work\. Use \fBunset GITHUB_URL\fR
+.
+.SS "Token file format"
+If you cannot use passwords, as most Enterprise installations do, you can generate the token via the web interface and then simply save the string in the correct file\. Avoid line breaks or you might see: \fB$ gist \-l Error: Bad credentials\fR
 .
 .TP
 You can also use Gist as a library from inside your ruby code:
@@ -185,19 +226,6 @@ Gist\.login!
 .
 .IP "\(bu" 4
 This will take them through the process of obtaining an OAuth2 token, and storing it in \fB~/\.gist\fR, where it can later be read by \fBGist\.gist\fR
-.
-.IP "" 0
-.
-.SH "GitHub enterprise"
-.
-.IP "\(bu" 4
-If you\'d like \fBgist\fR to use your locally installed GitHub Enterprise \fIhttps://enterprise\.github\.com/\fR, you need to export the \fBGITHUB_URL\fR environment variable in your \fB~/\.bashrc\fR\.
-.
-.IP
-export GITHUB_URL=http://github\.internal\.example\.com/
-.
-.IP "\(bu" 4
-Once you\'ve done this and restarted your terminal (or run \fBsource ~/\.bashrc\fR), gist will automatically use github enterprise instead of the public github\.com
 .
 .IP "" 0
 .

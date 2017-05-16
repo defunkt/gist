@@ -1609,7 +1609,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.5.0'
+  VERSION = '4.6.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1815,6 +1815,27 @@ module Gist
       end
 
       puts file["content"]
+    else
+      raise Error, "Gist with id of #{id} does not exist."
+    end
+  end
+
+  def delete_gist(id)
+    id = id.split("/").last
+    url = "#{base_path}/gists/#{id}"
+
+    access_token = auth_token()
+    if access_token.to_s != ''
+      url << "?access_token=" << CGI.escape(access_token)
+
+      request = Net::HTTP::Delete.new(url)
+      response = http(api_url, request)
+    else
+      raise Error, "Not authenticated. Use 'gist --login' to login."
+    end
+
+    if response.code == '204'
+      puts "Deleted!"
     else
       raise Error, "Gist with id of #{id} does not exist."
     end
@@ -2255,6 +2276,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
     options[:read] = id
   end
 
+  opts.on("--delete [ URL | ID ]", "Delete a gist") do |id|
+    options[:delete] = id
+  end
+
   opts.on_tail("-h","--help", "Show this message.") do
     puts opts
     exit
@@ -2296,6 +2321,11 @@ begin
   if options.key? :read
     file_name = ARGV.first
     Gist.read_gist(options[:read], file_name)
+    exit
+  end
+
+  if options.key? :delete
+    Gist.delete_gist(options[:delete])
     exit
   end
 

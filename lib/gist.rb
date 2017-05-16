@@ -18,7 +18,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.5.0'
+  VERSION = '4.6.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
