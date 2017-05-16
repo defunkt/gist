@@ -223,6 +223,27 @@ module Gist
     end
   end
 
+  def delete_gist(id)
+    id = id.split("/").last
+    url = "#{base_path}/gists/#{id}"
+
+    access_token = auth_token()
+    if access_token.to_s != ''
+      url << "?access_token=" << CGI.escape(access_token)
+
+      request = Net::HTTP::Delete.new(url)
+      response = http(api_url, request)
+    else
+      raise Error, "Not authenticated. Use 'gist --login' to login."
+    end
+
+    if response.code == '204'
+      puts "Deleted!"
+    else
+      raise Error, "Gist with id of #{id} does not exist."
+    end
+  end
+
   def get_gist_pages(url)
 
     request = Net::HTTP::Get.new(url)
