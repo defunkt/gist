@@ -5,10 +5,8 @@ describe '...' do
   MOCK_USER         = 'foo'
   MOCK_PASSWORD     = 'bar'
 
-  MOCK_AUTHZ_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_USER}:#{MOCK_PASSWORD}@#{MOCK_GHE_HOST}/api/v3/"
-  MOCK_GHE_URL          = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
-  MOCK_AUTHZ_GITHUB_URL = "https://#{MOCK_USER}:#{MOCK_PASSWORD}@api.github.com/"
-  MOCK_GITHUB_URL       = "https://api.github.com/"
+  MOCK_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
+  MOCK_GITHUB_URL = "https://api.github.com/"
 
   before do
     @saved_env = ENV[Gist::URL_ENV_NAME]
@@ -18,9 +16,11 @@ describe '...' do
     stub_request(:post, /#{MOCK_GITHUB_URL}gists/).to_return(:body => '{"html_url": "http://github.com/"}')
 
     # stub requests for /authorizations
-    stub_request(:post, /#{MOCK_AUTHZ_GHE_URL}authorizations/).
+    stub_request(:post, /#{MOCK_GHE_URL}authorizations/).
+      with(basic_auth: [MOCK_USER, MOCK_PASSWORD]).
       to_return(:status => 201, :body => '{"token": "asdf"}')
-    stub_request(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/).
+    stub_request(:post, /#{MOCK_GITHUB_URL}authorizations/).
+      with(basic_auth: [MOCK_USER, MOCK_PASSWORD]).
       to_return(:status => 201, :body => '{"token": "asdf"}')
   end
 
@@ -48,7 +48,7 @@ describe '...' do
 
       Gist.login!
 
-      assert_requested(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/)
+      assert_requested(:post, /#{MOCK_GITHUB_URL}authorizations/)
     end
 
     it "should access to #{MOCK_GHE_HOST} when $#{Gist::URL_ENV_NAME} was set" do
@@ -56,7 +56,7 @@ describe '...' do
 
       Gist.login!
 
-      assert_requested(:post, /#{MOCK_AUTHZ_GHE_URL}authorizations/)
+      assert_requested(:post, /#{MOCK_GHE_URL}authorizations/)
     end
 
     context "when credentials are passed in" do
@@ -65,7 +65,7 @@ describe '...' do
         $stdin = StringIO.new "#{MOCK_USER}_wrong\n#{MOCK_PASSWORD}_wrong\n"
         Gist.login! :username => MOCK_USER, :password => MOCK_PASSWORD
 
-        assert_requested(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/)
+        assert_requested(:post, /#{MOCK_GITHUB_URL}authorizations/)
       end
 
     end
