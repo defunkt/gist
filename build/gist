@@ -1318,18 +1318,18 @@ end
 module Gist
   extend self
 
-  VERSION = '4.6.0'
+  VERSION = '4.6.1'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
+    'pbcopy'  => 'pbpaste',
     'xclip'   => 'xclip -o',
     'xsel -i' => 'xsel -o',
-    'pbcopy'  => 'pbpaste',
-    'putclip' => 'getclip'
+    'putclip' => 'getclip',
   }
 
   GITHUB_API_URL   = URI("https://api.github.com/")
-  GIT_IO_URL       = URI("http://git.io")
+  GIT_IO_URL       = URI("https://git.io")
 
   GITHUB_BASE_PATH = ""
   GHE_BASE_PATH    = "/api/v3"
@@ -1350,7 +1350,7 @@ module Gist
   module AuthTokenFile
     def self.filename
       if ENV.key?(URL_ENV_NAME)
-        File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
+        File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/:/, '.').gsub(/[^a-z0-9.]/, '')}"
       else
         File.expand_path "~/.gist"
       end
@@ -1590,10 +1590,12 @@ module Gist
   # @param [String] url
   # @return [String] shortened url, or long url if shortening fails
   def shorten(url)
-    request = Net::HTTP::Post.new("/")
+    request = Net::HTTP::Post.new("/create")
     request.set_form_data(:url => url)
     response = http(GIT_IO_URL, request)
     case response.code
+    when "200"
+      URI.join(GIT_IO_URL, response.body).to_s
     when "201"
       response['Location']
     else
@@ -1666,7 +1668,7 @@ module Gist
 
       if Net::HTTPCreated === response
         AuthTokenFile.write JSON.parse(response.body)['token']
-        puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/applications"
+        puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/tokens"
         return
       elsif Net::HTTPUnauthorized === response
         puts "Error: #{JSON.parse(response.body)['message']}"
