@@ -1,9 +1,7 @@
-task :default => :test
+task :default => :spec
 
-desc 'run the tests' # that's non-DRY
-task :test do
-  sh 'rspec spec'
-end
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new(:spec)
 
 task :clipfailtest do
   sh 'PATH=/ /usr/bin/ruby -Ilib -S bin/gist -ac < lib/gist.rb'
