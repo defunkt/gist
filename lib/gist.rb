@@ -8,12 +8,6 @@ rescue LoadError
   require File.join File.dirname(File.dirname(__FILE__)), 'vendor', 'json.rb'
 end
 
-begin
-  require 'netrc'
-rescue LoadError
-  require File.join File.dirname(File.dirname(__FILE__)), 'vendor', 'netrc.rb'
-end
-
 # It just gists.
 module Gist
   extend self
@@ -71,7 +65,7 @@ module Gist
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= AuthTokenFile.read rescue nil || Netrc.read[self.api_url.host][1]
+    @token ||= AuthTokenFile.read rescue nil
   end
 
   # Upload a gist to https://gist.github.com

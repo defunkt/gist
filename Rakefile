@@ -23,9 +23,7 @@ task :standalone do
     f.puts "#!/usr/bin/env ruby"
     f.puts "# This is generated from https://github.com/defunkt/gist using 'rake standalone'"
     f.puts "# any changes will be overwritten."
-    f.puts File.read("lib/gist.rb")
-        .split("require 'json'\n").join(File.read("vendor/json.rb"))
-        .split("require 'netrc'\n").join(File.read("vendor/netrc.rb"))
+    f.puts File.read("lib/gist.rb").split("require 'json'\n").join(File.read("vendor/json.rb"))
 
     f.puts File.read("bin/gist").gsub(/^require.*gist.*\n/, '');
   end
