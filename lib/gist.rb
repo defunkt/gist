@@ -203,6 +203,12 @@ module Gist
 
   def read_gist(id, file_name=nil)
     url = "#{base_path}/gists/#{id}"
+
+    access_token = auth_token()
+    if access_token.to_s != ''
+      url << "?access_token=" << CGI.escape(access_token)
+    end
+
     request = Net::HTTP::Get.new(url)
     response = http(api_url, request)
 
