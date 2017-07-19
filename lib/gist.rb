@@ -52,6 +52,8 @@ module Gist
 
     def self.read
       File.read(filename).chomp
+    rescue
+      nil
     end
 
     def self.write(token)
@@ -61,11 +63,50 @@ module Gist
     end
   end
 
+  module AuthTokenGitCredential
+    def self.uri
+      if ENV.key?(URL_ENV_NAME)
+        URI.parse(ENV[URL_ENV_NAME])
+      else
+        GITHUB_API_URL
+      end
+    end
+
+    def self.helpers
+      IO.popen(["git", "config", "--get-all", "credential.helper"], &:read).split.uniq
+    end
+
+    def self.read
+      helpers.each do |helper|
+        begin
+          IO.popen(["git", "credential-#{helper}", "get"], "r+") do |io|
+            io.puts "protocol=#{uri.scheme}"
+            io.puts "hostname=#{uri.host}"
+            io.puts "username=#{uri.user}" if uri.user
+            io.puts
+
+            until io.eof?
+              line = io.readline.chomp
+              next if line.empty?
+
+              key, value = line.split("=", 2)
+              return value if key == "password"
+            end
+          end
+        rescue
+          # Swallow, try next helper
+        end
+      end
+
+      return nil
+    end
+  end
+
   # auth token for authentication
   #
   # @return [String] string value of access token or `nil`, if not found
   def auth_token
-    @token ||= AuthTokenFile.read rescue nil
+    @token ||= AuthTokenFile.read || AuthTokenGitCredential.read
   end
 
   # Upload a gist to https://gist.github.com
