@@ -92,6 +92,7 @@ module Gist
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
+  # @option options [Boolean] :skip_empty (false) Skip gisting empty files.
   # @option options [Symbol] :output (:all) The type of return value you'd like:
   #   :html_url gives a String containing the url to the gist in a browser
   #   :short_url gives a String contianing a  git.io url that redirects to html_url
@@ -110,9 +111,14 @@ module Gist
     json[:files] = {}
 
     files.each_pair do |(name, content)|
-      raise "Cannot gist empty files" if content.to_s.strip == ""
-      json[:files][File.basename(name)] = {:content => content}
+      if content.to_s.strip == ""
+        raise "Cannot gist empty files" unless options[:skip_empty]
+      else
+        json[:files][File.basename(name)] = {:content => content}
+      end
     end
+
+    raise "All files were empty. No gist created." if json[:files].empty? && options[:skip_empty]
 
     existing_gist = options[:update].to_s.split("/").last
     if options[:anonymous]
