@@ -47,7 +47,11 @@ Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
+If you want to skip empty files, use the --skip-empty flag. If all files are
+empty no gist will be created.
+
+Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL]
+                          [--skip-empty] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
        #{executable_name} [-l|-r]
 
@@ -106,6 +110,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
   end
 
   opts.on("--no-open")
+
+  opts.on("--skip-empty", "Skip gisting empty files") do
+    options[:skip_empty] = true
+  end
 
   opts.on("-P", "--paste", "Paste from the clipboard to gist") do
     options[:paste] = true
@@ -195,7 +203,8 @@ begin
         end
     end
 
-    puts Gist.multi_gist(files, options)
+    output = Gist.multi_gist(files, options)
+    puts output if output
   end
 
 rescue Gist::Error => e
