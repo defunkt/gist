@@ -203,7 +203,8 @@ begin
         end
     end
 
-    puts Gist.multi_gist(files, options)
+    output = Gist.multi_gist(files, options)
+    puts output if output
   end
 
 rescue Gist::Error => e

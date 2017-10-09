@@ -118,7 +118,7 @@ module Gist
       end
     end
 
-    raise "All files were empty. No gist created." if json[:files].empty? && options[:skip_empty]
+    return if json[:files].empty? && options[:skip_empty]
 
     existing_gist = options[:update].to_s.split("/").last
     if options[:anonymous]
