@@ -76,8 +76,12 @@ module Gist
   #
   # @see http://developer.github.com/v3/gists/
   def gist(content, options = {})
-    filename = options[:filename] || "a.rb"
+    filename = options[:filename] || default_filename
     multi_gist({filename => content}, options)
+  end
+
+  def default_filename
+    "gistfile1.txt"
   end
 
   # Upload a gist to https://gist.github.com
@@ -114,7 +118,8 @@ module Gist
       if content.to_s.strip == ""
         raise "Cannot gist empty files" unless options[:skip_empty]
       else
-        json[:files][File.basename(name)] = {:content => content}
+        name = name == "-" ? default_filename : File.basename(name)
+        json[:files][name] = {:content => content}
       end
     end
 
