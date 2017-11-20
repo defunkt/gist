@@ -98,6 +98,19 @@ file.
 
     gist -a a.rb
 
+#### Password-less login
+
+If you have a complicated authorization requirement you can manually create a
+token file by pasting a Github token with only the `gist` permission into a
+file called `~/.gist`. You can create one from https://github.com/settings/tokens
+
+This file should contain only the token (~40 hex characters), and to make it
+easier to edit, can optionally have a final newline (\n or \r\n).
+
+For example, one way to create this file would be to run:
+
+    echo MY_SECRET_TOKEN > ~/.gist
+
 ### GitHub Enterprise
 
 If you'd like `gist` to use your locally installed [GitHub Enterprise](https://enterprise.github.com/),
