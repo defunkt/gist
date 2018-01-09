@@ -1318,7 +1318,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.6.1'
+  VERSION = '4.6.2'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1382,8 +1382,12 @@ module Gist
   #
   # @see http://developer.github.com/v3/gists/
   def gist(content, options = {})
-    filename = options[:filename] || "a.rb"
+    filename = options[:filename] || default_filename
     multi_gist({filename => content}, options)
+  end
+
+  def default_filename
+    "gistfile1.txt"
   end
 
   # Upload a gist to https://gist.github.com
@@ -1398,6 +1402,7 @@ module Gist
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
+  # @option options [Boolean] :skip_empty (false) Skip gisting empty files.
   # @option options [Symbol] :output (:all) The type of return value you'd like:
   #   :html_url gives a String containing the url to the gist in a browser
   #   :short_url gives a String contianing a  git.io url that redirects to html_url
@@ -1416,9 +1421,15 @@ module Gist
     json[:files] = {}
 
     files.each_pair do |(name, content)|
-      raise "Cannot gist empty files" if content.to_s.strip == ""
-      json[:files][File.basename(name)] = {:content => content}
+      if content.to_s.strip == ""
+        raise "Cannot gist empty files" unless options[:skip_empty]
+      else
+        name = name == "-" ? default_filename : File.basename(name)
+        json[:files][name] = {:content => content}
+      end
     end
+
+    return if json[:files].empty? && options[:skip_empty]
 
     existing_gist = options[:update].to_s.split("/").last
     if options[:anonymous]
@@ -1509,6 +1520,12 @@ module Gist
 
   def read_gist(id, file_name=nil)
     url = "#{base_path}/gists/#{id}"
+
+    access_token = auth_token()
+    if access_token.to_s != ''
+      url << "?access_token=" << CGI.escape(access_token)
+    end
+
     request = Net::HTTP::Get.new(url)
     response = http(api_url, request)
 
@@ -1909,7 +1926,11 @@ Instead of creating a new gist, you can update an existing one by passing its ID
 or URL with "-u". For this to work, you must be logged in, and have created the
 original gist with the same GitHub account.
 
-Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] [-f NAME|-t EXT]* FILE*
+If you want to skip empty files, use the --skip-empty flag. If all files are
+empty no gist will be created.
+
+Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL]
+                          [--skip-empty] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
        #{executable_name} [-l|-r]
 
@@ -1968,6 +1989,10 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P]
   end
 
   opts.on("--no-open")
+
+  opts.on("--skip-empty", "Skip gisting empty files") do
+    options[:skip_empty] = true
+  end
 
   opts.on("-P", "--paste", "Paste from the clipboard to gist") do
     options[:paste] = true
@@ -2057,7 +2082,8 @@ begin
         end
     end
 
-    puts Gist.multi_gist(files, options)
+    output = Gist.multi_gist(files, options)
+    puts output if output
   end
 
 rescue Gist::Error => e

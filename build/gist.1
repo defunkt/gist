@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "GIST" "1" "May 2017" "" "Gist manual"
+.TH "GIST" "1" "January 2018" "" "Gist manual"
 .
 .SH "NAME"
 \fBgist\fR \- upload code to https://gist\.github\.com
@@ -149,6 +149,25 @@ gist \-a a\.rb
 .
 .IP "" 0
 .
+.P
+If you have a complicated authorization requirement you can manually create a token file by pasting a Github token with only the \fBgist\fR permission into a file called \fB~/\.gist\fR\. You can create one from https://github\.com/settings/tokens
+.
+.P
+This file should contain only the token (~40 hex characters), and to make it easier to edit, can optionally have a final newline (\en or \er\en)\.
+.
+.P
+For example, one way to create this file would be to run:
+.
+.IP "" 4
+.
+.nf
+
+echo MY_SECRET_TOKEN > ~/\.gist
+.
+.fi
+.
+.IP "" 0
+.
 .SS "GitHub Enterprise"
 If you\'d like \fBgist\fR to use your locally installed GitHub Enterprise \fIhttps://enterprise\.github\.com/\fR, you need to export the \fBGITHUB_URL\fR environment variable (usually done in your \fB~/\.bashrc\fR)\.
 .
@@ -166,7 +185,7 @@ export GITHUB_URL=http://github\.internal\.example\.com/
 Once you\'ve done this and restarted your terminal (or run \fBsource ~/\.bashrc\fR), gist will automatically use github enterprise instead of the public github\.com
 .
 .P
-Your token for GitHub Enterprise will be stored in \fB\.gist\.<protocol>\.<server\.name>[\.<port>]\fR (e\.g\. \fB~\.gist\.http\.github\.internal\.example\.com\fR for the GITHUB_URL example above) instead of \fB~/\.gist\fR\.
+Your token for GitHub Enterprise will be stored in \fB\.gist\.<protocol>\.<server\.name>[\.<port>]\fR (e\.g\. \fB~/\.gist\.http\.github\.internal\.example\.com\fR for the GITHUB_URL example above) instead of \fB~/\.gist\fR\.
 .
 .P
 If you have multiple servers or use Enterprise and public GitHub often, you can work around this by creating scripts that set the env var and then run \fBgist\fR\. Keep in mind that to use the public GitHub you must unset the env var\. Just setting it to the public URL will not work\. Use \fBunset GITHUB_URL\fR
