@@ -127,7 +127,8 @@ module Gist
 
     existing_gist = options[:update].to_s.split("/").last
     if options[:anonymous]
-      access_token = nil
+      raise 'Anonymous gist support has been removed by Github. ' \
+        'See: https://blog.github.com/2018-02-18-deprecation-notice-removing-anonymous-gist-creation/'
     else
       access_token = (options[:access_token] || auth_token())
     end
