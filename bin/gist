@@ -148,6 +148,12 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL]
 end.parse!
 
 begin
+  if Gist.auth_token.nil?
+    puts 'Please log in with `gist --login`. ' \
+      '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+    exit(1)
+  end
+
   options[:output] = if options[:embed] && options[:shorten]
                        raise Gist::Error, "--embed does not make sense with --shorten"
                      elsif options[:embed]
