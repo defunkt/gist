@@ -1318,7 +1318,7 @@ end
 module Gist
   extend self
 
-  VERSION = '4.6.2'
+  VERSION = '5.0.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -1414,6 +1414,13 @@ module Gist
   #
   # @see http://developer.github.com/v3/gists/
   def multi_gist(files, options={})
+    if options[:anonymous]
+      raise 'Anonymous gists are no longer supported. Please log in with `gist --login`. ' \
+        '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+    else
+      access_token = (options[:access_token] || auth_token())
+    end
+
     json = {}
 
     json[:description] = options[:description] if options[:description]
@@ -1432,11 +1439,6 @@ module Gist
     return if json[:files].empty? && options[:skip_empty]
 
     existing_gist = options[:update].to_s.split("/").last
-    if options[:anonymous]
-      access_token = nil
-    else
-      access_token = (options[:access_token] || auth_token())
-    end
 
     url = "#{base_path}/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
@@ -1903,15 +1905,11 @@ specified STDIN will be read. The default filename for STDIN is "a.rb", and all
 filenames can be overridden by repeating the "-f" flag. The most useful reason
 to do this is to change the syntax highlighting.
 
-If you'd like your gists to be associated with your GitHub account, so that you
-can edit them and find them in future, first use `gist --login` to obtain an
-Oauth2 access token. This is stored and used by gist in the future.
+All gists must to be associated with a GitHub account, so you will need to login with
+`gist --login` to obtain an Oauth2 access token. This is stored and used by gist in the future.
 
 Private gists do not have guessable URLs and can be created with "-p", you can
 also set the description at the top of the gist by passing "-d".
-
-Anonymous gists are not associated with your GitHub account, they can be created
-with "-a" even after you have used "gist --login".
 
 If you would like to shorten the resulting gist URL, use the -s flag. This will
 use GitHub's URL shortener, git.io. You can also use -R to get the link to the
@@ -1929,7 +1927,7 @@ original gist with the same GitHub account.
 If you want to skip empty files, use the --skip-empty flag. If all files are
 empty no gist will be created.
 
-Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL]
+Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-u URL]
                           [--skip-empty] [-P] [-f NAME|-t EXT]* FILE*
        #{executable_name} --login
        #{executable_name} [-l|-r]
@@ -1969,10 +1967,6 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL]
 
   opts.on("-u", "--update [ URL | ID ]", "Update an existing gist.") do |update|
     options[:update] = update
-  end
-
-  opts.on("-a", "--anonymous", "Create an anonymous gist.") do
-    options[:anonymous] = true
   end
 
   opts.on("-c", "--copy", "Copy the resulting URL to the clipboard") do
@@ -2027,6 +2021,12 @@ Usage: #{executable_name} [-o|-c|-e] [-p] [-s] [-R] [-d DESC] [-a] [-u URL]
 end.parse!
 
 begin
+  if Gist.auth_token.nil?
+    puts 'Please log in with `gist --login`. ' \
+      '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+    exit(1)
+  end
+
   options[:output] = if options[:embed] && options[:shorten]
                        raise Gist::Error, "--embed does not make sense with --shorten"
                      elsif options[:embed]
