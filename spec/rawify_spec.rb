@@ -6,7 +6,16 @@ describe '...' do
   end
 
   it "should return the raw file url" do
-    Gist.gist("Test gist", :output => :raw_url, :anonymous => true).should == "https://gist.github.com/anonymous/XXXXXX/raw"
+    Gist.gist("Test gist", :output => :raw_url, :anonymous => false).should == "https://gist.github.com/anonymous/XXXXXX/raw"
+  end
+
+  it 'should raise an error when trying to do operations without being logged in' do
+    error_msg = 'Anonymous gists are no longer supported. Please log in with `gist --login`. ' \
+      '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+
+    expect do
+      Gist.gist("Test gist", output: :raw_url, anonymous: true)
+    end.to raise_error(StandardError, error_msg)
   end
 end
 

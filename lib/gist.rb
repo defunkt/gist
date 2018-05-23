@@ -108,6 +108,13 @@ module Gist
   #
   # @see http://developer.github.com/v3/gists/
   def multi_gist(files, options={})
+    if options[:anonymous]
+      raise 'Anonymous gists are no longer supported. Please log in with `gist --login`. ' \
+        '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+    else
+      access_token = (options[:access_token] || auth_token())
+    end
+
     json = {}
 
     json[:description] = options[:description] if options[:description]
@@ -126,11 +133,6 @@ module Gist
     return if json[:files].empty? && options[:skip_empty]
 
     existing_gist = options[:update].to_s.split("/").last
-    if options[:anonymous]
-      access_token = nil
-    else
-      access_token = (options[:access_token] || auth_token())
-    end
 
     url = "#{base_path}/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
