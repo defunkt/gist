@@ -110,7 +110,7 @@ module Gist
   def multi_gist(files, options={})
     if options[:anonymous]
       raise 'Anonymous gists are no longer supported. Please log in with `gist --login`. ' \
-        '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+        '(GitHub now requires credentials to gist https://bit.ly/2GBBxKw)'
     else
       access_token = (options[:access_token] || auth_token())
     end
@@ -346,7 +346,7 @@ module Gist
   # @option credentials [String] :password
   # @see http://developer.github.com/v3/oauth/
   def login!(credentials={})
-    puts "Obtaining OAuth2 access_token from github."
+    puts "Obtaining OAuth2 access_token from GitHub."
     loop do
       print "GitHub username: "
       username = credentials[:username] || $stdin.gets.strip
