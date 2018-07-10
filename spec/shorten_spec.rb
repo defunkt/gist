@@ -15,7 +15,7 @@ describe '...' do
 
   it 'should raise an error when trying to get short urls without being logged in' do
     error_msg = 'Anonymous gists are no longer supported. Please log in with `gist --login`. ' \
-      '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+      '(GitHub now requires credentials to gist https://bit.ly/2GBBxKw)'
 
     expect do
       Gist.gist("Test gist", output: :short_url, anonymous: true)

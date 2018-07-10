@@ -84,7 +84,7 @@ with gist. It doesn't store your username and password, it just uses them to get
 an OAuth2 token (with the "gist" permission).
 
     gist --login
-    Obtaining OAuth2 access_token from github.
+    Obtaining OAuth2 access_token from GitHub.
     GitHub username: ConradIrwin
     GitHub password:
     2-factor auth code:
@@ -101,7 +101,7 @@ file.
 #### Password-less login
 
 If you have a complicated authorization requirement you can manually create a
-token file by pasting a Github token with only the `gist` permission into a
+token file by pasting a GitHub token with only the `gist` permission into a
 file called `~/.gist`. You can create one from https://github.com/settings/tokens
 
 This file should contain only the token (~40 hex characters), and to make it
@@ -119,7 +119,7 @@ you need to export the `GITHUB_URL` environment variable (usually done in your `
     export GITHUB_URL=http://github.internal.example.com/
 
 Once you've done this and restarted your terminal (or run `source ~/.bashrc`), gist will
-automatically use github enterprise instead of the public github.com
+automatically use GitHub Enterprise instead of the public github.com
 
 Your token for GitHub Enterprise will be stored in `.gist.<protocol>.<server.name>[.<port>]` (e.g.
 `~/.gist.http.github.internal.example.com` for the GITHUB_URL example above) instead of `~/.gist`.

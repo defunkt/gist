@@ -25,7 +25,7 @@ filenames can be overridden by repeating the "-f" flag. The most useful reason
 to do this is to change the syntax highlighting.
 
 All gists must to be associated with a GitHub account, so you will need to login with
-`gist --login` to obtain an Oauth2 access token. This is stored and used by gist in the future.
+`gist --login` to obtain an OAuth2 access token. This is stored and used by gist in the future.
 
 Private gists do not have guessable URLs and can be created with "-p", you can
 also set the description at the top of the gist by passing "-d".
@@ -142,7 +142,7 @@ end.parse!
 begin
   if Gist.auth_token.nil?
     puts 'Please log in with `gist --login`. ' \
-      '(Github now requires credentials to gist https://bit.ly/2GBBxKw)'
+      '(GitHub now requires credentials to gist https://bit.ly/2GBBxKw)'
     exit(1)
   end
 
