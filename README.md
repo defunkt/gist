@@ -94,10 +94,6 @@ This token is stored in `~/.gist` and used for all future gisting. If you need t
 you can revoke it from https://github.com/settings/tokens, or just delete the
 file. 
 
-‌After you've done this, you can still upload gists anonymously with `-a`.
-
-    gist -a a.rb
-
 #### Password-less login
 
 If you have a complicated authorization requirement you can manually create a
