@@ -146,7 +146,6 @@ If you need more advanced features you can also pass:
 * `:public` if you want your gist to have a guessable url.
 * `:description` to add a description to your gist.
 * `:update` to update an existing gist (can be a URL or an id).
-* `:anonymous` to submit an anonymous gist (default is false).
 * `:copy` to copy the resulting URL to the clipboard (default is false).
 * `:open` to open the resulting URL in a browser (default is false).
 
