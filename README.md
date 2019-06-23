@@ -21,6 +21,11 @@ upload content to https://gist.github.com/.
 
     brew install gist
 
+‌For FreeBSD, gist lives in ports
+
+    pkg install gist
+
+
 ## Command
 
 ‌To upload the contents of `a.rb` just:
