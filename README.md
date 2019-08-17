@@ -186,6 +186,16 @@ If clipboard or browser integration don't work on your platform, please file a b
 If you need to use an HTTP proxy to access the internet, export the `HTTP_PROXY` or
 `http_proxy` environment variable and gist will use it.
 
+## Docker Image
+
+[GistGem](https://hub.docker.com/r/natac13/gistgem) is a Docker image which was created to utilize this gem.
+
+**Usage**
+
+```
+docker container run --rm -i --mount type=bind,source=/home/[username]/.gist,target=/root/.gist natac13/gistgem [command]
+```
+
 ## Meta-fu
 
 Thanks to @defunkt and @indirect for writing and maintaining versions 1 through 3.
