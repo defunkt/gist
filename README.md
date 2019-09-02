@@ -106,11 +106,13 @@ token file by pasting a GitHub token with only the `gist` permission into a
 file called `~/.gist`. You can create one from https://github.com/settings/tokens
 
 This file should contain only the token (~40 hex characters), and to make it
-easier to edit, can optionally have a final newline (\n or \r\n).
+easier to edit, can optionally have a final newline (`\n` or `\r\n`).
 
 For example, one way to create this file would be to run:
 
-    echo MY_SECRET_TOKEN > ~/.gist
+    (umask 0077 && echo MY_SECRET_TOKEN > ~/.gist)
+
+The `umask` ensures that the file is only accessible from your user account.
 
 ### GitHub Enterprise
 
