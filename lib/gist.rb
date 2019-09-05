@@ -214,10 +214,10 @@ module Gist
 
   end
 
-  def read_gist(id, file_name=nil)
+  def read_gist(id, file_name=nil, options={})
     url = "#{base_path}/gists/#{id}"
 
-    access_token = auth_token()
+    access_token = (options[:access_token] || auth_token())
     if access_token.to_s != ''
       url << "?access_token=" << CGI.escape(access_token)
     end
