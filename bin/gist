@@ -173,7 +173,8 @@ begin
 
   if options.key? :read
     file_name = ARGV.first
-    Gist.read_gist(options[:read], file_name)
+    output = Gist.read_gist(options[:read], file_name)
+    puts output if output
     exit
   end
 

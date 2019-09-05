@@ -236,7 +236,7 @@ module Gist
         file = files.values.first
       end
 
-      puts file["content"]
+      file["content"]
     else
       raise Error, "Gist with id of #{id} does not exist."
     end
