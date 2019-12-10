@@ -402,7 +402,11 @@ module Gist
     env = ENV['http_proxy'] || ENV['HTTP_PROXY']
     connection = if env
                    proxy = URI(env)
-                   Net::HTTP::Proxy(proxy.host, proxy.port).new(uri.host, uri.port)
+                   if proxy.user
+                     Net::HTTP::Proxy(proxy.host, proxy.port, proxy.user, proxy.password).new(uri.host, uri.port)
+                   else
+                     Net::HTTP::Proxy(proxy.host, proxy.port).new(uri.host, uri.port)
+                   end
                  else
                    Net::HTTP.new(uri.host, uri.port)
                  end
