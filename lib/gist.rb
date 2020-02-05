@@ -136,9 +136,9 @@ module Gist
 
     url = "#{base_path}/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
-    url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
     request = Net::HTTP::Post.new(url)
+    request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
     request.body = JSON.dump(json)
     request.content_type = 'application/json'
 
@@ -174,9 +174,10 @@ module Gist
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
-        url << "/gists?access_token=" << CGI.escape(access_token)
+        url << "/gists"
 
         request = Net::HTTP::Get.new(url)
+        request['Authorization'] = "token #{access_token}"
         response = http(api_url, request)
 
         pretty_gist(response)
@@ -201,8 +202,8 @@ module Gist
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
-        url << "/gists?per_page=100&access_token=" << CGI.escape(access_token)
-        get_gist_pages(url)
+        url << "/gists?per_page=100"
+        get_gist_pages(url, access_token)
       else
         raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
       end
@@ -218,11 +219,9 @@ module Gist
     url = "#{base_path}/gists/#{id}"
 
     access_token = auth_token()
-    if access_token.to_s != ''
-      url << "?access_token=" << CGI.escape(access_token)
-    end
 
     request = Net::HTTP::Get.new(url)
+    request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
     response = http(api_url, request)
 
     if response.code == '200'
@@ -248,9 +247,8 @@ module Gist
 
     access_token = auth_token()
     if access_token.to_s != ''
-      url << "?access_token=" << CGI.escape(access_token)
-
       request = Net::HTTP::Delete.new(url)
+      request["Authorization"] = "token #{access_token}"
       response = http(api_url, request)
     else
       raise Error, "Not authenticated. Use 'gist --login' to login."
@@ -263,9 +261,10 @@ module Gist
     end
   end
 
-  def get_gist_pages(url)
+  def get_gist_pages(url, access_token = "")
 
     request = Net::HTTP::Get.new(url)
+    request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
     response = http(api_url, request)
     pretty_gist(response)
 
@@ -273,7 +272,7 @@ module Gist
 
     if link_header
       links = Hash[ link_header.gsub(/(<|>|")/, "").split(',').map { |link| link.split('; rel=') } ].invert
-      get_gist_pages(links['next']) if links['next']
+      get_gist_pages(links['next'], access_token) if links['next']
     end
 
   end
