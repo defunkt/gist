@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email         = ['conrad.irwin@gmail.com', 'rkingist@sharpsaw.org']
   s.authors       = ['Conrad Irwin', '☈king']
   s.license       = 'MIT'
-  s.files         = `git ls-files`.split("\n")
+  s.files         = `git ls-files`.split("\n") - Dir.glob("build/*") - [".gitignore"]
   s.require_paths = ["lib"]
 
   s.executables << 'gist'
