@@ -102,8 +102,9 @@ file.
 #### Password-less login
 
 If you have a complicated authorization requirement you can manually create a
-token file by pasting a GitHub token with only the `gist` permission into a
-file called `~/.gist`. You can create one from https://github.com/settings/tokens
+token file by pasting a GitHub token with `gist` scope (and maybe the `user:email`
+for GitHub Enterprise) into a file called `~/.gist`. You can create one from
+https://github.com/settings/tokens
 
 This file should contain only the token (~40 hex characters), and to make it
 easier to edit, can optionally have a final newline (`\n` or `\r\n`).
@@ -156,7 +157,7 @@ If you need more advanced features you can also pass:
 * `:copy` to copy the resulting URL to the clipboard (default is false).
 * `:open` to open the resulting URL in a browser (default is false).
 
-NOTE: The access_token must have the "gist" scope.
+NOTE: The access_token must have the `gist` scope and may also require the `user:email` scope.
 
 ‌If you want to upload multiple files in the same gist, you can:
 
