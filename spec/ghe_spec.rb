@@ -5,10 +5,10 @@ describe '...' do
   MOCK_USER         = 'foo'
   MOCK_PASSWORD     = 'bar'
 
-  MOCK_AUTHZ_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_USER}:#{MOCK_PASSWORD}@#{MOCK_GHE_HOST}/api/v3/"
+  MOCK_AUTHZ_GHE_URL    = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
   MOCK_GHE_URL          = "#{MOCK_GHE_PROTOCOL}://#{MOCK_GHE_HOST}/api/v3/"
-  MOCK_AUTHZ_GITHUB_URL = "https://#{MOCK_USER}:#{MOCK_PASSWORD}@api.github.com/"
   MOCK_GITHUB_URL       = "https://api.github.com/"
+  MOCK_LOGIN_URL        = "https://github.com/"
 
   before do
     @saved_env = ENV[Gist::URL_ENV_NAME]
@@ -20,8 +20,15 @@ describe '...' do
     # stub requests for /authorizations
     stub_request(:post, /#{MOCK_AUTHZ_GHE_URL}authorizations/).
       to_return(:status => 201, :body => '{"token": "asdf"}')
-    stub_request(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/).
+    stub_request(:post, /#{MOCK_GITHUB_URL}authorizations/).
+      with(headers: {'Authorization'=>'Basic Zm9vOmJhcg=='}).
       to_return(:status => 201, :body => '{"token": "asdf"}')
+
+    stub_request(:post, /#{MOCK_LOGIN_URL}login\/device\/code/).
+      to_return(:status => 200, :body => '{"interval": "0.1", "user_code":"XXXX-XXXX", "device_code": "xxxx", "verification_uri": "https://github.com/login/device"}')
+
+    stub_request(:post, /#{MOCK_LOGIN_URL}login\/oauth\/access_token/).
+      to_return(:status => 200, :body => '{"access_token":"zzzz"}')
   end
 
   after do
@@ -48,7 +55,7 @@ describe '...' do
 
       Gist.login!
 
-      assert_requested(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/)
+      assert_requested(:post, /#{MOCK_LOGIN_URL}login\/oauth\/access_token/)
     end
 
     it "should access to #{MOCK_GHE_HOST} when $#{Gist::URL_ENV_NAME} was set" do
@@ -65,7 +72,7 @@ describe '...' do
         $stdin = StringIO.new "#{MOCK_USER}_wrong\n#{MOCK_PASSWORD}_wrong\n"
         Gist.login! :username => MOCK_USER, :password => MOCK_PASSWORD
 
-        assert_requested(:post, /#{MOCK_AUTHZ_GITHUB_URL}authorizations/)
+        assert_requested(:post, /#{MOCK_GITHUB_URL}authorizations/)
       end
 
     end
