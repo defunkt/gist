@@ -200,19 +200,12 @@ module Gist
     url = "#{base_path}"
 
     if user == ""
-      access_token = auth_token()
-      if access_token.to_s != ''
-        url << "/gists?per_page=100"
-        get_gist_pages(url, access_token)
-      else
-        raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
-      end
-
+      url << "/gists?per_page=100"
     else
       url << "/users/#{user}/gists?per_page=100"
-      get_gist_pages(url)
     end
 
+    get_gist_pages(url, auth_token())
   end
 
   def read_gist(id, file_name=nil)
