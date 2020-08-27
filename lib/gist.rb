@@ -12,7 +12,7 @@ end
 module Gist
   extend self
 
-  VERSION = '5.1.0'
+  VERSION = '6.0.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -23,12 +23,16 @@ module Gist
   }
 
   GITHUB_API_URL   = URI("https://api.github.com/")
+  GITHUB_URL       = URI("https://github.com/")
   GIT_IO_URL       = URI("https://git.io")
 
   GITHUB_BASE_PATH = ""
   GHE_BASE_PATH    = "/api/v3"
 
+  GITHUB_CLIENT_ID = '4f7ec0d4eab38e74384e'
+
   URL_ENV_NAME     = "GITHUB_URL"
+  CLIENT_ID_ENV_NAME = "GIST_CLIENT_ID"
 
   USER_AGENT       = "gist/#{VERSION} (Net::HTTP, #{RUBY_DESCRIPTION})"
 
@@ -329,15 +333,71 @@ module Gist
 
   # Log the user into gist.
   #
+  def login!(credentials={})
+    if (login_url == GITHUB_URL || ENV.key?(CLIENT_ID_ENV_NAME)) && credentials.empty? && !ENV.key?('GIST_USE_USERNAME_AND_PASSWORD')
+      device_flow_login!
+    else
+      access_token_login!(credentials)
+    end
+  end
+
+  def device_flow_login!
+    puts "Requesting login parameters..."
+    request = Net::HTTP::Post.new("/login/device/code")
+    request.body = JSON.dump({
+      :scope => 'gist',
+      :client_id => client_id,
+    })
+    request.content_type = 'application/json'
+    request['accept'] = "application/json"
+    response = http(login_url, request)
+
+    if response.code != '200'
+      raise Error, "HTTP #{response.code}: #{response.body}"
+    end
+
+    body = JSON.parse(response.body)
+
+    puts "Please sign in at #{body['verification_uri']}"
+    puts "  and enter code: #{body['user_code']}"
+    device_code = body['device_code']
+    interval = body['interval']
+
+    loop do
+      sleep(interval.to_i)
+      request = Net::HTTP::Post.new("/login/oauth/access_token")
+      request.body = JSON.dump({
+        :client_id => client_id,
+        :grant_type => 'urn:ietf:params:oauth:grant-type:device_code',
+        :device_code => device_code
+      })
+      request.content_type = 'application/json'
+      request['Accept'] = 'application/json'
+      response = http(login_url, request)
+      if response.code != '200'
+        raise Error, "HTTP #{response.code}: #{response.body}"
+      end
+      body = JSON.parse(response.body)
+      break unless body['error'] == 'authorization_pending'
+    end
+
+    if body['error']
+      raise Error, body['error_description']
+    end
+
+    AuthTokenFile.write JSON.parse(response.body)['access_token']
+
+    puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/connections/applications/#{client_id}"
+  end
+
+  # Logs the user into gist.
+  #
   # This method asks the user for a username and password, and tries to obtain
   # and OAuth2 access token, which is then stored in ~/.gist
   #
   # @raise [Gist::Error]  if something went wrong
-  # @param [Hash] credentials  login details
-  # @option credentials [String] :username
-  # @option credentials [String] :password
   # @see http://developer.github.com/v3/oauth/
-  def login!(credentials={})
+  def access_token_login!(credentials={})
     puts "Obtaining OAuth2 access_token from GitHub."
     loop do
       print "GitHub username: "
@@ -548,9 +608,17 @@ Could not find copy command, tried:
     ENV.key?(URL_ENV_NAME) ? GHE_BASE_PATH : GITHUB_BASE_PATH
   end
 
+  def login_url
+    ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_URL
+  end
+
   # Get the API URL
   def api_url
     ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_API_URL
+  end
+
+  def client_id
+    ENV.key?(CLIENT_ID_ENV_NAME) ? URI(ENV[CLIENT_ID_ENV_NAME]) : GITHUB_CLIENT_ID
   end
 
   def legacy_private_gister?
