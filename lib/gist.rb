@@ -212,10 +212,13 @@ module Gist
     get_gist_pages(url, auth_token())
   end
 
-  def read_gist(id, file_name=nil)
+  def read_gist(id, file_name=nil, options={})
     url = "#{base_path}/gists/#{id}"
 
-    access_token = auth_token()
+    access_token = (options[:access_token] || auth_token())
+    if access_token.to_s != ''
+      url << "?access_token=" << CGI.escape(access_token)
+    end
 
     request = Net::HTTP::Get.new(url)
     request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
@@ -232,7 +235,7 @@ module Gist
         file = files.values.first
       end
 
-      puts file["content"]
+      file["content"]
     else
       raise Error, "Gist with id of #{id} does not exist."
     end
