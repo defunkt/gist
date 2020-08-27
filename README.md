@@ -84,9 +84,26 @@ To read a gist and print it to STDOUT
 
 ## Login
 
-If you want to associate your gists with your GitHub account, you need to login
-with gist. It doesn't store your username and password, it just uses them to get
-an OAuth2 token (with the "gist" permission).
+Before you use `gist` for the first time you will need to log in. There are two supported login flows:
+
+1. The Github device-code Oauth flow. This is the default for authenticating to github.com, and can be enabled for Github Enterprise by creating an Oauth app, and exporting the environment variable `GIST_CLIENT_ID` with the client id of the Oauth app.
+2. The (deprecated) username and password token exchange flow. This is the default for GitHub Enterprise, and can be used to log into github.com by exporting the environment variable `GIST_USE_USERNAME_AND_PASSWORD`.
+
+### The device-code flow
+
+This flow allows you to obtain a token by logging into GitHub in the browser and typing a verification code. This is the preferred mechanism.
+
+    gist --login
+    Requesting login parameters...
+    Please sign in at https://github.com/login/device
+      and enter code: XXXX-XXXX
+    Success! https://github.com/settings/connections/applications/4f7ec0d4eab38e74384e
+
+The returned access_token is stored in `~/.gist` and used for all future gisting.  If you need to you can revoke access from  https://github.com/settings/connections/applications/4f7ec0d4eab38e74384e.
+
+### The username-password flow
+
+This flow asks for your GitHub username and password (and 2FA code), and exchanges them for a token with the "gist" permission (your username and password are not stored). This mechanism is deprecated by GitHub, but may still work with GitHub Enterprise.
 
     gist --login
     Obtaining OAuth2 access_token from GitHub.
@@ -102,8 +119,9 @@ file.
 #### Password-less login
 
 If you have a complicated authorization requirement you can manually create a
-token file by pasting a GitHub token with only the `gist` permission into a
-file called `~/.gist`. You can create one from https://github.com/settings/tokens
+token file by pasting a GitHub token with `gist` scope (and maybe the `user:email`
+for GitHub Enterprise) into a file called `~/.gist`. You can create one from
+https://github.com/settings/tokens
 
 This file should contain only the token (~40 hex characters), and to make it
 easier to edit, can optionally have a final newline (`\n` or `\r\n`).
@@ -156,7 +174,7 @@ If you need more advanced features you can also pass:
 * `:copy` to copy the resulting URL to the clipboard (default is false).
 * `:open` to open the resulting URL in a browser (default is false).
 
-NOTE: The access_token must have the "gist" scope.
+NOTE: The access_token must have the `gist` scope and may also require the `user:email` scope.
 
 ‌If you want to upload multiple files in the same gist, you can:
 

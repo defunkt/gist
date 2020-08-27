@@ -12,7 +12,7 @@ end
 module Gist
   extend self
 
-  VERSION = '5.0.0'
+  VERSION = '6.0.0'
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
@@ -23,12 +23,16 @@ module Gist
   }
 
   GITHUB_API_URL   = URI("https://api.github.com/")
+  GITHUB_URL       = URI("https://github.com/")
   GIT_IO_URL       = URI("https://git.io")
 
   GITHUB_BASE_PATH = ""
   GHE_BASE_PATH    = "/api/v3"
 
+  GITHUB_CLIENT_ID = '4f7ec0d4eab38e74384e'
+
   URL_ENV_NAME     = "GITHUB_URL"
+  CLIENT_ID_ENV_NAME = "GIST_CLIENT_ID"
 
   USER_AGENT       = "gist/#{VERSION} (Net::HTTP, #{RUBY_DESCRIPTION})"
 
@@ -44,7 +48,7 @@ module Gist
   module AuthTokenFile
     def self.filename
       if ENV.key?(URL_ENV_NAME)
-        File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/:/, '.').gsub(/[^a-z0-9.]/, '')}"
+        File.expand_path "~/.gist.#{ENV[URL_ENV_NAME].gsub(/:/, '.').gsub(/[^a-z0-9.-]/, '')}"
       else
         File.expand_path "~/.gist"
       end
@@ -136,9 +140,9 @@ module Gist
 
     url = "#{base_path}/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
-    url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
     request = Net::HTTP::Post.new(url)
+    request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
     request.body = JSON.dump(json)
     request.content_type = 'application/json'
 
@@ -174,9 +178,10 @@ module Gist
     if user == ""
       access_token = auth_token()
       if access_token.to_s != ''
-        url << "/gists?access_token=" << CGI.escape(access_token)
+        url << "/gists"
 
         request = Net::HTTP::Get.new(url)
+        request['Authorization'] = "token #{access_token}"
         response = http(api_url, request)
 
         pretty_gist(response)
@@ -199,19 +204,12 @@ module Gist
     url = "#{base_path}"
 
     if user == ""
-      access_token = auth_token()
-      if access_token.to_s != ''
-        url << "/gists?per_page=100&access_token=" << CGI.escape(access_token)
-        get_gist_pages(url)
-      else
-        raise Error, "Not authenticated. Use 'gist --login' to login or 'gist -l username' to view public gists."
-      end
-
+      url << "/gists?per_page=100"
     else
       url << "/users/#{user}/gists?per_page=100"
-      get_gist_pages(url)
     end
 
+    get_gist_pages(url, auth_token())
   end
 
   def read_gist(id, file_name=nil, options={})
@@ -223,6 +221,7 @@ module Gist
     end
 
     request = Net::HTTP::Get.new(url)
+    request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
     response = http(api_url, request)
 
     if response.code == '200'
@@ -248,9 +247,8 @@ module Gist
 
     access_token = auth_token()
     if access_token.to_s != ''
-      url << "?access_token=" << CGI.escape(access_token)
-
       request = Net::HTTP::Delete.new(url)
+      request["Authorization"] = "token #{access_token}"
       response = http(api_url, request)
     else
       raise Error, "Not authenticated. Use 'gist --login' to login."
@@ -263,9 +261,10 @@ module Gist
     end
   end
 
-  def get_gist_pages(url)
+  def get_gist_pages(url, access_token = "")
 
     request = Net::HTTP::Get.new(url)
+    request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
     response = http(api_url, request)
     pretty_gist(response)
 
@@ -273,7 +272,7 @@ module Gist
 
     if link_header
       links = Hash[ link_header.gsub(/(<|>|")/, "").split(',').map { |link| link.split('; rel=') } ].invert
-      get_gist_pages(links['next']) if links['next']
+      get_gist_pages(links['next'], access_token) if links['next']
     end
 
   end
@@ -337,15 +336,71 @@ module Gist
 
   # Log the user into gist.
   #
+  def login!(credentials={})
+    if (login_url == GITHUB_URL || ENV.key?(CLIENT_ID_ENV_NAME)) && credentials.empty? && !ENV.key?('GIST_USE_USERNAME_AND_PASSWORD')
+      device_flow_login!
+    else
+      access_token_login!(credentials)
+    end
+  end
+
+  def device_flow_login!
+    puts "Requesting login parameters..."
+    request = Net::HTTP::Post.new("/login/device/code")
+    request.body = JSON.dump({
+      :scope => 'gist',
+      :client_id => client_id,
+    })
+    request.content_type = 'application/json'
+    request['accept'] = "application/json"
+    response = http(login_url, request)
+
+    if response.code != '200'
+      raise Error, "HTTP #{response.code}: #{response.body}"
+    end
+
+    body = JSON.parse(response.body)
+
+    puts "Please sign in at #{body['verification_uri']}"
+    puts "  and enter code: #{body['user_code']}"
+    device_code = body['device_code']
+    interval = body['interval']
+
+    loop do
+      sleep(interval.to_i)
+      request = Net::HTTP::Post.new("/login/oauth/access_token")
+      request.body = JSON.dump({
+        :client_id => client_id,
+        :grant_type => 'urn:ietf:params:oauth:grant-type:device_code',
+        :device_code => device_code
+      })
+      request.content_type = 'application/json'
+      request['Accept'] = 'application/json'
+      response = http(login_url, request)
+      if response.code != '200'
+        raise Error, "HTTP #{response.code}: #{response.body}"
+      end
+      body = JSON.parse(response.body)
+      break unless body['error'] == 'authorization_pending'
+    end
+
+    if body['error']
+      raise Error, body['error_description']
+    end
+
+    AuthTokenFile.write JSON.parse(response.body)['access_token']
+
+    puts "Success! #{ENV[URL_ENV_NAME] || "https://github.com/"}settings/connections/applications/#{client_id}"
+  end
+
+  # Logs the user into gist.
+  #
   # This method asks the user for a username and password, and tries to obtain
   # and OAuth2 access token, which is then stored in ~/.gist
   #
   # @raise [Gist::Error]  if something went wrong
-  # @param [Hash] credentials  login details
-  # @option credentials [String] :username
-  # @option credentials [String] :password
   # @see http://developer.github.com/v3/oauth/
-  def login!(credentials={})
+  def access_token_login!(credentials={})
     puts "Obtaining OAuth2 access_token from GitHub."
     loop do
       print "GitHub username: "
@@ -402,7 +457,11 @@ module Gist
     env = ENV['http_proxy'] || ENV['HTTP_PROXY']
     connection = if env
                    proxy = URI(env)
-                   Net::HTTP::Proxy(proxy.host, proxy.port).new(uri.host, uri.port)
+                   if proxy.user
+                     Net::HTTP::Proxy(proxy.host, proxy.port, proxy.user, proxy.password).new(uri.host, uri.port)
+                   else
+                     Net::HTTP::Proxy(proxy.host, proxy.port).new(uri.host, uri.port)
+                   end
                  else
                    Net::HTTP.new(uri.host, uri.port)
                  end
@@ -556,9 +615,17 @@ Could not find copy command, tried:
     ENV.key?(URL_ENV_NAME) ? GHE_BASE_PATH : GITHUB_BASE_PATH
   end
 
+  def login_url
+    ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_URL
+  end
+
   # Get the API URL
   def api_url
     ENV.key?(URL_ENV_NAME) ? URI(ENV[URL_ENV_NAME]) : GITHUB_API_URL
+  end
+
+  def client_id
+    ENV.key?(CLIENT_ID_ENV_NAME) ? URI(ENV[CLIENT_ID_ENV_NAME]) : GITHUB_CLIENT_ID
   end
 
   def legacy_private_gister?
