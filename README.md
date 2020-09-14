@@ -25,6 +25,11 @@ upload content to https://gist.github.com/.
 
     pkg install gist
 
+<200c>For Ubuntu/Debian
+
+    apt install gist
+
+Note: Debian renames the binary to `gist-paste` to avoid a name conflict.
 
 ## Command
 
