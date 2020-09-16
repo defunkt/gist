@@ -119,7 +119,7 @@ This token is stored in `~/.gist` and used for all future gisting. If you need t
 you can revoke it from https://github.com/settings/tokens, or just delete the
 file.
 
-#### Password-less login
+### Password-less login
 
 If you have a complicated authorization requirement you can manually create a
 token file by pasting a GitHub token with `gist` scope (and maybe the `user:email`
