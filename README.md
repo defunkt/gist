@@ -8,84 +8,82 @@ upload content to https://gist.github.com/.
 
 ## Installation
 
-If you have ruby installed:
+* If you have ruby installed:
 
     gem install gist
 
-If you're using Bundler:
+* If you're using Bundler:
 
     source :rubygems
     gem 'gist'
 
-For OS X, gist lives in Homebrew
+* For OS X, `gist` lives in Homebrew
 
     brew install gist
 
-For FreeBSD, gist lives in ports
+* For FreeBSD, `gist` lives in ports
 
     pkg install gist
 
-For Ubuntu/Debian
+* For Ubuntu/Debian, `gist` has been renamed to `gist-paste` to avoid a name conflict
 
     apt install gist
 
-Note: Debian renames the binary to `gist-paste` to avoid a name conflict.
-
 ## Command
 
-To upload the contents of `a.rb` just:
+* To upload the contents of `a.rb` just:
 
     gist a.rb
 
-Upload multiple files:
+* Upload multiple files:
 
     gist a b c
     gist *.rb
 
-By default it reads from STDIN, and you can set a filename with `-f`.
+* By default it reads from STDIN, and you can set a filename with `-f`.
 
     gist -f test.rb <a.rb
 
-Alternatively, you can just paste from the clipboard:
+* Alternatively, you can just paste from the clipboard:
 
     gist -P
 
-Use `-p` to make the gist private:
+* Use `-p` to make the gist private:
 
     gist -p a.rb
 
-Use `-d` to add a description:
+* Use `-d` to add a description:
 
     gist -d "Random rbx bug" a.rb
 
-You can update existing gists with `-u`:
+* You can update existing gists with `-u`:
 
     gist -u GIST_ID FILE_NAME
     gist -u 42f2c239d2eb57299408 test.txt
 
-If you'd like to copy the resulting URL to your clipboard, use `-c`.
+* If you'd like to copy the resulting URL to your clipboard, use `-c`.
 
     gist -c <a.rb
 
-If you'd like to copy the resulting embeddable URL to your clipboard, use `-e`.
+* If you'd like to copy the resulting embeddable URL to your clipboard, use `-e`.
 
     gist -e <a.rb
 
-And you can just ask gist to open a browser window directly with `-o`.
+* And you can just ask gist to open a browser window directly with `-o`.
 
     gist -o <a.rb
 
-To list (public gists or all gists for authed user) gists for user
+* To list (public gists or all gists for authed user) gists for user
 
     gist -l : all gists for authed user
     gist -l defunkt : list defunkt's public gists
 
-To read a gist and print it to STDOUT
+* To read a gist and print it to STDOUT
 
     gist -r GIST_ID
     gist -r 374130
 
-See `gist --help` for more detail.
+* See `gist --help` for more detail.
 
 ## Login
 
@@ -119,7 +117,7 @@ This flow asks for your GitHub username and password (and 2FA code), and exchang
 
 This token is stored in `~/.gist` and used for all future gisting. If you need to
 you can revoke it from https://github.com/settings/tokens, or just delete the
-file. 
+file.
 
 #### Password-less login
 
@@ -165,7 +163,7 @@ Error: Bad credentials
 
 # Library
 
-You can also use Gist as a library from inside your ruby code:
+* You can also use Gist as a library from inside your ruby code:
 
     Gist.gist("Look.at(:my => 'awesome').code")
 
@@ -181,11 +179,11 @@ If you need more advanced features you can also pass:
 
 NOTE: The access_token must have the `gist` scope and may also require the `user:email` scope.
 
-If you want to upload multiple files in the same gist, you can:
+* If you want to upload multiple files in the same gist, you can:
 
     Gist.multi_gist("a.rb" => "Foo.bar", "a.py" => "Foo.bar")
 
-If you'd rather use gist's builtin access_token, then you can force the user
+* If you'd rather use gist's builtin access_token, then you can force the user
   to obtain one by calling:
 
     Gist.login!
@@ -195,12 +193,12 @@ in `~/.gist`, where it can later be read by `Gist.gist`
 
 ## Configuration
 
-If you'd like `-o` or `-c` to be the default when you use the gist executable, add an
+* If you'd like `-o` or `-c` to be the default when you use the gist executable, add an
 alias to your `~/.bashrc` (or equivalent). For example:
 
     alias gist='gist -c'
 
-If you'd prefer gist to open a different browser, then you can export the BROWSER
+* If you'd prefer gist to open a different browser, then you can export the BROWSER
 environment variable:
 
     export BROWSER=google-chrome
