@@ -156,10 +156,9 @@ setting it to the public URL will not work. Use `unset GITHUB_URL`
 
 If you cannot use passwords, as most Enterprise installations do, you can generate the token via the web interface
 and then simply save the string in the correct file. Avoid line breaks or you might see:
-```
-$ gist -l
-Error: Bad credentials
-```
+
+    $ gist -l
+    Error: Bad credentials
 
 # Library
 
