@@ -190,7 +190,7 @@ If you'd rather use gist's builtin access_token, then you can force the user
 
     Gist.login!
 
-‌This will take them through the process of obtaining an OAuth2 token, and storing it
+This will take them through the process of obtaining an OAuth2 token, and storing it
 in `~/.gist`, where it can later be read by `Gist.gist`
 
 ## Configuration
