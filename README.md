@@ -1,5 +1,18 @@
 gist(1) -- upload code to https://gist.github.com
 =================================================
+*
+  * [Synopsis](#synopsis)
+  * [Installation](#installation)
+  * [Command](#command)
+  * [Login](#login)
+    * [The device\-code flow](#the-device-code-flow)
+    * [The username\-password flow](#the-username-password-flow)
+      * [Password\-less login](#password-less-login)
+    * [GitHub Enterprise](#github-enterprise)
+    * [Token file format](#token-file-format)
+* [Library](#library)
+  * [Configuration](#configuration)
+  * [Meta\-fu](#meta-fu)
 
 ## Synopsis
 
