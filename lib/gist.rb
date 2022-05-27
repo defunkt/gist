@@ -103,7 +103,7 @@ module Gist
   # @option options [Boolean] :skip_empty (false) Skip gisting empty files.
   # @option options [Symbol] :output (:all) The type of return value you'd like:
   #   :html_url gives a String containing the url to the gist in a browser
-  #   :short_url gives a String contianing a  git.io url that redirects to html_url
+  #   :short_url gives a String containing a  git.io url that redirects to html_url
   #   :javascript gives a String containing a script tag suitable for embedding the gist
   #   :all gives a Hash containing the parsed json response from the server
   #
