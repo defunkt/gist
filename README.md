@@ -25,7 +25,7 @@ upload content to https://gist.github.com/.
 
     pkg install gist
 
-<200c>For Ubuntu/Debian
+‌For Ubuntu/Debian
 
     apt install gist
 
