@@ -216,9 +216,6 @@ module Gist
     url = "#{base_path}/gists/#{id}"
 
     access_token = (options[:access_token] || auth_token())
-    if access_token.to_s != ''
-      url << "?access_token=" << CGI.escape(access_token)
-    end
 
     request = Net::HTTP::Get.new(url)
     request['Authorization'] = "token #{access_token}" if access_token.to_s != ''
@@ -467,7 +464,7 @@ module Gist
                  end
     if uri.scheme == "https"
       connection.use_ssl = true
-      connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      connection.verify_mode = OpenSSL::SSL::VERIFY_PEER
     end
     connection.open_timeout = 10
     connection.read_timeout = 10
