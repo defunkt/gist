@@ -31,6 +31,11 @@ upload content to https://gist.github.com/.
 
 Note: Debian renames the binary to `gist-paste` to avoid a name conflict.
 
+For Fedora
+
+    dnf install rubygem-gist
+
+
 ## Command
 
 ‌To upload the contents of `a.rb` just:
